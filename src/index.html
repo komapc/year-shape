@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Modern interactive calendar visualization with morphing seasonal shapes" />
+  <meta name="theme-color" content="#0a0e1a" />
+  
+  <title>Year Shape Calendar</title>
+  
+  <!-- Preconnect to Google APIs -->
+  <link rel="preconnect" href="https://accounts.google.com" />
+  
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Google API Client -->
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+</head>
+<body>
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="w-full max-w-7xl mx-auto px-6 py-6">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+            Year Shape Calendar
+          </h1>
+          <button 
+            id="toggleControls" 
+            class="btn text-xs"
+            aria-label="Toggle controls panel"
+            title="Toggle controls"
+          >
+            ⚙️
+          </button>
+          <button 
+            id="toggleAbout" 
+            class="btn text-xs"
+            aria-label="Toggle about panel"
+            title="Toggle about"
+          >
+            ℹ️
+          </button>
+        </div>
+        
+        <div id="controlsPanel" class="flex items-center gap-3 flex-wrap">
+          <!-- Corner radius control -->
+          <div class="flex items-center gap-3 glass px-4 py-2 rounded-lg border border-dark-border">
+            <label for="radiusRange" class="text-sm text-dark-muted whitespace-nowrap">
+              Corner Radius
+            </label>
+            <input 
+              id="radiusRange" 
+              type="range" 
+              min="0" 
+              max="50" 
+              value="50"
+              class="w-32 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer
+                     [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+                     [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary-500 
+                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
+                     [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 
+                     [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:rounded-full
+                     [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+              aria-label="Adjust corner radius to morph between circle and square"
+            />
+          </div>
+
+          <!-- Direction toggle -->
+          <button 
+            id="toggleDirection" 
+            class="btn flex items-center gap-2"
+            aria-label="Toggle time flow direction"
+          >
+            <span class="direction-icon">↺</span>
+            <span>CCW</span>
+          </button>
+
+          <!-- Swap seasons -->
+          <button 
+            id="swapSeasons" 
+            class="btn"
+            aria-label="Swap winter and summer positions"
+          >
+            Swap Seasons
+          </button>
+
+          <!-- Refresh events -->
+          <button 
+            id="refreshEvents" 
+            class="btn"
+            aria-label="Refresh calendar events"
+          >
+            <span class="text-lg">⟳</span>
+            <span>Refresh</span>
+          </button>
+
+          <!-- Google Sign In -->
+          <button 
+            id="signInBtn" 
+            class="btn primary flex items-center gap-2"
+            aria-label="Sign in with Google Calendar"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span>Sign in</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 w-full max-w-7xl mx-auto px-6 py-8">
+      <div class="grid lg:grid-cols-[1fr_280px] gap-8">
+        <!-- Calendar Visualization -->
+        <div class="flex flex-col items-center gap-6">
+          <div class="shape-wrap" style="border-radius: 50%;">
+            <div 
+              id="yearShape" 
+              class="absolute inset-[8%]"
+              role="img"
+              aria-label="Year calendar shape with 52 weeks arranged in seasonal quadrants"
+            >
+              <!-- Week elements will be inserted here by JavaScript -->
+            </div>
+
+            <!-- Season Labels -->
+            <span class="season-label" data-season="winter">Winter</span>
+            <span class="season-label" data-season="spring">Spring</span>
+            <span class="season-label" data-season="summer">Summer</span>
+            <span class="season-label" data-season="autumn">Autumn</span>
+          </div>
+
+          <!-- Legend -->
+          <div class="flex items-center gap-6 text-sm text-dark-muted">
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 rounded bg-primary-500 border border-primary-500"></div>
+              <span>Has events</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 rounded bg-transparent border border-dark-border"></div>
+              <span>No events</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <aside id="aboutPanel" class="glass rounded-xl border border-dark-border p-6 hidden">
+          <h2 class="text-lg font-semibold mb-4 text-gray-200">About</h2>
+          
+          <div class="space-y-4 text-sm text-dark-muted">
+            <p>
+              An interactive calendar that visualizes the entire year as a morphing shape.
+            </p>
+            
+            <div>
+              <h3 class="font-medium text-gray-300 mb-2">Features:</h3>
+              <ul class="space-y-2 list-disc list-inside">
+                <li>Morph between circle and square</li>
+                <li>52 weeks in seasonal quadrants</li>
+                <li>Toggle flow direction</li>
+                <li>Swap season positions</li>
+                <li>Google Calendar integration</li>
+                <li>Soviet-style weekly diary view</li>
+              </ul>
+            </div>
+
+            <div class="pt-4 border-t border-dark-border">
+              <p class="text-xs">
+                <strong class="text-gray-300">Tip:</strong> Click any week to see detailed daily view with events.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-7xl mx-auto px-6 py-6 text-center text-sm text-dark-muted no-print">
+      <p>Year Shape Calendar © 2025 - A modern calendar visualization experience</p>
+    </footer>
+  </div>
+
+  <!-- Week Detail Modal -->
+  <div id="weekModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="weekTitle">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 id="weekTitle" class="text-xl font-semibold text-gray-100">
+          Week Details
+        </h2>
+        <button 
+          id="closeModal" 
+          class="text-2xl text-dark-muted hover:text-gray-100 transition-colors
+                 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10"
+          aria-label="Close modal"
+        >
+          ×
+        </button>
+      </div>
+
+      <!-- Soviet Diary Layout (4 left + 3 right) -->
+      <div class="soviet-diary grid grid-cols-1 md:grid-cols-[4fr_3fr] gap-4">
+        <div id="daysLeft" class="flex flex-col gap-3">
+          <!-- First 4 days will be inserted here -->
+        </div>
+        <div id="daysRight" class="flex flex-col gap-3">
+          <!-- Last 3 days will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/main.ts"></script>
+</body>
+</html>
+
