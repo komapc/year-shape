@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
   root: 'src',
-  base: '/year-shape/', // GitHub Pages base path
+  base: process.env.NODE_ENV === 'production' ? '/year-shape/' : '/',
   build: {
     outDir: '../dist',
     emptyOutDir: true,
