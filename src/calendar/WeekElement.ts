@@ -25,8 +25,8 @@ export class WeekElement {
     const element = createElement('div', [
       'week',
       'absolute',
-      'w-3',
-      'h-3',
+      'w-2',
+      'h-2',
       'rounded-sm',
       'transition-all',
       'duration-300',
@@ -34,7 +34,7 @@ export class WeekElement {
       'border',
       'border-dark-border',
       'bg-transparent',
-      'hover:scale-[2]',
+      'hover:scale-[2.5]',
       'hover:z-10',
     ]);
 
@@ -64,9 +64,9 @@ export class WeekElement {
    * Set position of the week element
    */
   setPosition = (x: number, y: number): void => {
-    // Center the element at the given position (element is 12px × 12px)
-    this.element.style.left = `${x - 6}px`;
-    this.element.style.top = `${y - 6}px`;
+    // Center the element at the given position (element is 8px × 8px)
+    this.element.style.left = `${x - 4}px`;
+    this.element.style.top = `${y - 4}px`;
   };
 
   /**
@@ -94,9 +94,12 @@ export class WeekElement {
     if (hasEvents) {
       this.element.classList.remove('bg-transparent', 'border-dark-border');
       this.element.classList.add('bg-primary-500', 'border-primary-500');
+      this.element.style.boxShadow = '0 0 8px rgba(59, 130, 246, 0.5)';
     } else {
       this.element.classList.remove('bg-primary-500', 'border-primary-500');
       this.element.classList.add('bg-transparent', 'border-dark-border');
+      this.element.style.boxShadow = 'none';
+      // Season color will be set separately
     }
 
     // Update title with event count
@@ -105,6 +108,16 @@ export class WeekElement {
       eventCount > 0
         ? `Week ${this.weekIndex + 1} - ${eventCount} event${eventCount > 1 ? 's' : ''}`
         : `Week ${this.weekIndex + 1}`;
+  };
+
+  /**
+   * Set season background color
+   */
+  setSeasonColor = (color: string): void => {
+    // Only apply to weeks without events
+    if (this.events.length === 0) {
+      this.element.style.backgroundColor = color;
+    }
   };
 
   /**

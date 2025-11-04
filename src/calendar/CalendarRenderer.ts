@@ -13,6 +13,7 @@ export class CalendarRenderer {
   private container: HTMLElement;
   private weeks: WeekElement[] = [];
   private monthLabels: HTMLElement[] = [];
+  private currentWeekIndicator: HTMLElement | null = null;
   private direction: Direction = -1;
   private seasons: Season[] = [...CALENDAR_CONFIG.defaultSeasons];
   private cornerRadius: number = 0.5; // 0 = square, 1 = circle
@@ -21,6 +22,7 @@ export class CalendarRenderer {
     this.container = container;
     this.initializeWeeks();
     this.initializeMonthLabels();
+    this.initializeCurrentWeekIndicator();
   }
 
   /**
@@ -68,16 +70,56 @@ export class CalendarRenderer {
   };
 
   /**
+   * Initialize current week indicator
+   */
+  private initializeCurrentWeekIndicator = (): void => {
+    const indicator = createElement('div', [
+      'current-week-indicator',
+      'absolute',
+      'pointer-events-none',
+      'transition-all',
+      'duration-300',
+    ]);
+    
+    // Simple triangle arrow pointing inward
+    indicator.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 2 L8 10 L5 7 M8 10 L11 7" 
+              stroke="#60a5fa" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"/>
+      </svg>
+    `;
+    
+    this.currentWeekIndicator = indicator;
+    this.container.appendChild(indicator);
+  };
+
+  /**
    * Layout weeks around the shape
    */
   layoutWeeks = (): void => {
     const rect = this.container.getBoundingClientRect();
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const radius = Math.min(centerX, centerY) * 0.85;
+    
+    // Adjust radius to keep weeks inside the shape border
+    // Smaller radius so weeks fit comfortably within the visible shape
+    const baseRadius = Math.min(centerX, centerY);
+    const radiusScale = 0.65 + (this.cornerRadius * 0.10); // 0.65-0.75 (tighter fit)
+    const radius = baseRadius * radiusScale;
 
     const startAngleRad = degreesToRadians(CALENDAR_CONFIG.startAngle);
 
+    // Season colors for week highlights
+    const seasonColors = [
+      'rgba(59, 130, 246, 0.15)',   // Winter - blue
+      'rgba(34, 197, 94, 0.15)',     // Spring - green
+      'rgba(251, 146, 60, 0.15)',    // Summer - orange
+      'rgba(168, 85, 247, 0.15)',    // Autumn - purple
+    ];
+    
     // Layout weeks
     this.weeks.forEach((week, index) => {
       const progress = index / CALENDAR_CONFIG.totalWeeks;
@@ -87,14 +129,18 @@ export class CalendarRenderer {
       
       week.setPosition(position.x, position.y);
       
-      // Update season
+      // Update season and apply color
       const seasonIndex = Math.floor(progress * 4);
       const season = this.seasons[seasonIndex % 4];
       week.setSeason(season);
+      week.setSeasonColor(seasonColors[seasonIndex % 4]);
     });
 
     // Layout month labels
     this.layoutMonthLabels(centerX, centerY, radius, startAngleRad);
+    
+    // Layout current week indicator
+    this.layoutCurrentWeekIndicator(centerX, centerY, radius, startAngleRad);
   };
 
   /**
@@ -106,20 +152,88 @@ export class CalendarRenderer {
     radius: number,
     startAngleRad: number
   ): void => {
+    const colors = [
+      '#60a5fa', '#93c5fd', '#3b82f6', // Winter: shades of blue
+      '#4ade80', '#86efac', '#22c55e', // Spring: shades of green
+      '#fb923c', '#fdba74', '#f97316', // Summer: shades of orange
+      '#c084fc', '#e9d5ff', '#a855f7', // Autumn: shades of purple
+    ];
+    
     this.monthLabels.forEach((label, monthIndex) => {
       const weekIndex = getMonthStartWeek(monthIndex);
       const progress = weekIndex / CALENDAR_CONFIG.totalWeeks;
       const angle = startAngleRad + this.direction * progress * Math.PI * 2;
       
-      // Position labels slightly outside the circle/square
-      const labelRadius = radius * 1.15;
+      // Position labels closer to the weeks
+      const labelRadius = radius * 1.18; // Closer to weeks for better readability
       const position = calculatePositionOnPath(centerX, centerY, labelRadius, angle, this.cornerRadius);
       
-      // Center the label
-      label.style.left = `${position.x}px`;
-      label.style.top = `${position.y}px`;
-      label.style.transform = 'translate(-50%, -50%)';
+      // Calculate angle in degrees for positioning logic
+      const angleDeg = ((angle * 180 / Math.PI) + 360) % 360;
+      
+      // Determine if label should be vertical based on position
+      // Left side: 135° to 225°, Right side: -45° to 45° (315° to 45°)
+      const isLeftSide = angleDeg > 135 && angleDeg < 225;
+      const isRightSide = angleDeg < 45 || angleDeg > 315;
+      
+      // Apply color from palette
+      label.style.color = colors[monthIndex];
+      
+      if (isLeftSide) {
+        // Vertical, rotated 180° (reading bottom to top)
+        label.style.writingMode = 'vertical-rl';
+        label.style.left = `${position.x}px`;
+        label.style.top = `${position.y}px`;
+        label.style.transform = 'translate(-100%, -50%) rotate(180deg)';
+      } else if (isRightSide) {
+        // Vertical, normal (reading top to bottom)
+        label.style.writingMode = 'vertical-rl';
+        label.style.left = `${position.x}px`;
+        label.style.top = `${position.y}px`;
+        label.style.transform = 'translate(0%, -50%)';
+      } else {
+        // Horizontal
+        label.style.writingMode = 'horizontal-tb';
+        label.style.left = `${position.x}px`;
+        label.style.top = `${position.y}px`;
+        label.style.transform = 'translate(-50%, -50%)';
+      }
     });
+  };
+
+  /**
+   * Layout current week indicator
+   */
+  private layoutCurrentWeekIndicator = (
+    centerX: number,
+    centerY: number,
+    radius: number,
+    startAngleRad: number
+  ): void => {
+    if (!this.currentWeekIndicator) return;
+    
+    // Calculate current week number (0-51)
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const diff = now.getTime() - startOfYear.getTime();
+    const oneWeek = 1000 * 60 * 60 * 24 * 7;
+    const currentWeek = Math.floor(diff / oneWeek);
+    
+    // Position indicator at current week
+    const progress = currentWeek / CALENDAR_CONFIG.totalWeeks;
+    const angle = startAngleRad + this.direction * progress * Math.PI * 2;
+    
+    // Position indicator just outside the week markers
+    const indicatorRadius = radius * 1.12; // Adjusted for smaller weeks circle
+    const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
+    
+    // Calculate rotation to point toward center
+    const rotationAngle = (angle * 180 / Math.PI) + 90;
+    
+    this.currentWeekIndicator.style.left = `${position.x}px`;
+    this.currentWeekIndicator.style.top = `${position.y}px`;
+    this.currentWeekIndicator.style.transform = `translate(-50%, -50%) rotate(${rotationAngle}deg)`;
+    this.currentWeekIndicator.style.opacity = '0.7';
   };
 
   /**

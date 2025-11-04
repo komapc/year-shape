@@ -42,18 +42,18 @@ export const getRadialModulation = (angle: number, cornerRadius = 0.5): number =
   const x = Math.cos(normalizedAngle);
   const y = Math.sin(normalizedAngle);
   
-  // Superellipse formula with INVERTED mapping
-  // cornerRadius: 0 = circle weeks, 1 = square weeks (opposite of border!)
-  // This way when border is square (0), weeks are circular, and vice versa
-  // Higher n = more square-like, lower n = more circle-like
-  const n = 2.0 + ((1 - cornerRadius) * 10); // Inverted: 12 when cornerRadius=0, 2 when cornerRadius=1
+  // Improved superellipse formula with smooth transition
+  // cornerRadius: 0 = square weeks, 1 = circle weeks
+  // Use higher exponent for sharper corners, lower for rounder
+  const n = 2.5 + ((1 - cornerRadius) * 8); // Range: 2.5 (circle) to 10.5 (square)
   
   // Calculate radius using superellipse formula
   const denominator = Math.pow(Math.abs(x), n) + Math.pow(Math.abs(y), n);
-  const r = Math.pow(denominator, -1 / n);
+  const r = denominator > 0 ? Math.pow(denominator, -1 / n) : 1.0;
   
-  // Normalize to ensure consistent size
-  const normalizationFactor = 1.0 + cornerRadius * 0.41;
+  // Better normalization for consistent perimeter
+  // As shape gets squarer, we need less adjustment
+  const normalizationFactor = 1.0 + cornerRadius * 0.35;
   
   return r * normalizationFactor;
 };

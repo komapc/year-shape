@@ -103,7 +103,9 @@
   }
 
   .season-label[data-season="spring"] {
-    @apply left-0 top-1/2 -translate-x-full -translate-y-1/2 pr-4;
+    @apply left-0 top-1/2 -translate-y-1/2 pr-4;
+    writing-mode: vertical-rl;
+    transform: translateX(-100%) translateY(-50%) rotate(180deg);
   }
 
   .season-label[data-season="summer"] {
@@ -111,7 +113,9 @@
   }
 
   .season-label[data-season="autumn"] {
-    @apply right-0 top-1/2 translate-x-full -translate-y-1/2 pl-4;
+    @apply right-0 top-1/2 -translate-y-1/2 pl-4;
+    writing-mode: vertical-rl;
+    transform: translateX(100%) translateY(-50%);
   }
 
   /* Scrollbar styling */
