@@ -10,7 +10,7 @@ export class WeekElement {
   private weekIndex: number;
   private season: Season;
   private events: CalendarEvent[] = [];
-  private onClickCallback?: (weekIndex: number) => void;
+  private onClickCallback?: (weekIndex: number, event?: MouseEvent) => void;
 
   constructor(weekIndex: number, season: Season) {
     this.weekIndex = weekIndex;
@@ -54,9 +54,9 @@ export class WeekElement {
   /**
    * Handle click event
    */
-  private handleClick = (): void => {
+  private handleClick = (event?: Event): void => {
     if (this.onClickCallback) {
-      this.onClickCallback(this.weekIndex);
+      this.onClickCallback(this.weekIndex, event as MouseEvent);
     }
   };
 
@@ -123,7 +123,7 @@ export class WeekElement {
   /**
    * Set click callback
    */
-  onClick = (callback: (weekIndex: number) => void): void => {
+  onClick = (callback: (weekIndex: number, event?: MouseEvent) => void): void => {
     this.onClickCallback = callback;
   };
 

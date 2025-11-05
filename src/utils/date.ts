@@ -116,3 +116,17 @@ export const groupEventsByWeek = (
   return grouped;
 };
 
+/**
+ * Open Google Calendar for a specific week
+ */
+export const openGoogleCalendarForWeek = (weekNumber: number, year?: number): void => {
+  const startDate = getWeekStartDate(weekNumber, year);
+  
+  // Format: YYYYMMDD
+  const dateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
+  
+  // Open Google Calendar in week view for this date
+  const calendarUrl = `https://calendar.google.com/calendar/r/week/${dateStr}`;
+  window.open(calendarUrl, '_blank');
+};
+

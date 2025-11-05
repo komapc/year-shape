@@ -4,7 +4,7 @@
 
 import type { CalendarEvent } from '../types';
 import { DAYS_OF_WEEK } from '../utils/constants';
-import { getWeekStartDate, formatDate } from '../utils/date';
+import { getWeekStartDate, formatDate, openGoogleCalendarForWeek } from '../utils/date';
 import { getElement, createElement, makeAccessible } from '../utils/dom';
 
 export class WeekModal {
@@ -13,6 +13,8 @@ export class WeekModal {
   private daysLeft: HTMLElement;
   private daysRight: HTMLElement;
   private closeButton: HTMLElement;
+  private openInGoogleBtn: HTMLElement;
+  private currentWeekIndex: number = 0;
 
   constructor() {
     this.modal = getElement('weekModal');
@@ -20,6 +22,7 @@ export class WeekModal {
     this.daysLeft = getElement('daysLeft');
     this.daysRight = getElement('daysRight');
     this.closeButton = getElement('closeModal');
+    this.openInGoogleBtn = getElement('openInGoogle');
 
     this.attachEventListeners();
   }
@@ -30,6 +33,13 @@ export class WeekModal {
   private attachEventListeners = (): void => {
     // Close button
     makeAccessible(this.closeButton, this.close, 'Close week details modal');
+
+    // Open in Google Calendar button
+    makeAccessible(
+      this.openInGoogleBtn,
+      () => openGoogleCalendarForWeek(this.currentWeekIndex),
+      'Open this week in Google Calendar'
+    );
 
     // Click outside to close
     this.modal.addEventListener('click', (e: MouseEvent) => {
@@ -50,6 +60,7 @@ export class WeekModal {
    * Open the modal with week details
    */
   open = (weekIndex: number, events: CalendarEvent[]): void => {
+    this.currentWeekIndex = weekIndex;
     const weekStartDate = getWeekStartDate(weekIndex);
     this.weekTitle.textContent = `Week ${weekIndex + 1} - ${formatDate(weekStartDate)}`;
 

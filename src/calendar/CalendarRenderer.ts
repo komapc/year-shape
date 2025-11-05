@@ -305,7 +305,7 @@ export class CalendarRenderer {
   /**
    * Set click handler for all weeks
    */
-  onWeekClick = (callback: (weekIndex: number) => void): void => {
+  onWeekClick = (callback: (weekIndex: number, event?: MouseEvent) => void): void => {
     this.weeks.forEach((week) => {
       week.onClick(callback);
     });

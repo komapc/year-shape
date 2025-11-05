@@ -7,6 +7,7 @@ import { CalendarRenderer } from './CalendarRenderer';
 import { WeekModal } from './WeekModal';
 import { googleCalendarService } from '../services/googleCalendar';
 import { getElement } from '../utils/dom';
+import { openGoogleCalendarForWeek } from '../utils/date';
 
 export class CalendarApp {
   private renderer: CalendarRenderer;
@@ -217,9 +218,15 @@ export class CalendarApp {
   /**
    * Handle week click
    */
-  private handleWeekClick = (weekIndex: number): void => {
+  private handleWeekClick = (weekIndex: number, event?: MouseEvent): void => {
     const week = this.renderer.getWeek(weekIndex);
     if (!week) return;
+
+    // Ctrl/Cmd + Click = Open in Google Calendar
+    if (event && (event.ctrlKey || event.metaKey)) {
+      openGoogleCalendarForWeek(weekIndex);
+      return;
+    }
 
     const events = week.getEvents();
     this.modal.open(weekIndex, events);
