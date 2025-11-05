@@ -11,8 +11,8 @@ export const CALENDAR_CONFIG: CalendarConfig = {
 };
 
 export const GOOGLE_CALENDAR_CONFIG: GoogleCalendarConfig = {
-  clientId: '673675348097-pb541d3cvvho7jjuas8cssdtbg7v9rhd.apps.googleusercontent.com',
-  apiKey: 'AIzaSyDI0DE-yD3QnBWZIFvasipffohy7FePe-o',
+  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
+  apiKey: import.meta.env.VITE_GOOGLE_API_KEY || '',
   discoveryDoc: 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
   scopes: 'https://www.googleapis.com/auth/calendar.readonly',
 };
