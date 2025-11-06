@@ -15,10 +15,13 @@ export class CalendarRenderer {
   private monthLabels: HTMLElement[] = [];
   private seasonLabels: HTMLElement[] = [];
   private currentWeekIndicator: HTMLElement | null = null;
+  private centerInfo: HTMLElement | null = null;
   private direction: Direction = -1;
   private seasons: Season[] = [...CALENDAR_CONFIG.defaultSeasons]; // Always: winter, spring, summer, autumn
   private cornerRadius: number = 0.5; // 0 = square, 1 = circle
   private rotationOffset: number = 0; // 0, 90, 180, or 270 degrees
+  private eventsByWeek: Record<number, CalendarEvent[]> = {};
+  private timeUpdateInterval: number | null = null;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -26,6 +29,8 @@ export class CalendarRenderer {
     this.initializeMonthLabels();
     this.initializeSeasonLabels();
     this.initializeCurrentWeekIndicator();
+    this.initializeCenterInfo();
+    this.startTimeUpdates();
   }
 
   /**
@@ -109,12 +114,12 @@ export class CalendarRenderer {
       'duration-300',
     ]);
     
-    // Simple triangle arrow pointing inward
+    // Arrow pointing OUTWARD from center
     indicator.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 2 L8 10 L5 7 M8 10 L11 7" 
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 18 L10 8 L7 11 M10 8 L13 11" 
               stroke="#60a5fa" 
-              stroke-width="2" 
+              stroke-width="2.5" 
               stroke-linecap="round" 
               stroke-linejoin="round"/>
       </svg>
@@ -122,6 +127,120 @@ export class CalendarRenderer {
     
     this.currentWeekIndicator = indicator;
     this.container.appendChild(indicator);
+  };
+
+  /**
+   * Initialize center info display
+   */
+  private initializeCenterInfo = (): void => {
+    const centerInfo = createElement('div', [
+      'center-info',
+      'absolute',
+      'pointer-events-none',
+      'transition-all',
+      'duration-300',
+      'text-center',
+    ]);
+    
+    centerInfo.style.cssText = `
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      line-height: 1.6;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    `;
+    
+    this.centerInfo = centerInfo;
+    this.container.appendChild(centerInfo);
+    this.updateCenterInfo();
+  };
+
+  /**
+   * Start time updates
+   */
+  private startTimeUpdates = (): void => {
+    // Update every second
+    this.timeUpdateInterval = window.setInterval(() => {
+      this.updateCenterInfo();
+    }, 1000);
+  };
+
+  /**
+   * Stop time updates
+   */
+  private stopTimeUpdates = (): void => {
+    if (this.timeUpdateInterval !== null) {
+      clearInterval(this.timeUpdateInterval);
+      this.timeUpdateInterval = null;
+    }
+  };
+
+  /**
+   * Update center info display
+   */
+  private updateCenterInfo = (): void => {
+    if (!this.centerInfo) return;
+    
+    const now = new Date();
+    
+    // Format date: "Nov 7"
+    const dateStr = now.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    // Format time: "14:35:22"
+    const timeStr = now.toLocaleTimeString('en-US', { 
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    
+    // Get week number
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const diff = now.getTime() - startOfYear.getTime();
+    const oneWeek = 1000 * 60 * 60 * 24 * 7;
+    const weekNumber = Math.floor(diff / oneWeek);
+    
+    // Count today's events
+    const todayEvents = this.getTodayEventCount();
+    
+    // Build HTML
+    this.centerInfo.innerHTML = `
+      <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">${dateStr}</div>
+      <div style="font-size: 16px; font-weight: 700; color: #60a5fa; margin-bottom: 4px;">${timeStr}</div>
+      <div style="font-size: 12px; opacity: 0.9;">Week ${weekNumber + 1}</div>
+      <div style="font-size: 12px; margin-top: 4px; color: ${todayEvents > 0 ? '#34d399' : 'rgba(255, 255, 255, 0.6)'};">
+        ${todayEvents} event${todayEvents !== 1 ? 's' : ''} today
+      </div>
+    `;
+  };
+
+  /**
+   * Get count of events for today
+   */
+  private getTodayEventCount = (): number => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    let count = 0;
+    
+    Object.values(this.eventsByWeek).forEach(weekEvents => {
+      weekEvents.forEach(event => {
+        if (!event.start) return;
+        const eventDate = new Date(event.start);
+        if (eventDate >= today && eventDate < tomorrow) {
+          count++;
+        }
+      });
+    });
+    
+    return count;
   };
 
   /**
@@ -324,17 +443,18 @@ export class CalendarRenderer {
     const progress = currentWeek / CALENDAR_CONFIG.totalWeeks;
     const angle = startAngleRad + this.direction * progress * Math.PI * 2;
     
-    // Position indicator just outside the week markers
-    const indicatorRadius = radius * 1.12; // Adjusted for smaller weeks circle
+    // Position indicator FROM center, pointing OUTWARD
+    // Start closer to center and point toward the week
+    const indicatorRadius = radius * 0.45; // Position between center and weeks
     const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
     
-    // Calculate rotation to point toward center
-    const rotationAngle = (angle * 180 / Math.PI) + 90;
+    // Calculate rotation to point AWAY from center (outward)
+    const rotationAngle = (angle * 180 / Math.PI) - 90; // Reversed direction
     
     this.currentWeekIndicator.style.left = `${position.x}px`;
     this.currentWeekIndicator.style.top = `${position.y}px`;
     this.currentWeekIndicator.style.transform = `translate(-50%, -50%) rotate(${rotationAngle}deg)`;
-    this.currentWeekIndicator.style.opacity = '0.7';
+    this.currentWeekIndicator.style.opacity = '0.8';
   };
 
   /**
@@ -393,11 +513,17 @@ export class CalendarRenderer {
    * Update events for weeks
    */
   updateEvents = (eventsByWeek: Record<number, CalendarEvent[]>): void => {
+    // Store events data for today's event count
+    this.eventsByWeek = eventsByWeek;
+    
     this.weeks.forEach((week) => {
       const weekIndex = week.getWeekIndex();
       const events = eventsByWeek[weekIndex] || [];
       week.setEvents(events);
     });
+    
+    // Update center info to reflect new event count
+    this.updateCenterInfo();
   };
 
   /**
@@ -421,6 +547,13 @@ export class CalendarRenderer {
    */
   getAllWeeks = (): WeekElement[] => {
     return this.weeks;
+  };
+
+  /**
+   * Cleanup method to stop timers
+   */
+  destroy = (): void => {
+    this.stopTimeUpdates();
   };
 }
 
