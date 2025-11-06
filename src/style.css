@@ -93,29 +93,14 @@
     background-color: rgba(59, 130, 246, 0.2);
   }
 
-  /* Season labels */
+  /* Season labels (old static - hidden, keeping for backwards compatibility) */
   .season-label {
+    @apply hidden;
+  }
+
+  /* Season labels (new dynamic) */
+  .season-label-dynamic {
     @apply absolute text-dark-muted text-sm font-medium pointer-events-none;
-  }
-
-  .season-label[data-season="winter"] {
-    @apply top-0 left-1/2 -translate-x-1/2 -translate-y-full pt-4;
-  }
-
-  .season-label[data-season="spring"] {
-    @apply left-0 top-1/2 -translate-y-1/2 pr-4;
-    writing-mode: vertical-rl;
-    transform: translateX(-100%) translateY(-50%) rotate(180deg);
-  }
-
-  .season-label[data-season="summer"] {
-    @apply bottom-0 left-1/2 -translate-x-1/2 translate-y-full pb-4;
-  }
-
-  .season-label[data-season="autumn"] {
-    @apply right-0 top-1/2 -translate-y-1/2 pl-4;
-    writing-mode: vertical-rl;
-    transform: translateX(100%) translateY(-50%);
   }
 
   /* Scrollbar styling */
