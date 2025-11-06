@@ -23,9 +23,9 @@
   <!-- Center indicator -->
   <circle cx="32" cy="32" r="4" fill="#34d399"/>
   
-  <!-- Current week arrow pointing outward -->
-  <g fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M32 32 L32 18 M32 18 L28 22 M32 18 L36 22"/>
+  <!-- Current week arrow pointing FROM center OUTWARD to week -->
+  <g fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 32 L32 14 M32 14 L28 18 M32 14 L36 18"/>
   </g>
 </svg>
 
