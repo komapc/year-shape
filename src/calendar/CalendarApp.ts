@@ -18,7 +18,7 @@ export class CalendarApp {
   private radiusInput: HTMLInputElement;
   private shapeContainer: HTMLElement;
   private toggleDirectionBtn: HTMLButtonElement;
-  private swapSeasonsBtn: HTMLButtonElement;
+  private shiftSeasonsBtn: HTMLButtonElement;
   private refreshEventsBtn: HTMLButtonElement;
   private signInBtn: HTMLButtonElement;
   private toggleControlsBtn: HTMLButtonElement;
@@ -31,7 +31,7 @@ export class CalendarApp {
     this.radiusInput = getElement<HTMLInputElement>('radiusRange');
     this.shapeContainer = getElement('yearShape');
     this.toggleDirectionBtn = getElement<HTMLButtonElement>('toggleDirection');
-    this.swapSeasonsBtn = getElement<HTMLButtonElement>('swapSeasons');
+    this.shiftSeasonsBtn = getElement<HTMLButtonElement>('shiftSeasons');
     this.refreshEventsBtn = getElement<HTMLButtonElement>('refreshEvents');
     this.signInBtn = getElement<HTMLButtonElement>('signInBtn');
     this.toggleControlsBtn = getElement<HTMLButtonElement>('toggleControls');
@@ -98,8 +98,8 @@ export class CalendarApp {
     // Direction toggle
     this.toggleDirectionBtn.addEventListener('click', this.handleDirectionToggle);
 
-    // Swap seasons
-    this.swapSeasonsBtn.addEventListener('click', this.handleSwapSeasons);
+    // Shift seasons
+    this.shiftSeasonsBtn.addEventListener('click', this.handleShiftSeasons);
 
     // Refresh events
     this.refreshEventsBtn.addEventListener('click', this.handleRefreshEvents);
@@ -151,10 +151,10 @@ export class CalendarApp {
   };
 
   /**
-   * Handle swap seasons
+   * Handle shift seasons (rotate clockwise)
    */
-  private handleSwapSeasons = (): void => {
-    this.renderer.swapSeasons('winter', 'summer');
+  private handleShiftSeasons = (): void => {
+    this.renderer.shiftSeasons();
   };
 
   /**

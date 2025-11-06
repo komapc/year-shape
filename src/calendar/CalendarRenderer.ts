@@ -13,15 +13,18 @@ export class CalendarRenderer {
   private container: HTMLElement;
   private weeks: WeekElement[] = [];
   private monthLabels: HTMLElement[] = [];
+  private seasonLabels: HTMLElement[] = [];
   private currentWeekIndicator: HTMLElement | null = null;
   private direction: Direction = -1;
-  private seasons: Season[] = [...CALENDAR_CONFIG.defaultSeasons];
+  private seasons: Season[] = [...CALENDAR_CONFIG.defaultSeasons]; // Always: winter, spring, summer, autumn
   private cornerRadius: number = 0.5; // 0 = square, 1 = circle
+  private rotationOffset: number = 0; // 0, 90, 180, or 270 degrees
 
   constructor(container: HTMLElement) {
     this.container = container;
     this.initializeWeeks();
     this.initializeMonthLabels();
+    this.initializeSeasonLabels();
     this.initializeCurrentWeekIndicator();
   }
 
@@ -70,6 +73,31 @@ export class CalendarRenderer {
   };
 
   /**
+   * Initialize season labels
+   */
+  private initializeSeasonLabels = (): void => {
+    const seasonNames = ['Winter', 'Spring', 'Summer', 'Autumn'];
+    
+    seasonNames.forEach((seasonName, index) => {
+      const label = createElement('div', [
+        'season-label-dynamic',
+        'absolute',
+        'text-sm',
+        'font-medium',
+        'pointer-events-none',
+        'transition-all',
+        'duration-300',
+      ]);
+      label.textContent = seasonName;
+      label.style.color = 'rgba(255, 255, 255, 0.6)';
+      label.setAttribute('data-season-index', String(index));
+      
+      this.seasonLabels.push(label);
+      this.container.appendChild(label);
+    });
+  };
+
+  /**
    * Initialize current week indicator
    */
   private initializeCurrentWeekIndicator = (): void => {
@@ -110,7 +138,7 @@ export class CalendarRenderer {
     const radiusScale = 0.65 + (this.cornerRadius * 0.10); // 0.65-0.75 (tighter fit)
     const radius = baseRadius * radiusScale;
 
-    const startAngleRad = degreesToRadians(CALENDAR_CONFIG.startAngle);
+    const startAngleRad = degreesToRadians(CALENDAR_CONFIG.startAngle + this.rotationOffset);
 
     // Season colors for week highlights
     const seasonColors = [
@@ -138,6 +166,9 @@ export class CalendarRenderer {
 
     // Layout month labels
     this.layoutMonthLabels(centerX, centerY, radius, startAngleRad);
+    
+    // Layout season labels
+    this.layoutSeasonLabels(centerX, centerY, radius, startAngleRad);
     
     // Layout current week indicator
     this.layoutCurrentWeekIndicator(centerX, centerY, radius, startAngleRad);
@@ -169,30 +200,100 @@ export class CalendarRenderer {
       const position = calculatePositionOnPath(centerX, centerY, labelRadius, angle, this.cornerRadius);
       
       // Calculate angle in degrees for positioning logic
-      const angleDeg = ((angle * 180 / Math.PI) + 360) % 360;
+      // Normalize angle to 0-360 range
+      let angleDeg = ((angle * 180 / Math.PI) % 360);
+      if (angleDeg < 0) angleDeg += 360;
       
-      // Determine if label should be vertical based on position
-      // Left side: 135° to 225°, Right side: -45° to 45° (315° to 45°)
-      const isLeftSide = angleDeg > 135 && angleDeg < 225;
-      const isRightSide = angleDeg < 45 || angleDeg > 315;
+      // Determine orientation based on actual position
+      // With startAngle = -90°:
+      // Top: ~270° (225-315°), Right: ~0°/360° (315-45°), Bottom: ~90° (45-135°), Left: ~180° (135-225°)
+      const isRight = angleDeg >= 315 || angleDeg <= 45;
+      const isLeft = angleDeg >= 135 && angleDeg <= 225;
+      // Top/Bottom (remaining angles): horizontal
       
       // Apply color from palette
       label.style.color = colors[monthIndex];
       
-      if (isLeftSide) {
-        // Vertical, rotated 180° (reading bottom to top)
+      if (isLeft) {
+        // Left side: vertical, rotated 180° (reading bottom to top)
         label.style.writingMode = 'vertical-rl';
         label.style.left = `${position.x}px`;
         label.style.top = `${position.y}px`;
         label.style.transform = 'translate(-100%, -50%) rotate(180deg)';
-      } else if (isRightSide) {
-        // Vertical, normal (reading top to bottom)
+      } else if (isRight) {
+        // Right side: vertical, normal (reading top to bottom)
         label.style.writingMode = 'vertical-rl';
         label.style.left = `${position.x}px`;
         label.style.top = `${position.y}px`;
         label.style.transform = 'translate(0%, -50%)';
       } else {
-        // Horizontal
+        // Top and bottom: horizontal
+        label.style.writingMode = 'horizontal-tb';
+        label.style.left = `${position.x}px`;
+        label.style.top = `${position.y}px`;
+        label.style.transform = 'translate(-50%, -50%)';
+      }
+    });
+  };
+
+  /**
+   * Layout season labels around the shape
+   */
+  private layoutSeasonLabels = (
+    centerX: number,
+    centerY: number,
+    radius: number,
+    startAngleRad: number
+  ): void => {
+    // Position season labels at the CENTER of each side (not quadrant midpoints)
+    // Positions: Top (0°), Right (90°), Bottom (180°), Left (270°)
+    this.seasons.forEach((season, seasonIndex) => {
+      const label = this.seasonLabels[seasonIndex];
+      if (!label) return;
+      
+      // Update label text to match current season order
+      const seasonNames: Record<Season, string> = {
+        winter: 'Winter',
+        spring: 'Spring',
+        summer: 'Summer',
+        autumn: 'Autumn',
+      };
+      label.textContent = seasonNames[season];
+      
+      // Position at exact sides: 0°, 90°, 180°, 270° (0, 0.25, 0.5, 0.75 of full circle)
+      const progress = seasonIndex * 0.25;
+      const angle = startAngleRad + this.direction * progress * Math.PI * 2;
+      
+      // Position labels further out than months
+      const labelRadius = radius * 1.45;
+      const position = calculatePositionOnPath(centerX, centerY, labelRadius, angle, this.cornerRadius);
+      
+      // Calculate angle in degrees for positioning logic
+      // Normalize angle to 0-360 range
+      let angleDeg = ((angle * 180 / Math.PI) % 360);
+      if (angleDeg < 0) angleDeg += 360;
+      
+      // Determine orientation based on actual position
+      // With startAngle = -90°:
+      // Top: ~270° (225-315°), Right: ~0°/360° (315-45°), Bottom: ~90° (45-135°), Left: ~180° (135-225°)
+      const isRight = angleDeg >= 315 || angleDeg <= 45;
+      const isLeft = angleDeg >= 135 && angleDeg <= 225;
+      // Top/Bottom (remaining angles): horizontal
+      
+      if (isLeft) {
+        // Left side: vertical, rotated 180° (reading bottom to top)
+        label.style.writingMode = 'vertical-rl';
+        label.style.left = `${position.x}px`;
+        label.style.top = `${position.y}px`;
+        label.style.transform = 'translate(-100%, -50%) rotate(180deg)';
+      } else if (isRight) {
+        // Right side: vertical, normal (reading top to bottom)
+        label.style.writingMode = 'vertical-rl';
+        label.style.left = `${position.x}px`;
+        label.style.top = `${position.y}px`;
+        label.style.transform = 'translate(0%, -50%)';
+      } else {
+        // Top and bottom: horizontal
         label.style.writingMode = 'horizontal-tb';
         label.style.left = `${position.x}px`;
         label.style.top = `${position.y}px`;
@@ -270,18 +371,15 @@ export class CalendarRenderer {
   };
 
   /**
-   * Swap two seasons
+   * Shift entire calendar clockwise by 90 degrees
+   * Rotates months, weeks, seasons, and indicators together
    */
-  swapSeasons = (season1: Season, season2: Season): void => {
-    const index1 = this.seasons.indexOf(season1);
-    const index2 = this.seasons.indexOf(season2);
+  shiftSeasons = (): void => {
+    // Increment rotation by 90 degrees (clockwise)
+    this.rotationOffset = (this.rotationOffset + 90) % 360;
     
-    if (index1 !== -1 && index2 !== -1) {
-      [this.seasons[index1], this.seasons[index2]] = 
-        [this.seasons[index2], this.seasons[index1]];
-      
-      this.layoutWeeks();
-    }
+    // Re-layout everything with new rotation
+    this.layoutWeeks();
   };
 
   /**

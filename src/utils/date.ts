@@ -70,11 +70,14 @@ export const getMonthNamesShort = (): string[] => {
 };
 
 /**
- * Get the week number where a month starts (approximately)
+ * Get the week number where a month starts (accurately)
  */
-export const getMonthStartWeek = (monthIndex: number): number => {
-  // Approximate: 52 weeks / 12 months ≈ 4.33 weeks per month
-  return Math.floor((monthIndex * 52) / 12);
+export const getMonthStartWeek = (monthIndex: number, year?: number): number => {
+  const currentYear = year ?? new Date().getFullYear();
+  // Get the first day of the month
+  const firstDayOfMonth = new Date(currentYear, monthIndex, 1);
+  // Calculate week number from start of year
+  return getWeekNumber(firstDayOfMonth);
 };
 
 /**
