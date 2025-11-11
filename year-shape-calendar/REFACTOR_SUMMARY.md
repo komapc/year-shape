@@ -2,7 +2,7 @@
 
 ## Overview
 
-Your Year Shape Calendar project has been completely refactored into a **modern, professional TypeScript application** with proper architecture, tooling, and best practices.
+YearWheel has been completely refactored into a **modern, professional TypeScript application** with proper architecture, tooling, and best practices.
 
 ---
 

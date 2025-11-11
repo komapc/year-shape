@@ -1,6 +1,6 @@
-# Year Shape Calendar — Minimal
+# YearWheel
 
-This is a minimalist interactive calendar visualization that represents the whole year in a shape that can morph from a circle to a square by adjusting corner radius. It divides the year into four seasonal sections arranged counter-clockwise: Winter (top), Spring (left), Summer (bottom), Autumn (right). Features:
+An interactive calendar visualization that represents the whole year in a morphing shape. The calendar can transform from a circle to a square, displaying 52 weeks arranged in four seasonal sections (Winter, Spring, Summer, Autumn). Features:
 
 - Adjustable corner radius
 - Swap seasons (Winter↔Summer)
@@ -16,8 +16,8 @@ Files
 Running
 Open `index.html` in a modern browser (Chrome/Edge/Firefox). For Google Calendar integration you'll need to register a Google API OAuth client ID and add client-side code; see next section.
 
-Google Calendar integration
-This project includes hooks for client-side integration. For a basic client-only flow:
+## Google Calendar Integration
+YearWheel includes client-side Google Calendar integration. For setup:
 
 1. Create an OAuth 2.0 Client ID at Google Cloud Console (type: Web application) and add your origin (e.g., `http://localhost:8000`).
 2. Add the CLIENT_ID into `app.js` (not included) and implement sign-in using Google's Identity Services.
