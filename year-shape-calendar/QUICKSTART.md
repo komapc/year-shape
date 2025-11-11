@@ -5,13 +5,16 @@ Get your Year Shape Calendar running in 60 seconds!
 ## 🚀 Three Commands
 
 ```bash
-# 1. Install dependencies
+# 1. Navigate to project directory
+cd year-shape-calendar
+
+# 2. Install dependencies
 npm install
 
-# 2. Start development server
+# 3. Start development server
 npm run dev
 
-# 3. Open browser
+# 4. Open browser
 # Visit: http://localhost:5173
 ```
 

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#0a0e1a" stroke="#60a5fa" stroke-width="2"/>
+  
+  <!-- Week markers around the circle (simplified, showing 12 for clock-like appearance) -->
+  <g fill="#60a5fa">
+    <!-- Top -->
+    <rect x="30.5" y="4" width="3" height="6" rx="1.5"/>
+    <!-- Right -->
+    <rect x="54" y="30.5" width="6" height="3" rx="1.5"/>
+    <!-- Bottom -->
+    <rect x="30.5" y="54" width="3" height="6" rx="1.5"/>
+    <!-- Left -->
+    <rect x="4" y="30.5" width="6" height="3" rx="1.5"/>
+    
+    <!-- Diagonal markers -->
+    <rect x="47" y="10" width="3" height="6" rx="1.5" transform="rotate(45 48.5 13)"/>
+    <rect x="51" y="47" width="3" height="6" rx="1.5" transform="rotate(45 52.5 50)"/>
+    <rect x="10" y="51" width="3" height="6" rx="1.5" transform="rotate(45 11.5 54)"/>
+    <rect x="7" y="10" width="3" height="6" rx="1.5" transform="rotate(45 8.5 13)"/>
+  </g>
+  
+  <!-- Center indicator -->
+  <circle cx="32" cy="32" r="4" fill="#34d399"/>
+  
+  <!-- Current week arrow pointing FROM center OUTWARD to week -->
+  <g fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 32 L32 14 M32 14 L28 18 M32 14 L36 18"/>
+  </g>
+</svg>
+

@@ -4,7 +4,7 @@
 
 ### 1. Install Dependencies
 ```bash
-cd /home/mark/projects
+cd /home/mark/projects/year-shape-calendar
 npm install
 ```
 

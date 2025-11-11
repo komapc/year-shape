@@ -1,28 +1,114 @@
-# Year Shape Calendar — Minimal
+# Mark's Projects Portfolio
 
-This is a minimalist interactive calendar visualization that represents the whole year in a shape that can morph from a circle to a square by adjusting corner radius. It divides the year into four seasonal sections arranged counter-clockwise: Winter (top), Spring (left), Summer (bottom), Autumn (right). Features:
+Welcome to my collection of web applications and experiments! This repository contains various projects organized in subdirectories.
 
-- Adjustable corner radius
-- Swap seasons (Winter↔Summer)
-- Change time flow direction (clockwise / counter-clockwise)
-- Refresh calendar events (demo mode) and integrate Google Calendar (client-side)
-- Click a week to open a Soviet-style diary weekly detail view (4 days left, 3 days right)
+---
 
-Files
-- `index.html` — UI shell
-- `styles.css` — Minimal modern styles
-- `app.js` — App logic and rendering
+## 📁 Projects
 
-Running
-Open `index.html` in a modern browser (Chrome/Edge/Firefox). For Google Calendar integration you'll need to register a Google API OAuth client ID and add client-side code; see next section.
+### 🗓️ [Year Shape Calendar](./year-shape-calendar/)
 
-Google Calendar integration
-This project includes hooks for client-side integration. For a basic client-only flow:
+**Status:** ✅ Active | **Version:** 2.0.0 | **Tech:** TypeScript, Vite, TailwindCSS
 
-1. Create an OAuth 2.0 Client ID at Google Cloud Console (type: Web application) and add your origin (e.g., `http://localhost:8000`).
-2. Add the CLIENT_ID into `app.js` (not included) and implement sign-in using Google's Identity Services.
-3. After sign-in, call the Calendar API to list events and map them to weeks/days. The app expects eventsByWeek to be an object mapping week index -> array of events where each event may include a `_day` (0-6) derived from its date.
+An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, seasonal organization, and a beautiful modern UI.
 
-Notes and next steps
-- This is a front-end-only demo. For production you should implement secure server-side OAuth token handling if required.
-- Improvements: better event placement, weekly date calculations, localization, keyboard accessibility, unit tests.
+**Features:**
+- 🔄 Morphing shape (circle ↔ square)
+- 📅 52-week year visualization
+- 🌍 Seasonal organization (Winter, Spring, Summer, Autumn)
+- 📊 Google Calendar API integration
+- 🎨 Modern, accessible UI
+- 📱 Fully responsive design
+
+**Quick Start:**
+```bash
+cd year-shape-calendar
+npm install
+npm run dev
+```
+
+**Live Demo:** [https://komapc.github.io/year-shape/](https://komapc.github.io/year-shape/)
+
+**Documentation:**
+- [Full README](./year-shape-calendar/README.md)
+- [Quick Start Guide](./year-shape-calendar/QUICKSTART.md)
+- [Architecture](./year-shape-calendar/ARCHITECTURE.md)
+- [Testing Guide](./year-shape-calendar/TESTING.md)
+
+---
+
+## 🛠️ Technologies Used Across Projects
+
+- **Frontend:** TypeScript, React, Next.js, TailwindCSS
+- **Build Tools:** Vite, Webpack
+- **APIs:** Google Calendar API
+- **Deployment:** GitHub Pages, GitHub Actions
+- **Testing:** Manual testing, future: Vitest, Playwright
+
+---
+
+## 📂 Repository Structure
+
+```
+/
+├── .github/                    # GitHub Actions workflows (shared)
+├── year-shape-calendar/        # Year Shape Calendar project
+│   ├── src/                   # Source code
+│   ├── public/                # Static assets
+│   ├── .env.example          # Environment variables template
+│   └── README.md             # Project documentation
+└── README.md                  # This file (projects index)
+```
+
+---
+
+## 🚀 Getting Started
+
+Each project is self-contained with its own dependencies and build configuration.
+
+### General Workflow:
+
+1. **Navigate to a project:**
+   ```bash
+   cd <project-name>
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 🤝 Contributing
+
+This is a personal portfolio repository, but feedback and suggestions are welcome!
+
+---
+
+## 📧 Contact
+
+**GitHub:** [komapc](https://github.com/komapc)  
+**Email:** komapc@gmail.com
+
+---
+
+## 📝 License
+
+Each project may have its own license. Please refer to individual project directories for details.
+
+---
+
+**Last Updated:** November 2025  
+**Projects Count:** 1 (more coming soon!)
+
