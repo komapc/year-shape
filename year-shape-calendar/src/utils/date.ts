@@ -125,11 +125,14 @@ export const groupEventsByWeek = (
 export const openGoogleCalendarForWeek = (weekNumber: number, year?: number): void => {
   const startDate = getWeekStartDate(weekNumber, year);
   
-  // Format: YYYYMMDD
-  const dateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
+  // Format: YYYY/MM/DD for Google Calendar URL
+  const yearStr = startDate.getFullYear();
+  const month = String(startDate.getMonth() + 1).padStart(2, '0');
+  const day = String(startDate.getDate()).padStart(2, '0');
   
   // Open Google Calendar in week view for this date
-  const calendarUrl = `https://calendar.google.com/calendar/r/week/${dateStr}`;
+  // Format: /r/week/YYYY/MM/DD
+  const calendarUrl = `https://calendar.google.com/calendar/u/0/r/week/${yearStr}/${month}/${day}`;
   window.open(calendarUrl, '_blank');
 };
 
