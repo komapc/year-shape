@@ -44,6 +44,14 @@
           >
             ℹ️
           </button>
+          <button 
+            id="toggleSettings" 
+            class="btn text-xs"
+            aria-label="Toggle settings panel"
+            title="Toggle settings"
+          >
+            🔧
+          </button>
         </div>
         
         <div id="controlsPanel" class="flex items-center gap-3 flex-wrap">
@@ -140,21 +148,73 @@
           </div>
 
           <!-- Legend -->
-          <div class="flex items-center gap-6 text-sm text-dark-muted">
+          <div class="flex items-center gap-6 text-sm text-dark-muted flex-wrap">
             <div class="flex items-center gap-2">
               <div class="w-4 h-4 rounded bg-primary-500 border border-primary-500"></div>
               <span>Has events</span>
             </div>
             <div class="flex items-center gap-2">
               <div class="w-4 h-4 rounded bg-transparent border border-dark-border"></div>
-              <span>No events</span>
+              <span>No events (seasonal tint)</span>
             </div>
           </div>
         </div>
 
-        <!-- Sidebar -->
-        <aside id="aboutPanel" class="glass rounded-xl border border-dark-border p-6 hidden">
-          <h2 class="text-lg font-semibold mb-4 text-gray-200">About</h2>
+        <!-- Sidebars -->
+        <div class="space-y-4">
+          <!-- Settings Panel -->
+          <aside id="settingsPanel" class="glass rounded-xl border border-dark-border p-6 hidden">
+            <h2 class="text-lg font-semibold mb-4 text-gray-200">Settings</h2>
+            
+            <div class="space-y-4">
+              <!-- Moon Phase Toggle -->
+              <label class="flex items-center justify-between cursor-pointer group">
+                <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">
+                  <span class="inline-block mr-2">🌙</span>
+                  Show moon phase
+                </span>
+                <div class="relative">
+                  <input 
+                    type="checkbox" 
+                    id="showMoonPhase" 
+                    class="sr-only peer"
+                    checked
+                  />
+                  <div class="w-11 h-6 bg-dark-card rounded-full peer peer-checked:bg-primary-500 
+                              peer-focus:ring-2 peer-focus:ring-primary-400/50 transition-colors"></div>
+                  <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full 
+                              peer-checked:translate-x-5 transition-transform"></div>
+                </div>
+              </label>
+
+              <!-- Zodiac Toggle -->
+              <label class="flex items-center justify-between cursor-pointer group">
+                <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">
+                  <span class="inline-block mr-2">♈</span>
+                  Show zodiac signs
+                </span>
+                <div class="relative">
+                  <input 
+                    type="checkbox" 
+                    id="showZodiac" 
+                    class="sr-only peer"
+                  />
+                  <div class="w-11 h-6 bg-dark-card rounded-full peer peer-checked:bg-primary-500 
+                              peer-focus:ring-2 peer-focus:ring-primary-400/50 transition-colors"></div>
+                  <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full 
+                              peer-checked:translate-x-5 transition-transform"></div>
+                </div>
+              </label>
+
+              <p class="text-xs text-dark-muted/70 pt-2 border-t border-dark-border">
+                Hover over weeks to see moon phase and zodiac info
+              </p>
+            </div>
+          </aside>
+
+          <!-- About Panel -->
+          <aside id="aboutPanel" class="glass rounded-xl border border-dark-border p-6 hidden">
+            <h2 class="text-lg font-semibold mb-4 text-gray-200">About</h2>
           
           <div class="space-y-4 text-sm text-dark-muted">
             <p>
@@ -182,7 +242,8 @@
               </p>
             </div>
           </div>
-        </aside>
+          </aside>
+        </div>
       </div>
     </main>
 
@@ -196,7 +257,7 @@
         <span>•</span>
         <a href="https://github.com/komapc/year-shape" target="_blank" rel="noopener" class="hover:text-primary-400 transition-colors">GitHub</a>
         <span>•</span>
-        <span id="appVersion" class="text-primary-400/60">v0.1.2</span>
+        <span id="appVersion" class="text-primary-400/60">v0.2.0</span>
       </div>
     </footer>
   </div>

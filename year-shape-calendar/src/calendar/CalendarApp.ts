@@ -8,6 +8,7 @@ import { WeekModal } from './WeekModal';
 import { googleCalendarService } from '../services/googleCalendar';
 import { getElement } from '../utils/dom';
 import { openGoogleCalendarForWeek } from '../utils/date';
+import { loadSettings, saveSettings, type AppSettings } from '../utils/settings';
 
 export class CalendarApp {
   private renderer: CalendarRenderer;
@@ -23,8 +24,13 @@ export class CalendarApp {
   private signInBtn: HTMLButtonElement;
   private toggleControlsBtn: HTMLButtonElement;
   private toggleAboutBtn: HTMLButtonElement;
+  private toggleSettingsBtn: HTMLButtonElement;
   private controlsPanel: HTMLElement;
   private aboutPanel: HTMLElement;
+  private settingsPanel: HTMLElement;
+  private showMoonPhaseCheckbox: HTMLInputElement;
+  private showZodiacCheckbox: HTMLInputElement;
+  private settings: AppSettings;
 
   constructor() {
     // Get DOM elements
@@ -36,8 +42,19 @@ export class CalendarApp {
     this.signInBtn = getElement<HTMLButtonElement>('signInBtn');
     this.toggleControlsBtn = getElement<HTMLButtonElement>('toggleControls');
     this.toggleAboutBtn = getElement<HTMLButtonElement>('toggleAbout');
+    this.toggleSettingsBtn = getElement<HTMLButtonElement>('toggleSettings');
     this.controlsPanel = getElement('controlsPanel');
     this.aboutPanel = getElement('aboutPanel');
+    this.settingsPanel = getElement('settingsPanel');
+    this.showMoonPhaseCheckbox = getElement<HTMLInputElement>('showMoonPhase');
+    this.showZodiacCheckbox = getElement<HTMLInputElement>('showZodiac');
+
+    // Load settings
+    this.settings = loadSettings();
+    
+    // Apply settings to UI
+    this.showMoonPhaseCheckbox.checked = this.settings.showMoonPhase;
+    this.showZodiacCheckbox.checked = this.settings.showZodiac;
 
     // Initialize components
     this.renderer = new CalendarRenderer(this.shapeContainer);
@@ -118,6 +135,13 @@ export class CalendarApp {
 
     // Toggle about
     this.toggleAboutBtn.addEventListener('click', this.handleToggleAbout);
+
+    // Toggle settings
+    this.toggleSettingsBtn.addEventListener('click', this.handleToggleSettings);
+
+    // Settings checkboxes
+    this.showMoonPhaseCheckbox.addEventListener('change', this.handleMoonPhaseToggle);
+    this.showZodiacCheckbox.addEventListener('change', this.handleZodiacToggle);
   };
 
   /**
@@ -251,6 +275,31 @@ export class CalendarApp {
    */
   private handleToggleAbout = (): void => {
     this.aboutPanel.classList.toggle('hidden');
+  };
+
+  /**
+   * Handle toggle settings panel
+   */
+  private handleToggleSettings = (): void => {
+    this.settingsPanel.classList.toggle('hidden');
+  };
+
+  /**
+   * Handle moon phase toggle
+   */
+  private handleMoonPhaseToggle = (event: Event): void => {
+    const checkbox = event.target as HTMLInputElement;
+    this.settings.showMoonPhase = checkbox.checked;
+    saveSettings(this.settings);
+  };
+
+  /**
+   * Handle zodiac toggle
+   */
+  private handleZodiacToggle = (event: Event): void => {
+    const checkbox = event.target as HTMLInputElement;
+    this.settings.showZodiac = checkbox.checked;
+    saveSettings(this.settings);
   };
 
   /**
