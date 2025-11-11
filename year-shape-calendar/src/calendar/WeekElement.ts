@@ -4,6 +4,9 @@
 
 import type { Season, CalendarEvent } from '../types';
 import { createElement, makeAccessible } from '../utils/dom';
+import { getWeekStartDate } from '../utils/date';
+import { calculateMoonPhase, getMoonEmoji, getMoonPhaseName, getWeekZodiacSigns } from '../utils/astronomy';
+import { loadSettings } from '../utils/settings';
 
 export class WeekElement {
   private element: HTMLDivElement;
@@ -11,6 +14,7 @@ export class WeekElement {
   private season: Season;
   private events: CalendarEvent[] = [];
   private onClickCallback?: (weekIndex: number, event?: MouseEvent) => void;
+  private tooltipElement: HTMLDivElement | null = null;
 
   constructor(weekIndex: number, season: Season) {
     this.weekIndex = weekIndex;
@@ -48,7 +52,93 @@ export class WeekElement {
       `Week ${this.weekIndex + 1} of ${this.season}`
     );
 
+    // Add hover handlers for tooltip
+    element.addEventListener('mouseenter', this.handleMouseEnter);
+    element.addEventListener('mouseleave', this.handleMouseLeave);
+
     return element;
+  };
+
+  /**
+   * Handle mouse enter - show tooltip
+   */
+  private handleMouseEnter = (): void => {
+    const settings = loadSettings();
+    if (!settings.showMoonPhase && !settings.showZodiac) return;
+
+    const startDate = getWeekStartDate(this.weekIndex);
+    
+    // Build tooltip content
+    let content = `<div class="font-semibold mb-1">Week ${this.weekIndex + 1}</div>`;
+    
+    if (settings.showMoonPhase) {
+      const phase = calculateMoonPhase(startDate);
+      const moonEmoji = getMoonEmoji(phase);
+      const moonName = getMoonPhaseName(phase);
+      content += `<div class="flex items-center gap-2"><span class="text-2xl">${moonEmoji}</span><span>${moonName}</span></div>`;
+    }
+    
+    if (settings.showZodiac) {
+      const zodiacs = getWeekZodiacSigns(startDate);
+      const zodiacText = zodiacs.map(z => `${z.emoji} ${z.name}`).join(', ');
+      content += `<div class="mt-1 text-sm">${zodiacText}</div>`;
+    }
+
+    this.showTooltip(content);
+  };
+
+  /**
+   * Handle mouse leave - hide tooltip
+   */
+  private handleMouseLeave = (): void => {
+    this.hideTooltip();
+  };
+
+  /**
+   * Show tooltip with content
+   */
+  private showTooltip = (content: string): void => {
+    // Remove existing tooltip
+    this.hideTooltip();
+
+    // Create new tooltip
+    this.tooltipElement = createElement('div', [
+      'absolute',
+      'z-50',
+      'px-3',
+      'py-2',
+      'text-sm',
+      'bg-dark-card',
+      'border',
+      'border-primary-500/50',
+      'rounded-lg',
+      'shadow-xl',
+      'pointer-events-none',
+      'whitespace-nowrap',
+    ]);
+
+    this.tooltipElement.innerHTML = content;
+    
+    // Position tooltip above the week element
+    const rect = this.element.getBoundingClientRect();
+    const parent = this.element.offsetParent as HTMLElement;
+    const parentRect = parent.getBoundingClientRect();
+    
+    this.tooltipElement.style.left = `${rect.left - parentRect.left + rect.width / 2}px`;
+    this.tooltipElement.style.top = `${rect.top - parentRect.top - 10}px`;
+    this.tooltipElement.style.transform = 'translate(-50%, -100%)';
+    
+    parent.appendChild(this.tooltipElement);
+  };
+
+  /**
+   * Hide tooltip
+   */
+  private hideTooltip = (): void => {
+    if (this.tooltipElement && this.tooltipElement.parentNode) {
+      this.tooltipElement.parentNode.removeChild(this.tooltipElement);
+      this.tooltipElement = null;
+    }
   };
 
   /**
