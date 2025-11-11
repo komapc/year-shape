@@ -6,9 +6,9 @@ Welcome to my collection of web applications and experiments! This repository co
 
 ## 📁 Projects
 
-### 🗓️ [Year Shape Calendar](./year-shape-calendar/)
+### 🎡 [YearWheel](./year-shape-calendar/)
 
-**Status:** ✅ Active | **Version:** 2.0.0 | **Tech:** TypeScript, Vite, TailwindCSS
+**Status:** ✅ Active | **Version:** 0.1.0 | **Tech:** TypeScript, Vite, TailwindCSS
 
 An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, seasonal organization, and a beautiful modern UI.
 
@@ -52,7 +52,7 @@ npm run dev
 ```
 /
 ├── .github/                    # GitHub Actions workflows (shared)
-├── year-shape-calendar/        # Year Shape Calendar project
+├── year-shape-calendar/        # YearWheel project
 │   ├── src/                   # Source code
 │   ├── public/                # Static assets
 │   ├── .env.example          # Environment variables template

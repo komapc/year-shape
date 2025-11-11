@@ -114,10 +114,10 @@ export class CalendarRenderer {
       'duration-300',
     ]);
     
-    // Arrow pointing OUTWARD from center
+    // Longer arrow pointing TOWARD the week (outward from center)
     indicator.innerHTML = `
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 18 L10 8 L7 11 M10 8 L13 11" 
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 35 L20 10 L16 14 M20 10 L24 14" 
               stroke="#60a5fa" 
               stroke-width="2.5" 
               stroke-linecap="round" 
@@ -443,13 +443,13 @@ export class CalendarRenderer {
     const progress = currentWeek / CALENDAR_CONFIG.totalWeeks;
     const angle = startAngleRad + this.direction * progress * Math.PI * 2;
     
-    // Position indicator FROM center, pointing OUTWARD
-    // Start closer to center and point toward the week
-    const indicatorRadius = radius * 0.45; // Position between center and weeks
+    // Position arrow closer to center, pointing toward the week
+    const indicatorRadius = radius * 0.35; // Closer to center to show arrow pointing toward week
     const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
     
-    // Calculate rotation to point AWAY from center (outward)
-    const rotationAngle = (angle * 180 / Math.PI) - 90; // Reversed direction
+    // Calculate rotation to point TOWARD the week (outward from center)
+    // Add 90 to rotate the upward-pointing arrow to face outward
+    const rotationAngle = (angle * 180 / Math.PI);
     
     this.currentWeekIndicator.style.left = `${position.x}px`;
     this.currentWeekIndicator.style.top = `${position.y}px`;

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Modern interactive calendar visualization with morphing seasonal shapes" />
+  <meta name="description" content="YearWheel - Interactive calendar visualization that morphs between circle and square to see your year at a glance" />
   <meta name="theme-color" content="#0a0e1a" />
   
-  <title>Year Shape Calendar</title>
+  <title>YearWheel - Interactive Year Calendar</title>
   
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -26,7 +26,7 @@
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div class="flex items-center gap-3">
           <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-            Year Shape Calendar
+            YearWheel
           </h1>
           <button 
             id="toggleControls" 
@@ -188,13 +188,15 @@
 
     <!-- Footer -->
     <footer class="w-full max-w-7xl mx-auto px-6 py-6 text-center text-sm text-dark-muted no-print">
-      <p class="mb-2">Year Shape Calendar © 2025 - A modern calendar visualization experience</p>
+      <p class="mb-2">YearWheel © 2025 - Interactive calendar visualization</p>
       <div class="flex items-center justify-center gap-4 text-xs">
         <a href="/privacy.html" class="hover:text-primary-400 transition-colors">Privacy Policy</a>
         <span>•</span>
         <a href="/terms.html" class="hover:text-primary-400 transition-colors">Terms of Service</a>
         <span>•</span>
         <a href="https://github.com/komapc/year-shape" target="_blank" rel="noopener" class="hover:text-primary-400 transition-colors">GitHub</a>
+        <span>•</span>
+        <span id="appVersion" class="text-primary-400/60">v0.1.0</span>
       </div>
     </footer>
   </div>

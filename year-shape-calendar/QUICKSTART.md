@@ -1,6 +1,6 @@
 # ⚡ Quick Start Guide
 
-Get your Year Shape Calendar running in 60 seconds!
+Get YearWheel running in 60 seconds!
 
 ## 🚀 Three Commands
 
