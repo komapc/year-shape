@@ -111,18 +111,23 @@ Total: ~1,500 lines of clean, maintainable code
 
 ## 🚀 Getting Started
 
-### 1. Install Dependencies
+### 1. Navigate to Project Directory
+```bash
+cd year-shape-calendar
+```
+
+### 2. Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Start Development Server
+### 3. Start Development Server
 ```bash
 npm run dev
 ```
 Visit: http://localhost:5173
 
-### 3. Build for Production
+### 4. Build for Production
 ```bash
 npm run build
 ```
