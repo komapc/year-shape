@@ -46,58 +46,10 @@
           </button>
         </div>
         
-        <div class="flex items-center gap-3 flex-wrap">
-          <!-- Corner radius control -->
-          <div class="flex items-center gap-3 glass px-4 py-2 rounded-lg border border-dark-border">
-            <label for="radiusRange" class="text-sm text-dark-muted whitespace-nowrap">
-              Corner Radius
-            </label>
-            <input 
-              id="radiusRange" 
-              type="range" 
-              min="0" 
-              max="50" 
-              value="50"
-              class="w-32 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer
-                     [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
-                     [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary-500 
-                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
-                     [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 
-                     [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:rounded-full
-                     [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
-              aria-label="Adjust corner radius to morph between circle and square"
-            />
-          </div>
-
-          <!-- Direction toggle -->
-          <button 
-            id="toggleDirection" 
-            class="btn flex items-center gap-2"
-            aria-label="Toggle time flow direction"
-          >
-            <span class="direction-icon">↺</span>
-            <span>CCW</span>
-          </button>
-
-          <!-- Shift seasons -->
-          <button 
-            id="shiftSeasons" 
-            class="btn"
-            aria-label="Shift seasons clockwise"
-          >
-            <span class="text-lg">↻</span>
-            <span>Shift</span>
-          </button>
-
-          <!-- Refresh events -->
-          <button 
-            id="refreshEvents" 
-            class="btn"
-            aria-label="Refresh calendar events"
-          >
-            <span class="text-lg">⟳</span>
-            <span>Refresh</span>
-          </button>
+        <!-- Login Status Indicator -->
+        <div id="loginStatus" class="flex items-center gap-2 glass px-3 py-1.5 rounded-lg border border-dark-border text-sm hidden">
+          <span class="status-dot w-2 h-2 rounded-full bg-green-500"></span>
+          <span class="status-text">Logged in</span>
         </div>
       </div>
     </header>
@@ -124,17 +76,6 @@
             <span class="season-label" data-season="autumn">Autumn</span>
           </div>
 
-          <!-- Legend -->
-          <div class="flex items-center gap-6 text-sm text-dark-muted flex-wrap">
-            <div class="flex items-center gap-2">
-              <div class="w-4 h-4 rounded bg-primary-500 border border-primary-500"></div>
-              <span>Has events</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="w-4 h-4 rounded bg-transparent border border-dark-border"></div>
-              <span>No events (seasonal tint)</span>
-            </div>
-          </div>
         </div>
 
         <!-- Sidebars -->
@@ -279,9 +220,6 @@
                 </button>
               </div>
 
-              <p class="text-xs text-dark-muted/70 pt-2 border-t border-dark-border">
-                Settings are saved automatically
-              </p>
             </div>
           </aside>
 
@@ -330,7 +268,7 @@
         <span>•</span>
         <a href="https://github.com/komapc/year-shape" target="_blank" rel="noopener" class="hover:text-primary-400 transition-colors">GitHub</a>
         <span>•</span>
-        <span id="appVersion" class="text-primary-400/60">v0.5.0</span>
+        <span id="appVersion" class="text-primary-400/60">v0.5.1</span>
       </div>
     </footer>
   </div>

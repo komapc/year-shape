@@ -87,6 +87,12 @@ export class CalendarApp {
   /** Checkbox to toggle light/dark theme */
   private lightThemeCheckbox: HTMLInputElement;
   
+  /** Language select dropdown */
+  private languageSelect: HTMLSelectElement;
+  
+  /** Login status indicator element */
+  private loginStatus: HTMLElement;
+  
   /** Current application settings (persisted to localStorage) */
   private settings: AppSettings;
 
@@ -122,6 +128,8 @@ export class CalendarApp {
     this.showZodiacCheckbox = getElement<HTMLInputElement>('showZodiac');
     this.showHebrewMonthCheckbox = getElement<HTMLInputElement>('showHebrewMonth');
     this.lightThemeCheckbox = getElement<HTMLInputElement>('lightTheme');
+    this.languageSelect = getElement<HTMLSelectElement>('languageSelect');
+    this.loginStatus = getElement('loginStatus');
 
     // ========================================
     // 2. Load Persisted Settings
@@ -135,6 +143,7 @@ export class CalendarApp {
     this.showZodiacCheckbox.checked = this.settings.showZodiac;
     this.showHebrewMonthCheckbox.checked = this.settings.showHebrewMonth;
     this.lightThemeCheckbox.checked = this.settings.theme === 'light';
+    this.languageSelect.value = this.settings.locale || 'en';
     
     // Apply theme to body element
     this.applyTheme(this.settings.theme || 'dark');
@@ -192,10 +201,12 @@ export class CalendarApp {
       
       if (sessionRestored) {
         console.log('✅ Session restored - user is logged in');
+        this.updateLoginStatus(true);
         // Automatically fetch events if session was restored
         await this.handleRefreshEvents();
       } else {
         console.log('ℹ️ No saved session - user needs to sign in');
+        this.updateLoginStatus(false);
       }
 
       console.log('Google Calendar integration ready');
@@ -267,6 +278,7 @@ export class CalendarApp {
     this.showZodiacCheckbox.addEventListener('change', this.handleZodiacToggle);
     this.showHebrewMonthCheckbox.addEventListener('change', this.handleHebrewMonthToggle);
     this.lightThemeCheckbox.addEventListener('change', this.handleThemeToggle);
+    this.languageSelect.addEventListener('change', this.handleLanguageChange);
   };
 
   /**
@@ -508,6 +520,45 @@ export class CalendarApp {
       'Retrospective',
     ];
     return events[Math.floor(Math.random() * events.length)];
+  };
+
+  /**
+   * Handles language selection change.
+   * 
+   * Updates settings and reloads page to apply new language.
+   * 
+   * @private
+   * @returns {void}
+   */
+  private handleLanguageChange = (): void => {
+    const selectedLocale = this.languageSelect.value as any;
+    this.settings.locale = selectedLocale;
+    saveSettings(this.settings);
+    // Reload page to apply new language
+    window.location.reload();
+  };
+
+  /**
+   * Updates the login status indicator in the header.
+   * 
+   * Shows/hides the status badge and updates the visual state.
+   * 
+   * @private
+   * @param {boolean} isLoggedIn - Whether user is currently logged in
+   * @returns {void}
+   */
+  private updateLoginStatus = (isLoggedIn: boolean): void => {
+    const statusDot = this.loginStatus.querySelector('.status-dot') as HTMLElement;
+    const statusText = this.loginStatus.querySelector('.status-text') as HTMLElement;
+    
+    if (isLoggedIn) {
+      this.loginStatus.classList.remove('hidden');
+      statusDot.classList.remove('bg-red-500');
+      statusDot.classList.add('bg-green-500');
+      statusText.textContent = 'Logged in';
+    } else {
+      this.loginStatus.classList.add('hidden');
+    }
   };
 }
 
