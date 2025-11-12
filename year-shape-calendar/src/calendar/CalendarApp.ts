@@ -68,7 +68,7 @@ export class CalendarApp {
     // Setup
     this.attachEventListeners();
     this.initializeGoogleCalendar();
-    this.generateDemoEvents();
+    // Note: generateDemoEvents() removed - only show real calendar events
     this.renderer.layoutWeeks();
   }
 
@@ -83,10 +83,20 @@ export class CalendarApp {
       await googleCalendarService.initializeGapi();
       googleCalendarService.initializeGis();
 
+      // Attempt to restore previous session
+      const sessionRestored = await googleCalendarService.restoreSession();
+      
+      if (sessionRestored) {
+        console.log('✅ Session restored - user is logged in');
+        // Automatically fetch events if session was restored
+        await this.handleRefreshEvents();
+      } else {
+        console.log('ℹ️ No saved session - user needs to sign in');
+      }
+
       console.log('Google Calendar integration ready');
     } catch (error) {
       console.warn('Google Calendar not configured or failed to initialize:', error);
-      // App will work with demo events
     }
   };
 

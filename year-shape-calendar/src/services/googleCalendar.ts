@@ -73,7 +73,7 @@ class GoogleCalendarService {
   /**
    * Restore session from stored access token
    */
-  private restoreSession = async (): Promise<void> => {
+  restoreSession = async (): Promise<boolean> => {
     try {
       const storedToken = localStorage.getItem(this.TOKEN_STORAGE_KEY);
       const storedExpiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
@@ -94,22 +94,28 @@ class GoogleCalendarService {
           if (typeof gapi !== 'undefined' && gapi.client) {
             gapi.client.setToken({ access_token: storedToken });
             this.isAuthenticated = true;
-            console.log('✅ Session restored from localStorage');
+            const minutesLeft = Math.floor((expiryTime - now) / (60 * 1000));
+            console.log(`✅ Session restored! Token valid for ${minutesLeft} more minutes`);
+            return true;
           } else {
-            console.warn('gapi.client not available, cannot restore session');
+            console.warn('❌ gapi.client not available, cannot restore session');
             this.clearSession();
+            return false;
           }
         } else {
           // Token expired, clear storage
           this.clearSession();
-          console.log('Stored token expired, cleared from storage');
+          console.log('❌ Stored token expired, cleared from storage');
+          return false;
         }
       } else {
-        console.log('No stored session found');
+        console.log('ℹ️ No stored session found');
+        return false;
       }
     } catch (error) {
-      console.error('Failed to restore session:', error);
+      console.error('❌ Failed to restore session:', error);
       this.clearSession();
+      return false;
     }
   };
 
