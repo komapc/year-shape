@@ -3,7 +3,7 @@
  * Prepares infrastructure for multi-language support
  */
 
-export type Locale = 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de';
+export type Locale = 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo';
 
 export interface Translations {
   // Header
@@ -158,6 +158,56 @@ const es: Translations = { ...en }; // Spanish
 const fr: Translations = { ...en }; // French
 const de: Translations = { ...en }; // German
 
+// Esperanto translations
+const eo: Translations = {
+  // Header
+  appTitle: 'YearWheel',
+  settingsButton: 'Agordoj kaj Kontroloj',
+  aboutButton: 'Pri',
+  
+  // Settings
+  settingsTitle: 'Agordoj kaj Kontroloj',
+  displaySection: 'Montrado',
+  showMoonPhase: 'Montri lunfazon',
+  showZodiac: 'Montri zodiakajn signojn',
+  showHebrewMonth: 'Montri hebrean monaton',
+  lightTheme: 'Hela temo',
+  
+  // Calendar Controls
+  calendarSection: 'Kalendaro',
+  timeFlow: 'Tempofluo',
+  timeFlowCW: 'Dekstrume',
+  timeFlowCCW: 'Maldekstrume',
+  shiftSeasons: 'Ŝovi Sezonojn',
+  refreshEvents: 'Aktualigi Eventojn',
+  signInWithGoogle: 'Ensaluti per Google',
+  
+  // About
+  aboutTitle: 'Pri',
+  aboutDescription: 'Interaga kalendaro kiu bildigas la tutan jaron kiel ŝanĝiĝantan formon.',
+  features: 'Funkcioj:',
+  
+  // Legend
+  hasEvents: 'Havas eventojn',
+  noEvents: 'Neniuj eventoj (sezona nuanco)',
+  
+  // Footer
+  privacyPolicy: 'Privatecan Politikon',
+  termsOfService: 'Kondiĉoj de Servo',
+  
+  // Modal
+  week: 'Semajno',
+  openInCalendar: 'Malfermi en Kalendaro',
+  close: 'Fermi',
+  
+  // Tooltips
+  hoverForDetails: 'Ŝvebu super semajnoj por vidi lunfazon kaj zodiakajn informojn',
+  
+  // Messages
+  settingsSaved: 'Agordoj konservitaj',
+  autoSaved: 'Agordoj estas aŭtomate konservitaj',
+};
+
 const translations: Record<Locale, Translations> = {
   en,
   he,
@@ -165,6 +215,7 @@ const translations: Record<Locale, Translations> = {
   es,
   fr,
   de,
+  eo,
 };
 
 /**
