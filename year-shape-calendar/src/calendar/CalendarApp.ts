@@ -20,6 +20,7 @@ import { openGoogleCalendarForWeek } from '../utils/date';
 import { loadSettings, saveSettings, type AppSettings } from '../utils/settings';
 import { toast } from '../utils/toast';
 import { keyboardManager } from '../utils/keyboard';
+import { router } from '../utils/router';
 
 /**
  * Main application controller class for YearWheel.
@@ -185,6 +186,7 @@ export class CalendarApp {
     // ========================================
     this.attachEventListeners();
     this.registerKeyboardShortcuts();
+    this.registerRoutes();
     
     // ========================================
     // 6. Initialize Google Calendar (Async)
@@ -369,6 +371,50 @@ export class CalendarApp {
   };
 
   /**
+   * Register hash routes for SPA navigation
+   */
+  private registerRoutes = (): void => {
+    // #settings - Open settings panel
+    router.register('settings', () => {
+      this.settingsPanel.classList.remove('hidden');
+      this.aboutPanel.classList.add('hidden');
+    });
+
+    // #about - Open about panel  
+    router.register('about', () => {
+      this.aboutPanel.classList.remove('hidden');
+      this.settingsPanel.classList.add('hidden');
+    });
+
+    // #week/:weekNumber - Open week modal
+    router.register('week/:id', (params) => {
+      const weekNumber = parseInt(params?.id || '0', 10);
+      if (weekNumber >= 1 && weekNumber <= 52) {
+        this.handleWeekClick(weekNumber - 1); // Convert 1-based to 0-based
+      }
+    });
+
+    // #year/:year - Navigate to specific year
+    router.register('year/:year', (params) => {
+      const year = parseInt(params?.year || '', 10);
+      if (year >= 2000 && year <= 2100) {
+        this.currentYear = year;
+        this.updateYearDisplay();
+        this.renderer.layoutWeeks();
+        if (googleCalendarService.getAuthStatus()) {
+          this.handleRefreshEvents();
+        }
+      }
+    });
+
+    // Root / no hash - Close all panels
+    router.register('', () => {
+      this.settingsPanel.classList.add('hidden');
+      this.aboutPanel.classList.add('hidden');
+    });
+  };
+
+  /**
    * Handle corner radius change
    */
   private handleRadiusChange = (event: Event): void => {
@@ -504,21 +550,31 @@ export class CalendarApp {
    * Handle toggle about panel
    */
   private handleToggleAbout = (): void => {
-    this.aboutPanel.classList.toggle('hidden');
+    const isHidden = this.aboutPanel.classList.contains('hidden');
+    if (isHidden) {
+      router.navigate('about');
+    } else {
+      router.navigate('');
+    }
   };
 
   /**
    * Handle toggle settings panel
    */
   private handleToggleSettings = (): void => {
-    this.settingsPanel.classList.toggle('hidden');
+    const isHidden = this.settingsPanel.classList.contains('hidden');
+    if (isHidden) {
+      router.navigate('settings');
+    } else {
+      router.navigate('');
+    }
   };
 
   /**
    * Handle close settings panel (mobile)
    */
   private handleCloseSettings = (): void => {
-    this.settingsPanel.classList.add('hidden');
+    router.navigate('');
   };
 
   /**
@@ -723,6 +779,9 @@ export class CalendarApp {
     
     // Cleanup keyboard shortcuts
     keyboardManager.destroy();
+    
+    // Cleanup router
+    router.destroy();
     
     console.log('CalendarApp destroyed and cleaned up');
   };
