@@ -19,6 +19,7 @@ import { getElement } from '../utils/dom';
 import { openGoogleCalendarForWeek } from '../utils/date';
 import { loadSettings, saveSettings, type AppSettings } from '../utils/settings';
 import { toast } from '../utils/toast';
+import { keyboardManager } from '../utils/keyboard';
 
 /**
  * Main application controller class for YearWheel.
@@ -183,6 +184,7 @@ export class CalendarApp {
     // 5. Setup Event Handlers
     // ========================================
     this.attachEventListeners();
+    this.registerKeyboardShortcuts();
     
     // ========================================
     // 6. Initialize Google Calendar (Async)
@@ -313,6 +315,57 @@ export class CalendarApp {
     // Year navigation
     this.prevYearBtn.addEventListener('click', this.handlePrevYear);
     this.nextYearBtn.addEventListener('click', this.handleNextYear);
+  };
+
+  /**
+   * Register keyboard shortcuts
+   */
+  private registerKeyboardShortcuts = (): void => {
+    // S - Toggle settings
+    keyboardManager.register({
+      key: 's',
+      callback: () => {
+        this.handleToggleSettings();
+      },
+      description: 'Toggle settings panel'
+    });
+
+    // ? - Toggle about/help
+    keyboardManager.register({
+      key: '?',
+      callback: () => {
+        this.handleToggleAbout();
+      },
+      description: 'Toggle about panel'
+    });
+
+    // Escape - Close all panels
+    keyboardManager.register({
+      key: 'escape',
+      callback: () => {
+        this.settingsPanel.classList.add('hidden');
+        this.aboutPanel.classList.add('hidden');
+      },
+      description: 'Close all panels'
+    });
+
+    // Left arrow - Previous year
+    keyboardManager.register({
+      key: 'arrowleft',
+      callback: () => {
+        this.handlePrevYear();
+      },
+      description: 'Previous year'
+    });
+
+    // Right arrow - Next year
+    keyboardManager.register({
+      key: 'arrowright',
+      callback: () => {
+        this.handleNextYear();
+      },
+      description: 'Next year'
+    });
   };
 
   /**
@@ -667,6 +720,9 @@ export class CalendarApp {
 
     // Cleanup renderer (stops timers)
     this.renderer.destroy();
+    
+    // Cleanup keyboard shortcuts
+    keyboardManager.destroy();
     
     console.log('CalendarApp destroyed and cleaned up');
   };
