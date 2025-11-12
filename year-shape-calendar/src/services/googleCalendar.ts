@@ -1,5 +1,28 @@
 /**
- * Google Calendar API integration service
+ * @fileoverview Google Calendar API Integration Service
+ * 
+ * Manages all interactions with Google Calendar API, including:
+ * - API client initialization (GAPI)
+ * - OAuth 2.0 authentication (GIS - Google Identity Services)
+ * - Access token management and persistence
+ * - Event fetching and mapping
+ * - Session restoration from localStorage
+ * 
+ * Authentication Flow:
+ * 1. User clicks "Sign in with Google"
+ * 2. OAuth consent screen opens
+ * 3. User grants calendar.readonly permission
+ * 4. Access token received (expires in ~1 hour)
+ * 5. Token stored in localStorage for persistence
+ * 6. Events fetched automatically
+ * 
+ * Session Persistence:
+ * - Tokens saved to localStorage with expiry timestamp
+ * - Auto-restore on page load if token still valid
+ * - 5-minute safety buffer before expiry
+ * 
+ * @author YearWheel Team
+ * @version 0.5.0
  */
 
 import type { CalendarEvent } from '../types';

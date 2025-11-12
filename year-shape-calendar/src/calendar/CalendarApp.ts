@@ -1,5 +1,14 @@
 /**
- * Main Calendar Application controller
+ * @fileoverview Main Calendar Application Controller
+ * 
+ * This is the central orchestrator for YearWheel. It manages:
+ * - UI element initialization and event handling
+ * - Integration between CalendarRenderer, WeekModal, and GoogleCalendarService
+ * - User settings persistence (theme, display options, calendar configuration)
+ * - Google Calendar authentication and event synchronization
+ * 
+ * @author YearWheel Team
+ * @version 0.5.0
  */
 
 import type { CalendarEvent } from '../types';
@@ -10,30 +19,95 @@ import { getElement } from '../utils/dom';
 import { openGoogleCalendarForWeek } from '../utils/date';
 import { loadSettings, saveSettings, type AppSettings } from '../utils/settings';
 
+/**
+ * Main application controller class for YearWheel.
+ * 
+ * Responsibilities:
+ * - Initializing and coordinating all UI components
+ * - Managing application state and user settings
+ * - Handling user interactions (button clicks, slider changes)
+ * - Orchestrating Google Calendar integration
+ * - Persisting configuration to localStorage
+ * 
+ * @class CalendarApp
+ */
 export class CalendarApp {
+  /** Calendar rendering engine - handles visual layout and positioning */
   private renderer: CalendarRenderer;
+  
+  /** Week detail modal - displays Soviet-style diary view */
   private modal: WeekModal;
+  
+  /** Google Calendar events indexed by week number (1-52) */
   private eventsByWeek: Record<number, CalendarEvent[]> = {};
 
-  // UI Elements
+  // ========================================
+  // UI Element References
+  // ========================================
+  
+  /** Corner radius slider (0=square, 100=circle) */
   private radiusInput: HTMLInputElement;
+  
+  /** Main container for the year shape visualization */
   private shapeContainer: HTMLElement;
+  
+  /** Button to toggle rotation direction (CW/CCW) */
   private toggleDirectionBtn: HTMLButtonElement;
+  
+  /** Button to rotate seasonal offset */
   private shiftSeasonsBtn: HTMLButtonElement;
+  
+  /** Button to refresh Google Calendar events */
   private refreshEventsBtn: HTMLButtonElement;
+  
+  /** Google Sign In button */
   private signInBtn: HTMLButtonElement;
+  
+  /** Toggle button for About panel */
   private toggleAboutBtn: HTMLButtonElement;
+  
+  /** Toggle button for Settings panel */
   private toggleSettingsBtn: HTMLButtonElement;
+  
+  /** About panel element */
   private aboutPanel: HTMLElement;
+  
+  /** Settings panel element */
   private settingsPanel: HTMLElement;
+  
+  /** Checkbox to show/hide moon phase in tooltips */
   private showMoonPhaseCheckbox: HTMLInputElement;
+  
+  /** Checkbox to show/hide zodiac signs in tooltips */
   private showZodiacCheckbox: HTMLInputElement;
+  
+  /** Checkbox to show/hide Hebrew months in tooltips */
   private showHebrewMonthCheckbox: HTMLInputElement;
+  
+  /** Checkbox to toggle light/dark theme */
   private lightThemeCheckbox: HTMLInputElement;
+  
+  /** Current application settings (persisted to localStorage) */
   private settings: AppSettings;
 
+  /**
+   * Initializes the YearWheel application.
+   * 
+   * Initialization sequence:
+   * 1. Query and store all DOM element references
+   * 2. Load persisted settings from localStorage
+   * 3. Apply saved settings to UI controls
+   * 4. Initialize renderer and modal components
+   * 5. Attach event listeners for user interactions
+   * 6. Initialize Google Calendar integration (async)
+   * 7. Perform initial calendar layout
+   * 
+   * @constructor
+   */
   constructor() {
-    // Get DOM elements
+    // ========================================
+    // 1. Query DOM Elements
+    // ========================================
     this.radiusInput = getElement<HTMLInputElement>('radiusRange');
     this.shapeContainer = getElement('yearShape');
     this.toggleDirectionBtn = getElement<HTMLButtonElement>('toggleDirection');
@@ -49,31 +123,61 @@ export class CalendarApp {
     this.showHebrewMonthCheckbox = getElement<HTMLInputElement>('showHebrewMonth');
     this.lightThemeCheckbox = getElement<HTMLInputElement>('lightTheme');
 
-    // Load settings
+    // ========================================
+    // 2. Load Persisted Settings
+    // ========================================
     this.settings = loadSettings();
     
-    // Apply settings to UI
+    // ========================================
+    // 3. Sync Settings to UI Controls
+    // ========================================
     this.showMoonPhaseCheckbox.checked = this.settings.showMoonPhase;
     this.showZodiacCheckbox.checked = this.settings.showZodiac;
     this.showHebrewMonthCheckbox.checked = this.settings.showHebrewMonth;
     this.lightThemeCheckbox.checked = this.settings.theme === 'light';
     
-    // Apply theme
+    // Apply theme to body element
     this.applyTheme(this.settings.theme || 'dark');
 
-    // Initialize components
+    // ========================================
+    // 4. Initialize Core Components
+    // ========================================
     this.renderer = new CalendarRenderer(this.shapeContainer);
     this.modal = new WeekModal();
 
-    // Setup
+    // ========================================
+    // 5. Setup Event Handlers
+    // ========================================
     this.attachEventListeners();
+    
+    // ========================================
+    // 6. Initialize Google Calendar (Async)
+    // ========================================
     this.initializeGoogleCalendar();
-    // Note: generateDemoEvents() removed - only show real calendar events
+    
+    // ========================================
+    // 7. Perform Initial Layout
+    // ========================================
+    // Note: No demo events - only real Google Calendar events are displayed
     this.renderer.layoutWeeks();
   }
 
   /**
-   * Initialize Google Calendar integration
+   * Initializes Google Calendar API integration.
+   * 
+   * This async method:
+   * 1. Waits for Google API scripts to load from CDN
+   * 2. Initializes GAPI (Google API Client) with API key
+   * 3. Initializes GIS (Google Identity Services) for OAuth 2.0
+   * 4. Attempts to restore a previous session from localStorage
+   * 5. If session restored, automatically fetches calendar events
+   * 
+   * If initialization fails (missing credentials, network error), the app
+   * continues to function but without calendar event integration.
+   * 
+   * @private
+   * @async
+   * @returns {Promise<void>}
    */
   private initializeGoogleCalendar = async (): Promise<void> => {
     try {
@@ -101,7 +205,14 @@ export class CalendarApp {
   };
 
   /**
-   * Wait for Google scripts to load
+   * Waits for Google API scripts to be loaded from CDN.
+   * 
+   * Polls for the global `gapi` and `google` objects every 100ms,
+   * timing out after 10 seconds. Required before calling any
+   * Google API initialization methods.
+   * 
+   * @private
+   * @returns {Promise<void>} Resolves when scripts are loaded, rejects on timeout
    */
   private waitForGoogleScripts = (): Promise<void> => {
     return new Promise((resolve) => {
@@ -175,7 +286,13 @@ export class CalendarApp {
   };
 
   /**
-   * Handle direction toggle
+   * Toggles the rotation direction of the year wheel.
+   * 
+   * Switches between clockwise (CW) and counter-clockwise (CCW).
+   * Updates button text and persists setting to localStorage.
+   * 
+   * @private
+   * @returns {void}
    */
   private handleDirectionToggle = (): void => {
     const newDirection = this.renderer.toggleDirection();
@@ -196,7 +313,14 @@ export class CalendarApp {
   };
 
   /**
-   * Handle refresh events
+   * Fetches fresh events from Google Calendar.
+   * 
+   * Requires user to be authenticated. Fetches all events for the current
+   * year, groups them by week number, and updates the calendar visualization.
+   * 
+   * @private
+   * @async
+   * @returns {Promise<void>}
    */
   private handleRefreshEvents = async (): Promise<void> => {
     if (googleCalendarService.getAuthStatus()) {
