@@ -1,13 +1,17 @@
 {
   "name": "yearwheel",
-  "version": "0.2.3",
+  "version": "0.3.1",
   "description": "Interactive calendar visualization - morph between circle and square to see your year at a glance",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "date-fns": "^3.0.0"

@@ -443,14 +443,15 @@ export class CalendarRenderer {
     const progress = currentWeek / CALENDAR_CONFIG.totalWeeks;
     const angle = startAngleRad + this.direction * progress * Math.PI * 2;
     
-    // Position arrow to almost touch the week
-    const indicatorRadius = radius * 0.85; // Extended to nearly touch the week (weeks are at ~0.88-0.92)
+    // Position arrow closer to center, pointing OUTWARD toward the week
+    const indicatorRadius = radius * 0.35; // Start from closer to center
     const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
     
-    // Calculate rotation to point TOWARD the week (outward from center)
-    // The SVG arrow points upward by default, so we add 90 to convert from
-    // standard angle (0° = right) to SVG rotation (0° = up)
-    const rotationAngle = (angle * 180 / Math.PI) + 90;
+    // Calculate rotation to point OUTWARD toward the week
+    // SVG arrow points upward by default, so we need:
+    // 1. Add 90 to convert from standard angle (0° = right) to SVG rotation (0° = up)
+    // 2. Add 180 to flip direction (point outward instead of inward)
+    const rotationAngle = (angle * 180 / Math.PI) + 90 + 180;
     
     this.currentWeekIndicator.style.left = `${position.x}px`;
     this.currentWeekIndicator.style.top = `${position.y}px`;

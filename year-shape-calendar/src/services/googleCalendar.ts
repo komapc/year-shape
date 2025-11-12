@@ -86,20 +86,29 @@ class GoogleCalendarService {
         if (expiryTime > now + 5 * 60 * 1000) {
           // Wait for gapi to be ready
           if (!this.gapiInitialized) {
+            console.log('Waiting for gapi initialization before restoring session...');
             await this.initializeGapi();
           }
           
-          gapi.client.setToken({ access_token: storedToken });
-          this.isAuthenticated = true;
-          console.log('Session restored from localStorage');
+          // Verify gapi.client exists
+          if (typeof gapi !== 'undefined' && gapi.client) {
+            gapi.client.setToken({ access_token: storedToken });
+            this.isAuthenticated = true;
+            console.log('✅ Session restored from localStorage');
+          } else {
+            console.warn('gapi.client not available, cannot restore session');
+            this.clearSession();
+          }
         } else {
           // Token expired, clear storage
           this.clearSession();
-          console.log('Stored token expired');
+          console.log('Stored token expired, cleared from storage');
         }
+      } else {
+        console.log('No stored session found');
       }
     } catch (error) {
-      console.warn('Failed to restore session:', error);
+      console.error('Failed to restore session:', error);
       this.clearSession();
     }
   };
