@@ -82,12 +82,9 @@
         <div class="space-y-4">
           <!-- Settings Panel -->
           <aside id="settingsPanel" class="glass rounded-xl border border-dark-border p-6 hidden">
-            <h2 class="text-lg font-semibold mb-4 text-gray-200">Settings & Controls</h2>
+            <h2 class="text-lg font-semibold mb-4 text-gray-200">Settings</h2>
             
             <div class="space-y-6">
-              <!-- Display Settings -->
-              <div class="space-y-3">
-                <h3 class="text-sm font-medium text-gray-300 border-b border-dark-border pb-2">Display</h3>
                 
                 <!-- Moon Phase Toggle -->
                 <label class="flex items-center justify-between cursor-pointer group">
@@ -167,9 +164,31 @@
                 </label>
               </div>
 
-              <!-- Calendar Controls -->
+              <!-- Shape Controls -->
               <div class="space-y-3">
-                <h3 class="text-sm font-medium text-gray-300 border-b border-dark-border pb-2">Calendar</h3>
+                <h3 class="text-sm font-medium text-gray-300 border-b border-dark-border pb-2">Shape</h3>
+                
+                <!-- Corner Radius -->
+                <div class="flex items-center justify-between">
+                  <label for="radiusRange" class="text-sm text-dark-muted">
+                    Corner Radius
+                  </label>
+                  <input 
+                    id="radiusRange" 
+                    type="range" 
+                    min="0" 
+                    max="50" 
+                    value="50"
+                    class="w-32 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+                           [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary-500 
+                           [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
+                           [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 
+                           [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:rounded-full
+                           [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                    aria-label="Adjust corner radius to morph between circle and square"
+                  />
+                </div>
                 
                 <!-- Direction Toggle -->
                 <button 
@@ -193,6 +212,11 @@
                   <span class="text-lg">↻</span>
                   <span class="text-sm">Shift Seasons</span>
                 </button>
+              </div>
+
+              <!-- Calendar Controls -->
+              <div class="space-y-3">
+                <h3 class="text-sm font-medium text-gray-300 border-b border-dark-border pb-2">Calendar</h3>
 
                 <!-- Refresh Events -->
                 <button 
@@ -219,6 +243,35 @@
                   <span class="text-sm">Sign in with Google</span>
                 </button>
               </div>
+
+              <!-- Language & Display -->
+              <div class="space-y-3">
+                <h3 class="text-sm font-medium text-gray-300 border-b border-dark-border pb-2">Display & Language</h3>
+                
+                <!-- Language Selector -->
+                <div class="flex items-center justify-between">
+                  <label for="languageSelect" class="text-sm text-dark-muted">
+                    Language
+                  </label>
+                  <select 
+                    id="languageSelect"
+                    class="bg-dark-card border border-dark-border rounded px-3 py-1.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    aria-label="Select language"
+                  >
+                    <option value="en">English</option>
+                    <option value="he">עברית (Hebrew)</option>
+                    <option value="eo">Esperanto</option>
+                    <option value="ru">Русский (Russian)</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="fr">Français (French)</option>
+                    <option value="de">Deutsch (German)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Display Settings moved here -->
+              <div class="space-y-3">
+                <h3 class="text-sm font-medium text-gray-300 border-b border-dark-border pb-2">Tooltips & Theme</h3>
 
             </div>
           </aside>
