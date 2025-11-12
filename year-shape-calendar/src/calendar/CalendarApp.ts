@@ -374,11 +374,12 @@ export class CalendarApp {
         this.refreshEventsBtn.disabled = true;
         this.refreshEventsBtn.textContent = 'Loading...';
 
-        const events = await googleCalendarService.fetchEvents();
+        const events = await googleCalendarService.fetchEvents(this.currentYear);
         this.eventsByWeek = events;
         this.renderer.updateEvents(this.eventsByWeek);
 
         this.refreshEventsBtn.textContent = 'Refresh Events';
+        toast.success(`Loaded events for ${this.currentYear}`);
       } catch (error) {
         console.error('Error fetching events:', error);
         toast.error('Failed to fetch calendar events. Please try again.');
@@ -474,6 +475,11 @@ export class CalendarApp {
     this.currentYear--;
     this.updateYearDisplay();
     this.renderer.layoutWeeks();
+    
+    // Re-fetch events if logged in
+    if (googleCalendarService.getAuthStatus()) {
+      this.handleRefreshEvents();
+    }
   };
 
   /**
@@ -483,6 +489,11 @@ export class CalendarApp {
     this.currentYear++;
     this.updateYearDisplay();
     this.renderer.layoutWeeks();
+    
+    // Re-fetch events if logged in
+    if (googleCalendarService.getAuthStatus()) {
+      this.handleRefreshEvents();
+    }
   };
 
   /**

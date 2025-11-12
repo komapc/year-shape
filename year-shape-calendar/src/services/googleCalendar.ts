@@ -230,17 +230,18 @@ class GoogleCalendarService {
   };
 
   /**
-   * Fetch events from Google Calendar for the current year
+   * Fetch events from Google Calendar for a specific year
+   * @param year - The year to fetch events for (defaults to current year)
    */
-  fetchEvents = async (): Promise<Record<number, CalendarEvent[]>> => {
+  fetchEvents = async (year?: number): Promise<Record<number, CalendarEvent[]>> => {
     if (!this.isAuthenticated) {
       throw new Error('User not authenticated');
     }
 
     try {
-      const now = new Date();
-      const startOfYear = new Date(now.getFullYear(), 0, 1);
-      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+      const targetYear = year || new Date().getFullYear();
+      const startOfYear = new Date(targetYear, 0, 1);
+      const endOfYear = new Date(targetYear, 11, 31, 23, 59, 59);
 
       const response = await gapi.client.calendar.events.list({
         calendarId: 'primary',
@@ -269,7 +270,7 @@ class GoogleCalendarService {
         eventsByWeek[weekIndex].push(mappedEvent);
       });
 
-      console.log(`Fetched ${events.length} events from Google Calendar`);
+      console.log(`Fetched ${events.length} events from Google Calendar for year ${targetYear}`);
       return eventsByWeek;
     } catch (error) {
       console.error('Error fetching calendar events:', error);
