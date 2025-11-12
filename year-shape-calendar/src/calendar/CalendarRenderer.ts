@@ -114,12 +114,12 @@ export class CalendarRenderer {
       'duration-300',
     ]);
     
-    // Longer arrow pointing TOWARD the week (outward from center)
+    // Long arrow pointing TOWARD the week (outward from center)
     indicator.innerHTML = `
-      <svg width="40" height="60" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 55 L20 10 L16 14 M20 10 L24 14" 
+      <svg width="60" height="180" viewBox="0 0 60 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30 170 L30 10 L22 18 M30 10 L38 18" 
               stroke="#60a5fa" 
-              stroke-width="2.5" 
+              stroke-width="3.5" 
               stroke-linecap="round" 
               stroke-linejoin="round"/>
       </svg>
@@ -443,15 +443,17 @@ export class CalendarRenderer {
     const progress = currentWeek / CALENDAR_CONFIG.totalWeeks;
     const angle = startAngleRad + this.direction * progress * Math.PI * 2;
     
-    // Position arrow closer to center, pointing OUTWARD toward the week
-    const indicatorRadius = radius * 0.35; // Start from closer to center
+    // Position arrow pointing OUTWARD toward the week
+    // Arrow starts closer to center and extends far out to almost touch the week
+    const indicatorRadius = radius * 0.65; // Position further out, long arrow reaches the weeks
     const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
     
     // Calculate rotation to point OUTWARD toward the week
-    // SVG arrow points upward by default (0° in SVG = up)
-    // Standard angle: 0° = right (3 o'clock), increases counter-clockwise
-    // We need to convert and flip: subtract 90 to make arrow point outward
-    const rotationAngle = (angle * 180 / Math.PI) - 90;
+    // SVG arrow points UPWARD by default
+    // Math angle: 0° = right (3 o'clock), increases counter-clockwise
+    // To align: since arrow is UP (90° in math), we need angle + 90°
+    const angleDegrees = (angle * 180 / Math.PI);
+    const rotationAngle = angleDegrees + 90;
     
     this.currentWeekIndicator.style.left = `${position.x}px`;
     this.currentWeekIndicator.style.top = `${position.y}px`;
