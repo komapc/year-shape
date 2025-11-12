@@ -33,6 +33,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   direction: -1,
   seasons: ['winter', 'spring', 'summer', 'autumn'],
   rotationOffset: 0,
+  
+  // UI preferences
+  theme: 'dark',
 };
 
 /**
