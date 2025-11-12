@@ -93,6 +93,9 @@ export class CalendarApp {
   /** Login status indicator element */
   private loginStatus: HTMLElement;
   
+  /** Header sign-in button (shown when not logged in) */
+  private headerSignInBtn: HTMLButtonElement;
+  
   /** Current application settings (persisted to localStorage) */
   private settings: AppSettings;
 
@@ -130,6 +133,7 @@ export class CalendarApp {
     this.lightThemeCheckbox = getElement<HTMLInputElement>('lightTheme');
     this.languageSelect = getElement<HTMLSelectElement>('languageSelect');
     this.loginStatus = getElement('loginStatus');
+    this.headerSignInBtn = getElement<HTMLButtonElement>('headerSignInBtn');
 
     // ========================================
     // 2. Load Persisted Settings
@@ -258,8 +262,9 @@ export class CalendarApp {
     // Refresh events
     this.refreshEventsBtn.addEventListener('click', this.handleRefreshEvents);
 
-    // Google sign-in
+    // Google sign-in (both buttons)
     this.signInBtn.addEventListener('click', this.handleSignIn);
+    this.headerSignInBtn.addEventListener('click', this.handleSignIn);
 
     // Week click handler
     this.renderer.onWeekClick(this.handleWeekClick);
@@ -552,12 +557,16 @@ export class CalendarApp {
     const statusText = this.loginStatus.querySelector('.status-text') as HTMLElement;
     
     if (isLoggedIn) {
+      // Show "Logged in" status, hide sign-in button
       this.loginStatus.classList.remove('hidden');
+      this.headerSignInBtn.classList.add('hidden');
       statusDot.classList.remove('bg-red-500');
       statusDot.classList.add('bg-green-500');
       statusText.textContent = 'Logged in';
     } else {
+      // Hide status, show sign-in button in header
       this.loginStatus.classList.add('hidden');
+      this.headerSignInBtn.classList.remove('hidden');
     }
   };
 }
