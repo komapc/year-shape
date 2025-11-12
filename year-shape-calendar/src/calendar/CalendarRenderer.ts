@@ -443,8 +443,9 @@ export class CalendarRenderer {
     const progress = currentWeek / CALENDAR_CONFIG.totalWeeks;
     const angle = startAngleRad + this.direction * progress * Math.PI * 2;
     
-    // Position arrow closer to center, pointing OUTWARD toward the week
-    const indicatorRadius = radius * 0.35; // Start from closer to center
+    // Position arrow pointing OUTWARD toward the week
+    // Arrow extends from center outward, should almost reach the week
+    const indicatorRadius = radius * 0.75; // Extend far out to almost touch the week
     const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
     
     // Calculate rotation to point OUTWARD toward the week
