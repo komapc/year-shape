@@ -1,6 +1,6 @@
 {
   "name": "yearwheel",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Interactive calendar visualization - morph between circle and square to see your year at a glance",
   "type": "module",
   "scripts": {

@@ -28,6 +28,7 @@ export class CalendarApp {
   private settingsPanel: HTMLElement;
   private showMoonPhaseCheckbox: HTMLInputElement;
   private showZodiacCheckbox: HTMLInputElement;
+  private lightThemeCheckbox: HTMLInputElement;
   private settings: AppSettings;
 
   constructor() {
@@ -44,6 +45,7 @@ export class CalendarApp {
     this.settingsPanel = getElement('settingsPanel');
     this.showMoonPhaseCheckbox = getElement<HTMLInputElement>('showMoonPhase');
     this.showZodiacCheckbox = getElement<HTMLInputElement>('showZodiac');
+    this.lightThemeCheckbox = getElement<HTMLInputElement>('lightTheme');
 
     // Load settings
     this.settings = loadSettings();
@@ -51,6 +53,10 @@ export class CalendarApp {
     // Apply settings to UI
     this.showMoonPhaseCheckbox.checked = this.settings.showMoonPhase;
     this.showZodiacCheckbox.checked = this.settings.showZodiac;
+    this.lightThemeCheckbox.checked = this.settings.theme === 'light';
+    
+    // Apply theme
+    this.applyTheme(this.settings.theme || 'dark');
 
     // Initialize components
     this.renderer = new CalendarRenderer(this.shapeContainer);
@@ -135,6 +141,7 @@ export class CalendarApp {
     // Settings checkboxes
     this.showMoonPhaseCheckbox.addEventListener('change', this.handleMoonPhaseToggle);
     this.showZodiacCheckbox.addEventListener('change', this.handleZodiacToggle);
+    this.lightThemeCheckbox.addEventListener('change', this.handleThemeToggle);
   };
 
   /**
@@ -286,6 +293,28 @@ export class CalendarApp {
     const checkbox = event.target as HTMLInputElement;
     this.settings.showZodiac = checkbox.checked;
     saveSettings(this.settings);
+  };
+
+  /**
+   * Handle theme toggle
+   */
+  private handleThemeToggle = (event: Event): void => {
+    const checkbox = event.target as HTMLInputElement;
+    const newTheme = checkbox.checked ? 'light' : 'dark';
+    this.settings.theme = newTheme;
+    saveSettings(this.settings);
+    this.applyTheme(newTheme);
+  };
+
+  /**
+   * Apply theme to document
+   */
+  private applyTheme = (theme: 'light' | 'dark'): void => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light-theme');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+    }
   };
 
   /**
