@@ -13,8 +13,9 @@ Welcome to my collection of web applications and experiments! This repository co
 An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, seasonal organization, and a beautiful modern UI.
 
 **Environments:**
-- **Production:** https://komapc.github.io/year-shape/
-- **Staging:** https://komapc.github.io/year-shape-staging/ (for testing before release)
+- **Production:** https://yearwheel.pages.dev/
+- **Staging:** https://staging.yearwheel.pages.dev/ (auto-deployed from `staging` branch)
+- **PR Previews:** Every PR gets a unique URL like `https://<branch>.yearwheel.pages.dev/`
 
 **Features:**
 - 🔄 Morphing shape (circle ↔ square)
@@ -31,7 +32,7 @@ npm install
 npm run dev
 ```
 
-**Live Demo:** [https://komapc.github.io/year-shape/](https://komapc.github.io/year-shape/)
+**Live Demo:** [https://yearwheel.pages.dev/](https://yearwheel.pages.dev/)
 
 **Documentation:**
 - [Full README](./year-shape-calendar/README.md)
