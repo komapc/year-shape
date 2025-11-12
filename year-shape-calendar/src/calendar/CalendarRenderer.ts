@@ -114,12 +114,12 @@ export class CalendarRenderer {
       'duration-300',
     ]);
     
-    // Longer arrow pointing TOWARD the week (outward from center)
+    // Long arrow pointing TOWARD the week (outward from center)
     indicator.innerHTML = `
-      <svg width="40" height="60" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 55 L20 10 L16 14 M20 10 L24 14" 
+      <svg width="50" height="100" viewBox="0 0 50 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M25 90 L25 10 L18 17 M25 10 L32 17" 
               stroke="#60a5fa" 
-              stroke-width="2.5" 
+              stroke-width="3" 
               stroke-linecap="round" 
               stroke-linejoin="round"/>
       </svg>
@@ -444,8 +444,8 @@ export class CalendarRenderer {
     const angle = startAngleRad + this.direction * progress * Math.PI * 2;
     
     // Position arrow pointing OUTWARD toward the week
-    // Arrow extends from center outward, should almost reach the week
-    const indicatorRadius = radius * 0.75; // Extend far out to almost touch the week
+    // Arrow starts from center area and extends outward
+    const indicatorRadius = radius * 0.5; // Position at mid-radius, arrow extends from there
     const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
     
     // Calculate rotation to point OUTWARD toward the week
