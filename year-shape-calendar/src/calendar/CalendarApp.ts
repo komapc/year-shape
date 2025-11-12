@@ -69,6 +69,9 @@ export class CalendarApp {
   /** Toggle button for Settings panel */
   private toggleSettingsBtn: HTMLButtonElement;
   
+  /** Close button for Settings panel (mobile) */
+  private closeSettingsBtn: HTMLButtonElement;
+  
   /** About panel element */
   private aboutPanel: HTMLElement;
   
@@ -99,6 +102,18 @@ export class CalendarApp {
   /** Current application settings (persisted to localStorage) */
   private settings: AppSettings;
 
+  /** Current year being displayed */
+  private currentYear: number;
+
+  /** Previous year button */
+  private prevYearBtn: HTMLButtonElement;
+
+  /** Next year button */
+  private nextYearBtn: HTMLButtonElement;
+
+  /** Year display element */
+  private yearDisplay: HTMLElement;
+
   /**
    * Initializes the YearWheel application.
    * 
@@ -125,6 +140,7 @@ export class CalendarApp {
     this.signInBtn = getElement<HTMLButtonElement>('signInBtn');
     this.toggleAboutBtn = getElement<HTMLButtonElement>('toggleAbout');
     this.toggleSettingsBtn = getElement<HTMLButtonElement>('toggleSettings');
+    this.closeSettingsBtn = getElement<HTMLButtonElement>('closeSettingsBtn');
     this.aboutPanel = getElement('aboutPanel');
     this.settingsPanel = getElement('settingsPanel');
     this.showMoonPhaseCheckbox = getElement<HTMLInputElement>('showMoonPhase');
@@ -134,11 +150,15 @@ export class CalendarApp {
     this.languageSelect = getElement<HTMLSelectElement>('languageSelect');
     this.loginStatus = getElement('loginStatus');
     this.headerSignInBtn = getElement<HTMLButtonElement>('headerSignInBtn');
+    this.prevYearBtn = getElement<HTMLButtonElement>('prevYear');
+    this.nextYearBtn = getElement<HTMLButtonElement>('nextYear');
+    this.yearDisplay = getElement('currentYearText');
 
     // ========================================
-    // 2. Load Persisted Settings
+    // 2. Load Persisted Settings and Initialize Year
     // ========================================
     this.settings = loadSettings();
+    this.currentYear = new Date().getFullYear();
     
     // ========================================
     // 3. Sync Settings to UI Controls
@@ -171,6 +191,9 @@ export class CalendarApp {
     // ========================================
     // 7. Perform Initial Layout
     // ========================================
+    // Update year display
+    this.updateYearDisplay();
+    
     // Note: No demo events - only real Google Calendar events are displayed
     this.renderer.layoutWeeks();
   }
@@ -277,6 +300,7 @@ export class CalendarApp {
 
     // Toggle settings
     this.toggleSettingsBtn.addEventListener('click', this.handleToggleSettings);
+    this.closeSettingsBtn.addEventListener('click', this.handleCloseSettings);
 
     // Settings checkboxes
     this.showMoonPhaseCheckbox.addEventListener('change', this.handleMoonPhaseToggle);
@@ -284,6 +308,10 @@ export class CalendarApp {
     this.showHebrewMonthCheckbox.addEventListener('change', this.handleHebrewMonthToggle);
     this.lightThemeCheckbox.addEventListener('change', this.handleThemeToggle);
     this.languageSelect.addEventListener('change', this.handleLanguageChange);
+
+    // Year navigation
+    this.prevYearBtn.addEventListener('click', this.handlePrevYear);
+    this.nextYearBtn.addEventListener('click', this.handleNextYear);
   };
 
   /**
@@ -430,6 +458,38 @@ export class CalendarApp {
    */
   private handleToggleSettings = (): void => {
     this.settingsPanel.classList.toggle('hidden');
+  };
+
+  /**
+   * Handle close settings panel (mobile)
+   */
+  private handleCloseSettings = (): void => {
+    this.settingsPanel.classList.add('hidden');
+  };
+
+  /**
+   * Handle previous year button
+   */
+  private handlePrevYear = (): void => {
+    this.currentYear--;
+    this.updateYearDisplay();
+    this.renderer.layoutWeeks();
+  };
+
+  /**
+   * Handle next year button
+   */
+  private handleNextYear = (): void => {
+    this.currentYear++;
+    this.updateYearDisplay();
+    this.renderer.layoutWeeks();
+  };
+
+  /**
+   * Update year display
+   */
+  private updateYearDisplay = (): void => {
+    this.yearDisplay.textContent = this.currentYear.toString();
   };
 
   /**

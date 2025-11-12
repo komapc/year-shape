@@ -11,6 +11,12 @@
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="YearWheel" />
+  
   <!-- Preconnect to Google APIs -->
   <link rel="preconnect" href="https://accounts.google.com" />
   
@@ -77,6 +83,29 @@
       <div class="grid lg:grid-cols-[1fr_280px] gap-8">
         <!-- Calendar Visualization -->
         <div class="flex flex-col items-center gap-6">
+          <!-- Year Navigation -->
+          <div class="flex items-center gap-4 glass px-6 py-3 rounded-xl border border-dark-border">
+            <button 
+              id="prevYear" 
+              class="btn text-xl p-2 w-10 h-10 flex items-center justify-center"
+              aria-label="Previous year"
+              title="Previous year"
+            >
+              ‹
+            </button>
+            <div id="yearDisplay" class="text-2xl font-bold text-primary-400 min-w-[100px] text-center">
+              <span id="currentYearText">2025</span>
+            </div>
+            <button 
+              id="nextYear" 
+              class="btn text-xl p-2 w-10 h-10 flex items-center justify-center"
+              aria-label="Next year"
+              title="Next year"
+            >
+              ›
+            </button>
+          </div>
+
           <div class="shape-wrap" style="border-radius: 50%;">
             <div 
               id="yearShape" 
@@ -100,7 +129,17 @@
         <div class="space-y-4">
           <!-- Settings Panel -->
           <aside id="settingsPanel" class="glass rounded-xl border border-dark-border p-6 hidden">
-            <h2 class="text-lg font-semibold mb-4 text-gray-200">Settings</h2>
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-gray-200">Settings</h2>
+              <button 
+                id="closeSettingsBtn" 
+                class="lg:hidden text-2xl text-dark-muted hover:text-gray-100 transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10"
+                aria-label="Close settings panel"
+                title="Close settings"
+              >
+                ×
+              </button>
+            </div>
             
             <div class="space-y-6">
                 
