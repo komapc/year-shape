@@ -11,6 +11,8 @@ class GoogleCalendarService {
   private gapiInitialized = false;
   private gisInitialized = false;
   private isAuthenticated = false;
+  private readonly TOKEN_STORAGE_KEY = 'google_access_token';
+  private readonly TOKEN_EXPIRY_KEY = 'google_token_expiry';
 
   /**
    * Initialize Google API client
@@ -57,10 +59,64 @@ class GoogleCalendarService {
 
       this.gisInitialized = true;
       console.log('Google Identity Services initialized');
+      
+      // Try to restore session from localStorage
+      this.restoreSession();
     } catch (error) {
       console.error('Error initializing GIS:', error);
       throw error;
     }
+  };
+
+  /**
+   * Restore session from stored access token
+   */
+  private restoreSession = (): void => {
+    try {
+      const storedToken = localStorage.getItem(this.TOKEN_STORAGE_KEY);
+      const storedExpiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
+
+      if (storedToken && storedExpiry) {
+        const expiryTime = parseInt(storedExpiry, 10);
+        const now = Date.now();
+
+        // Check if token is still valid (with 5-minute buffer)
+        if (expiryTime > now + 5 * 60 * 1000) {
+          gapi.client.setToken({ access_token: storedToken });
+          this.isAuthenticated = true;
+          console.log('Session restored from localStorage');
+        } else {
+          // Token expired, clear storage
+          this.clearSession();
+          console.log('Stored token expired');
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to restore session:', error);
+      this.clearSession();
+    }
+  };
+
+  /**
+   * Store access token in localStorage
+   */
+  private storeSession = (token: string, expiresIn: number): void => {
+    try {
+      const expiryTime = Date.now() + (expiresIn * 1000);
+      localStorage.setItem(this.TOKEN_STORAGE_KEY, token);
+      localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiryTime.toString());
+      console.log('Session stored in localStorage');
+    } catch (error) {
+      console.warn('Failed to store session:', error);
+    }
+  };
+
+  /**
+   * Clear stored session
+   */
+  private clearSession = (): void => {
+    localStorage.removeItem(this.TOKEN_STORAGE_KEY);
+    localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
   };
 
   /**
@@ -98,6 +154,12 @@ class GoogleCalendarService {
         }
 
         this.isAuthenticated = true;
+        
+        // Store the access token and expiry
+        if (response.access_token && response.expires_in) {
+          this.storeSession(response.access_token, parseInt(response.expires_in as unknown as string, 10));
+        }
+        
         resolve();
       };
 

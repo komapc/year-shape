@@ -22,10 +22,8 @@ export class CalendarApp {
   private shiftSeasonsBtn: HTMLButtonElement;
   private refreshEventsBtn: HTMLButtonElement;
   private signInBtn: HTMLButtonElement;
-  private toggleControlsBtn: HTMLButtonElement;
   private toggleAboutBtn: HTMLButtonElement;
   private toggleSettingsBtn: HTMLButtonElement;
-  private controlsPanel: HTMLElement;
   private aboutPanel: HTMLElement;
   private settingsPanel: HTMLElement;
   private showMoonPhaseCheckbox: HTMLInputElement;
@@ -40,10 +38,8 @@ export class CalendarApp {
     this.shiftSeasonsBtn = getElement<HTMLButtonElement>('shiftSeasons');
     this.refreshEventsBtn = getElement<HTMLButtonElement>('refreshEvents');
     this.signInBtn = getElement<HTMLButtonElement>('signInBtn');
-    this.toggleControlsBtn = getElement<HTMLButtonElement>('toggleControls');
     this.toggleAboutBtn = getElement<HTMLButtonElement>('toggleAbout');
     this.toggleSettingsBtn = getElement<HTMLButtonElement>('toggleSettings');
-    this.controlsPanel = getElement('controlsPanel');
     this.aboutPanel = getElement('aboutPanel');
     this.settingsPanel = getElement('settingsPanel');
     this.showMoonPhaseCheckbox = getElement<HTMLInputElement>('showMoonPhase');
@@ -129,9 +125,6 @@ export class CalendarApp {
 
     // Window resize
     window.addEventListener('resize', this.handleResize);
-
-    // Toggle controls
-    this.toggleControlsBtn.addEventListener('click', this.handleToggleControls);
 
     // Toggle about
     this.toggleAboutBtn.addEventListener('click', this.handleToggleAbout);
@@ -261,13 +254,6 @@ export class CalendarApp {
    */
   private handleResize = (): void => {
     this.renderer.layoutWeeks();
-  };
-
-  /**
-   * Handle toggle controls panel
-   */
-  private handleToggleControls = (): void => {
-    this.controlsPanel.classList.toggle('hidden');
   };
 
   /**
