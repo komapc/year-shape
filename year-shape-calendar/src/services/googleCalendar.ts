@@ -60,8 +60,10 @@ class GoogleCalendarService {
       this.gisInitialized = true;
       console.log('Google Identity Services initialized');
       
-      // Try to restore session from localStorage
-      this.restoreSession();
+      // Try to restore session from localStorage (async)
+      this.restoreSession().catch(err => 
+        console.warn('Session restore failed:', err)
+      );
     } catch (error) {
       console.error('Error initializing GIS:', error);
       throw error;
@@ -71,7 +73,7 @@ class GoogleCalendarService {
   /**
    * Restore session from stored access token
    */
-  private restoreSession = (): void => {
+  private restoreSession = async (): Promise<void> => {
     try {
       const storedToken = localStorage.getItem(this.TOKEN_STORAGE_KEY);
       const storedExpiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
@@ -82,6 +84,11 @@ class GoogleCalendarService {
 
         // Check if token is still valid (with 5-minute buffer)
         if (expiryTime > now + 5 * 60 * 1000) {
+          // Wait for gapi to be ready
+          if (!this.gapiInitialized) {
+            await this.initializeGapi();
+          }
+          
           gapi.client.setToken({ access_token: storedToken });
           this.isAuthenticated = true;
           console.log('Session restored from localStorage');

@@ -9,6 +9,7 @@ export interface AppSettings {
   // Display settings
   showMoonPhase: boolean;
   showZodiac: boolean;
+  showHebrewMonth: boolean;
   
   // Calendar configuration
   cornerRadius: number;           // 0-50 (slider value)
@@ -27,6 +28,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   // Display
   showMoonPhase: true,
   showZodiac: false,
+  showHebrewMonth: false,
   
   // Calendar
   cornerRadius: 50,
