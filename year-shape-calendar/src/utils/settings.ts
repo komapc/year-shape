@@ -17,9 +17,9 @@ export interface AppSettings {
   seasons: Season[];              // Order of seasons
   rotationOffset: number;         // 0, 90, 180, or 270
   
-  // UI preferences (future)
+  // UI preferences
   theme?: 'light' | 'dark';
-  language?: string;
+  locale?: 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de';
 }
 
 const SETTINGS_KEY = 'yearwheel_settings';
@@ -38,6 +38,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   
   // UI preferences
   theme: 'dark',
+  locale: 'en',
 };
 
 /**
