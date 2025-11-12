@@ -68,7 +68,7 @@ export class CalendarApp {
     // Setup
     this.attachEventListeners();
     this.initializeGoogleCalendar();
-    this.generateDemoEvents();
+    // Note: generateDemoEvents() removed - only show real calendar events
     this.renderer.layoutWeeks();
   }
 
