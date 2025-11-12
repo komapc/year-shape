@@ -21,16 +21,23 @@ Feature Branch → staging → main
 ## Environments
 
 ### Production
-- **URL:** https://komapc.github.io/year-shape/
+- **URL:** https://yearwheel.pages.dev/
 - **Branch:** `main`
+- **Platform:** Cloudflare Pages
 - **Protection:** Requires PR review, passing tests
 - **Deploy:** Automatic on merge to `main`
 
 ### Staging
-- **URL:** https://komapc.github.io/year-shape-staging/
+- **URL:** https://staging.yearwheel.pages.dev/
 - **Branch:** `staging`
+- **Platform:** Cloudflare Pages
 - **Protection:** Requires passing tests
 - **Deploy:** Automatic on push to `staging`
+
+### PR Previews
+- **URL:** `https://<branch-name>.yearwheel.pages.dev/`
+- **Platform:** Cloudflare Pages
+- **Deploy:** Automatic for every PR (production and staging)
 
 ## Deployment Workflows
 

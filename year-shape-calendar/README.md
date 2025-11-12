@@ -4,8 +4,9 @@ An interactive calendar visualization that morphs between circular and square sh
 
 ## Environments
 
-- **Production:** https://komapc.github.io/year-shape/
-- **Staging:** https://komapc.github.io/year-shape-staging/
+- **Production:** https://yearwheel.pages.dev/
+- **Staging:** https://staging.yearwheel.pages.dev/
+- **PR Previews:** Every PR gets a unique preview URL automatically
 
 ## Features
 
@@ -48,7 +49,7 @@ git push -u origin feature/my-feature
 gh pr create --base staging --title "Feature: My Feature"
 
 # After merge, test on staging:
-# https://komapc.github.io/year-shape-staging/
+# https://staging.yearwheel.pages.dev/
 ```
 
 ### Production Release
@@ -59,7 +60,7 @@ git checkout staging
 gh pr create --base main --title "Release: v0.5.2"
 
 # After merge, live at:
-# https://komapc.github.io/year-shape/
+# https://yearwheel.pages.dev/
 ```
 
 ## Build Commands
