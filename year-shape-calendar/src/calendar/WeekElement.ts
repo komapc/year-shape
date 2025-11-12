@@ -6,6 +6,7 @@ import type { Season, CalendarEvent } from '../types';
 import { createElement, makeAccessible } from '../utils/dom';
 import { getWeekStartDate } from '../utils/date';
 import { calculateMoonPhase, getMoonEmoji, getMoonPhaseName, getWeekZodiacSigns } from '../utils/astronomy';
+import { getWeekHebrewMonths, getHebrewMonthName } from '../utils/hebrew';
 import { loadSettings } from '../utils/settings';
 
 export class WeekElement {
@@ -64,7 +65,7 @@ export class WeekElement {
    */
   private handleMouseEnter = (): void => {
     const settings = loadSettings();
-    if (!settings.showMoonPhase && !settings.showZodiac) return;
+    if (!settings.showMoonPhase && !settings.showZodiac && !settings.showHebrewMonth) return;
 
     const startDate = getWeekStartDate(this.weekIndex);
     
@@ -82,6 +83,12 @@ export class WeekElement {
       const zodiacs = getWeekZodiacSigns(startDate);
       const zodiacText = zodiacs.map(z => `${z.emoji} ${z.name}`).join(', ');
       content += `<div class="mt-1 text-sm">${zodiacText}</div>`;
+    }
+
+    if (settings.showHebrewMonth) {
+      const hebrewMonths = getWeekHebrewMonths(startDate);
+      const hebrewText = hebrewMonths.map(m => `${m.emoji} ${getHebrewMonthName(m)}`).join(', ');
+      content += `<div class="mt-1 text-sm">${hebrewText}</div>`;
     }
 
     this.showTooltip(content);

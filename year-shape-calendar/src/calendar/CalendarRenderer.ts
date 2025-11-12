@@ -116,8 +116,8 @@ export class CalendarRenderer {
     
     // Longer arrow pointing TOWARD the week (outward from center)
     indicator.innerHTML = `
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 35 L20 10 L16 14 M20 10 L24 14" 
+      <svg width="40" height="60" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 55 L20 10 L16 14 M20 10 L24 14" 
               stroke="#60a5fa" 
               stroke-width="2.5" 
               stroke-linecap="round" 

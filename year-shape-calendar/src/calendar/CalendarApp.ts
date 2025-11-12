@@ -28,6 +28,7 @@ export class CalendarApp {
   private settingsPanel: HTMLElement;
   private showMoonPhaseCheckbox: HTMLInputElement;
   private showZodiacCheckbox: HTMLInputElement;
+  private showHebrewMonthCheckbox: HTMLInputElement;
   private lightThemeCheckbox: HTMLInputElement;
   private settings: AppSettings;
 
@@ -45,6 +46,7 @@ export class CalendarApp {
     this.settingsPanel = getElement('settingsPanel');
     this.showMoonPhaseCheckbox = getElement<HTMLInputElement>('showMoonPhase');
     this.showZodiacCheckbox = getElement<HTMLInputElement>('showZodiac');
+    this.showHebrewMonthCheckbox = getElement<HTMLInputElement>('showHebrewMonth');
     this.lightThemeCheckbox = getElement<HTMLInputElement>('lightTheme');
 
     // Load settings
@@ -53,6 +55,7 @@ export class CalendarApp {
     // Apply settings to UI
     this.showMoonPhaseCheckbox.checked = this.settings.showMoonPhase;
     this.showZodiacCheckbox.checked = this.settings.showZodiac;
+    this.showHebrewMonthCheckbox.checked = this.settings.showHebrewMonth;
     this.lightThemeCheckbox.checked = this.settings.theme === 'light';
     
     // Apply theme
@@ -141,6 +144,7 @@ export class CalendarApp {
     // Settings checkboxes
     this.showMoonPhaseCheckbox.addEventListener('change', this.handleMoonPhaseToggle);
     this.showZodiacCheckbox.addEventListener('change', this.handleZodiacToggle);
+    this.showHebrewMonthCheckbox.addEventListener('change', this.handleHebrewMonthToggle);
     this.lightThemeCheckbox.addEventListener('change', this.handleThemeToggle);
   };
 
@@ -292,6 +296,15 @@ export class CalendarApp {
   private handleZodiacToggle = (event: Event): void => {
     const checkbox = event.target as HTMLInputElement;
     this.settings.showZodiac = checkbox.checked;
+    saveSettings(this.settings);
+  };
+
+  /**
+   * Handle Hebrew month toggle
+   */
+  private handleHebrewMonthToggle = (event: Event): void => {
+    const checkbox = event.target as HTMLInputElement;
+    this.settings.showHebrewMonth = checkbox.checked;
     saveSettings(this.settings);
   };
 
