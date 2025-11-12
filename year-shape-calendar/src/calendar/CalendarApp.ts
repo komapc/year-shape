@@ -18,6 +18,7 @@ import { googleCalendarService } from '../services/googleCalendar';
 import { getElement } from '../utils/dom';
 import { openGoogleCalendarForWeek } from '../utils/date';
 import { loadSettings, saveSettings, type AppSettings } from '../utils/settings';
+import { toast } from '../utils/toast';
 
 /**
  * Main application controller class for YearWheel.
@@ -380,7 +381,7 @@ export class CalendarApp {
         this.refreshEventsBtn.textContent = 'Refresh Events';
       } catch (error) {
         console.error('Error fetching events:', error);
-        alert('Failed to fetch calendar events. Please try again.');
+        toast.error('Failed to fetch calendar events. Please try again.');
       } finally {
         this.refreshEventsBtn.disabled = false;
       }
@@ -394,10 +395,9 @@ export class CalendarApp {
    */
   private handleSignIn = async (): Promise<void> => {
     if (!googleCalendarService.isReady()) {
-      alert(
-        'Google Calendar integration not configured.\n\n' +
-        'Please add your Google OAuth Client ID and API Key to\n' +
-        'src/utils/constants.ts to enable this feature.'
+      toast.warning(
+        'Google Calendar integration not configured. Please add your Google OAuth Client ID and API Key to enable this feature.',
+        7000
       );
       return;
     }
@@ -416,7 +416,7 @@ export class CalendarApp {
       await this.handleRefreshEvents();
     } catch (error) {
       console.error('Sign-in error:', error);
-      alert('Failed to sign in. Please try again.');
+      toast.error('Failed to sign in with Google. Please try again.');
       this.signInBtn.textContent = 'Sign in with Google';
       this.signInBtn.disabled = false;
     }
@@ -628,6 +628,36 @@ export class CalendarApp {
       this.loginStatus.classList.add('hidden');
       this.headerSignInBtn.classList.remove('hidden');
     }
+  };
+
+  /**
+   * Cleanup method - removes event listeners and stops timers
+   * Call this before destroying the app instance
+   */
+  destroy = (): void => {
+    // Remove event listeners
+    this.radiusInput.removeEventListener('input', this.handleRadiusChange);
+    this.toggleDirectionBtn.removeEventListener('click', this.handleDirectionToggle);
+    this.shiftSeasonsBtn.removeEventListener('click', this.handleShiftSeasons);
+    this.refreshEventsBtn.removeEventListener('click', this.handleRefreshEvents);
+    this.signInBtn.removeEventListener('click', this.handleSignIn);
+    this.headerSignInBtn.removeEventListener('click', this.handleSignIn);
+    this.toggleAboutBtn.removeEventListener('click', this.handleToggleAbout);
+    this.toggleSettingsBtn.removeEventListener('click', this.handleToggleSettings);
+    this.closeSettingsBtn.removeEventListener('click', this.handleCloseSettings);
+    this.showMoonPhaseCheckbox.removeEventListener('change', this.handleMoonPhaseToggle);
+    this.showZodiacCheckbox.removeEventListener('change', this.handleZodiacToggle);
+    this.showHebrewMonthCheckbox.removeEventListener('change', this.handleHebrewMonthToggle);
+    this.lightThemeCheckbox.removeEventListener('change', this.handleThemeToggle);
+    this.languageSelect.removeEventListener('change', this.handleLanguageChange);
+    this.prevYearBtn.removeEventListener('click', this.handlePrevYear);
+    this.nextYearBtn.removeEventListener('click', this.handleNextYear);
+    window.removeEventListener('resize', this.handleResize);
+
+    // Cleanup renderer (stops timers)
+    this.renderer.destroy();
+    
+    console.log('CalendarApp destroyed and cleaned up');
   };
 }
 
