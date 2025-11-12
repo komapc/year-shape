@@ -22,7 +22,7 @@
 
   /* Light theme overrides */
   .light-theme body {
-    @apply bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900;
+    @apply bg-gradient-to-b from-blue-50 via-white to-indigo-50 text-gray-900;
   }
 
   .light-theme .text-gray-100 {
@@ -42,40 +42,79 @@
   }
 
   .light-theme .glass {
-    background: rgba(255, 255, 255, 0.7);
-    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(99, 102, 241, 0.2);
     backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
   .light-theme .bg-dark-card {
-    @apply bg-gray-200;
+    @apply bg-white;
   }
 
   .light-theme .border-dark-border {
     @apply border-gray-300;
   }
 
+  .light-theme .btn {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #4b5563;
+  }
+
+  .light-theme .btn:hover {
+    background-color: rgba(229, 231, 235, 1);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #1f2937;
+  }
+
+  .light-theme .btn.primary {
+    @apply bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700;
+  }
+
+  .light-theme .shape-wrap {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.9));
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
   .light-theme .season-label {
-    color: #1a365d !important;
+    color: #1e40af !important;
+    font-weight: 600;
   }
 
   .light-theme .month-label {
-    color: #2c5282 !important;
+    color: #4f46e5 !important;
+    font-weight: 500;
+  }
+
+  .light-theme .week {
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .light-theme .modal {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .light-theme .modal-content {
+    @apply bg-white border-gray-300;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   }
 }
 
 /* Custom component styles */
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-lg text-gray-300 
-           transition-all duration-200 cursor-pointer hover:text-primary-400
+    @apply px-4 py-2 rounded-lg text-gray-200 
+           transition-all duration-200 cursor-pointer hover:text-white
            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-bg;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(71, 85, 105, 0.4);
   }
 
   .btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(71, 85, 105, 0.6);
+    border-color: rgba(255, 255, 255, 0.25);
   }
 
   .btn:disabled {
@@ -83,8 +122,9 @@
   }
 
   .btn:disabled:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(71, 85, 105, 0.4);
     color: #d1d5db;
+    border-color: rgba(255, 255, 255, 0.15);
   }
 
   .btn.primary {
