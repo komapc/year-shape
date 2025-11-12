@@ -448,10 +448,11 @@ export class CalendarRenderer {
     const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
     
     // Calculate rotation to point OUTWARD toward the week
-    // SVG arrow points upward by default (rotation 0° = up)
-    // Math angle: 0° = right, 90° = up, counter-clockwise
-    // Conversion: SVG_rotation = math_angle_degrees (direct alignment)
-    const rotationAngle = (angle * 180 / Math.PI);
+    // SVG arrow points UPWARD by default
+    // Math angle: 0° = right (3 o'clock), increases counter-clockwise
+    // To align: since arrow is UP (90° in math), we need angle + 90°
+    const angleDegrees = (angle * 180 / Math.PI);
+    const rotationAngle = angleDegrees + 90;
     
     this.currentWeekIndicator.style.left = `${position.x}px`;
     this.currentWeekIndicator.style.top = `${position.y}px`;
