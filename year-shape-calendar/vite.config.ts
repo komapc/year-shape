@@ -4,7 +4,8 @@ import { resolve } from 'path';
 export default defineConfig({
   root: 'src',
   publicDir: '../public',
-  base: process.env.NODE_ENV === 'production' ? '/year-shape/' : '/',
+  base: process.env.VITE_BASE_URL || 
+        (process.env.NODE_ENV === 'production' ? '/year-shape/' : '/'),
   build: {
     outDir: '../dist',
     emptyOutDir: true,

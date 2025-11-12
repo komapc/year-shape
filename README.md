@@ -12,6 +12,10 @@ Welcome to my collection of web applications and experiments! This repository co
 
 An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, seasonal organization, and a beautiful modern UI.
 
+**Environments:**
+- **Production:** https://komapc.github.io/year-shape/
+- **Staging:** https://komapc.github.io/year-shape-staging/ (for testing before release)
+
 **Features:**
 - 🔄 Morphing shape (circle ↔ square)
 - 📅 52-week year visualization
