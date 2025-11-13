@@ -548,10 +548,17 @@
           const startOffset = baseOffset + rotationRad;
 
           for (let i = 0; i < this.sectorCount; i++) {
-            // Direction doesn't change visual layout - only conceptual flow
             const startAngle = startOffset + i * anglePerSector;
             const endAngle = startAngle + anglePerSector;
-            this.drawSector(i, startAngle, endAngle);
+
+            // For CCW, mirror angles around vertical axis: θ → π - θ
+            // IMPORTANT: Must swap start and end to maintain correct arc direction
+            const mirroredStart =
+              this.direction === -1 ? Math.PI - endAngle : startAngle;
+            const mirroredEnd =
+              this.direction === -1 ? Math.PI - startAngle : endAngle;
+
+            this.drawSector(i, mirroredStart, mirroredEnd);
           }
 
           // Draw separator line (outer edge of ring)
@@ -655,13 +662,15 @@
           text.setAttribute("text-anchor", "middle");
           text.setAttribute("dominant-baseline", "middle");
 
+          // Angle is already in the correct coordinate system (mirrored if CCW)
+          // No need to mirror again - that would be double-mirroring!
+
           // Rotate text to follow curve - always keep readable
           // Normalize angle to 0-360 range
           let normalizedAngle = ((angle * 180) / Math.PI) % 360;
           if (normalizedAngle < 0) normalizedAngle += 360;
 
-          // Text should always read the same way regardless of direction
-          // Only the ORDER changes with direction, not the text orientation
+          // Base rotation perpendicular to radius
           let rotation = normalizedAngle + 90;
 
           // Flip text if it would be upside down (reading from outside)
@@ -674,15 +683,6 @@
             `rotate(${rotation}, ${point.x}, ${point.y})`
           );
           text.textContent = label;
-
-          // Counter-mirror text when in CCW mode so it stays readable after SVG flip
-          if (this.direction === -1) {
-            text.style.transform = "scaleX(-1)";
-            text.style.transformOrigin = `${point.x}px ${point.y}px`;
-            text.style.transformBox = "fill-box";
-          } else {
-            text.style.transform = "";
-          }
 
           this.svgGroup.appendChild(text);
         }
@@ -857,10 +857,17 @@
             const progress = (month.startDay / daysInYear) * Math.PI * 2;
             const endProgress = (month.endDay / daysInYear) * Math.PI * 2;
 
-            // Direction doesn't change visual layout - only conceptual flow
             const startAngle = angleOffset + progress;
             const endAngle = angleOffset + endProgress;
-            this.drawSector(i, startAngle, endAngle);
+
+            // For CCW, mirror angles around vertical axis: θ → π - θ
+            // IMPORTANT: Must swap start and end to maintain correct arc direction
+            const mirroredStart =
+              this.direction === -1 ? Math.PI - endAngle : startAngle;
+            const mirroredEnd =
+              this.direction === -1 ? Math.PI - startAngle : endAngle;
+
+            this.drawSector(i, mirroredStart, mirroredEnd);
           }
 
           // Draw separator line
@@ -930,10 +937,17 @@
             const progress = (month.startDay / daysInYear) * Math.PI * 2;
             const endProgress = (month.endDay / daysInYear) * Math.PI * 2;
 
-            // Direction doesn't change visual layout - only conceptual flow
             const startAngle = angleOffset + progress;
             const endAngle = angleOffset + endProgress;
-            this.drawSector(i, startAngle, endAngle);
+
+            // For CCW, mirror angles around vertical axis: θ → π - θ
+            // IMPORTANT: Must swap start and end to maintain correct arc direction
+            const mirroredStart =
+              this.direction === -1 ? Math.PI - endAngle : startAngle;
+            const mirroredEnd =
+              this.direction === -1 ? Math.PI - startAngle : endAngle;
+
+            this.drawSector(i, mirroredStart, mirroredEnd);
           }
 
           // Draw separator line
@@ -1021,7 +1035,6 @@
           for (let i = 0; i < this.holidays.length; i++) {
             const holiday = this.holidays[i];
             const dayProgress = (holiday.day / daysInYear) * Math.PI * 2;
-            // Direction doesn't change visual layout - only conceptual flow
             const dayAngle = angleOffset + dayProgress;
 
             // Make a small sector (±2 days width for visibility)
@@ -1029,7 +1042,14 @@
             const startAngle = dayAngle - sectorWidth / 2;
             const endAngle = dayAngle + sectorWidth / 2;
 
-            this.drawSector(i, startAngle, endAngle);
+            // For CCW, mirror angles around vertical axis: θ → π - θ
+            // IMPORTANT: Must swap start and end to maintain correct arc direction
+            const mirroredStart =
+              this.direction === -1 ? Math.PI - endAngle : startAngle;
+            const mirroredEnd =
+              this.direction === -1 ? Math.PI - startAngle : endAngle;
+
+            this.drawSector(i, mirroredStart, mirroredEnd);
           }
 
           // Draw separator line
@@ -1147,24 +1167,7 @@
           // Update today indicator
           this.updateTodayIndicator(adjustedRadius);
 
-          // Apply mirroring for CCW (horizontal flip around vertical axis)
-          const svg = document.getElementById("calendar-svg");
-          const centerText = document.getElementById("centerText");
-
-          if (this.direction === -1) {
-            // Mirror entire SVG
-            svg.style.transform = "scaleX(-1)";
-            // Counter-mirror center text so it's readable
-            if (centerText) {
-              centerText.setAttribute("transform", "scale(-1, 1)");
-            }
-          } else {
-            // Normal mode
-            svg.style.transform = "";
-            if (centerText) {
-              centerText.setAttribute("transform", "");
-            }
-          }
+          // No CSS mirroring needed - mirroring is done mathematically in getPointOnShape
         }
 
         setRingWidth(width) {
@@ -1218,13 +1221,15 @@
           const baseOffset = -Math.PI / 2; // Start at top
           const rotationRad = (this.rotationOffset * Math.PI) / 180;
           const progress = (dayOfYear / daysInYear) * Math.PI * 2;
-          // Direction doesn't change visual layout - only conceptual flow
           const angle = baseOffset + rotationRad + progress;
+
+          // For CCW, mirror angle around vertical axis: θ → π - θ
+          const mirroredAngle = this.direction === -1 ? Math.PI - angle : angle;
 
           // Calculate line end point (just beyond outermost ring)
           const lineLength = adjustedRadius + 15; // Extend 15px beyond
-          const endX = this.centerX + lineLength * Math.cos(angle);
-          const endY = this.centerY + lineLength * Math.sin(angle);
+          const endX = this.centerX + lineLength * Math.cos(mirroredAngle);
+          const endY = this.centerY + lineLength * Math.sin(mirroredAngle);
 
           // Update line
           const todayLine = document.getElementById("todayLine");
@@ -1514,12 +1519,6 @@
           rotateYearBtn.style.transform = "";
         }, 200);
       });
-
-      console.log("✅ Multi-Ring Calendar loaded");
-      console.log(
-        "📊 Rings:",
-        ringSystem.rings.map((r) => r.name)
-      );
     </script>
   </body>
 </html>
