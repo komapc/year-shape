@@ -538,14 +538,14 @@ const tok: Translations = {
   // Header
   appTitle: 'sike tenpo sike',
   settingsButton: 'nasin pali',
-  aboutButton: 'sona',
+  aboutButton: 'mi li seme?',
   
   // Settings
   settingsTitle: 'nasin pali',
   displaySection: 'lukin',
   showMoonPhase: 'o lukin e mun',
   showZodiac: 'o lukin e sitelen sewi',
-  showHebrewMonth: 'o lukin e tenpo Epelanto',
+  showHebrewMonth: 'o lukin e tenpo mun Iwisi',
   lightTheme: 'kule walo',
   shapeSection: 'sitelen',
   cornerRadius: 'sike lili',
@@ -564,11 +564,11 @@ const tok: Translations = {
   timeFlowCCW: 'tawa monsi',
   shiftSeasons: 'ante e tenpo seli',
   refreshEvents: 'sin e lipu',
-  signInWithGoogle: 'o kama lon kepeken Google',
+  signInWithGoogle: 'o kepeken Google',
   signOut: 'o weka lon',
   
   // About
-  aboutTitle: 'sona',
+  aboutTitle: 'mi li seme?',
   aboutDescription: 'ilo tenpo ni li pana e sona pi tenpo sike ale kepeken sitelen sike.',
   features: 'ijo pona:',
   
@@ -608,19 +608,19 @@ const tok: Translations = {
   eventDeleted: 'lipu li weka pona',
   eventError: 'lipu li ken ala awen. o sin.',
   
-  // Months (using numbers in Toki Pona style)
-  january: 'tenpo nanpa wan',
-  february: 'tenpo nanpa tu',
-  march: 'tenpo nanpa tu wan',
-  april: 'tenpo nanpa tu tu',
-  may: 'tenpo nanpa luka',
-  june: 'tenpo nanpa luka wan',
-  july: 'tenpo nanpa luka tu',
-  august: 'tenpo nanpa luka tu wan',
-  september: 'tenpo nanpa luka tu tu',
-  october: 'tenpo nanpa luka luka',
-  november: 'tenpo nanpa luka luka wan',
-  december: 'tenpo nanpa luka luka tu',
+  // Months (using numbers in Toki Pona style with mun for month)
+  january: 'tenpo mun nanpa wan',
+  february: 'tenpo mun nanpa tu',
+  march: 'tenpo mun nanpa tu wan',
+  april: 'tenpo mun nanpa tu tu',
+  may: 'tenpo mun nanpa luka',
+  june: 'tenpo mun nanpa luka wan',
+  july: 'tenpo mun nanpa luka tu',
+  august: 'tenpo mun nanpa luka tu wan',
+  september: 'tenpo mun nanpa luka tu tu',
+  october: 'tenpo mun nanpa luka luka',
+  november: 'tenpo mun nanpa luka luka wan',
+  december: 'tenpo mun nanpa luka luka tu',
   
   // Days of week
   monday: 'suno nanpa wan',
