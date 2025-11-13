@@ -2,7 +2,7 @@
  * Tests for theme utility
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getSystemTheme, resolveTheme, applyTheme, watchSystemTheme } from '../theme';
 
 describe('Theme Utilities', () => {
@@ -119,7 +119,7 @@ describe('Theme Utilities', () => {
         onchange: null,
         addListener: vi.fn(),
         removeListener: vi.fn(),
-        addEventListener: (event: string, handler: (event: MediaQueryListEvent) => void) => {
+        addEventListener: (_event: string, handler: (event: MediaQueryListEvent) => void) => {
           changeHandler = handler;
         },
         removeEventListener: vi.fn(),
@@ -129,10 +129,9 @@ describe('Theme Utilities', () => {
       watchSystemTheme(callback);
 
       // Simulate theme change to dark
-      if (changeHandler) {
-        changeHandler({ matches: true } as MediaQueryListEvent);
-        expect(callback).toHaveBeenCalledWith('dark');
-      }
+      expect(changeHandler).not.toBeNull();
+      changeHandler!({ matches: true } as MediaQueryListEvent);
+      expect(callback).toHaveBeenCalledWith('dark');
     });
   });
 });

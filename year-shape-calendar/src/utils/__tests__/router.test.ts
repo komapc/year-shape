@@ -2,7 +2,7 @@
  * Tests for hash router utility
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Mock the router module since it's a singleton
 describe('Router Utilities', () => {
