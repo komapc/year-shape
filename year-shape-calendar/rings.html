@@ -550,11 +550,14 @@
           for (let i = 0; i < this.sectorCount; i++) {
             const startAngle = startOffset + i * anglePerSector;
             const endAngle = startAngle + anglePerSector;
-            
+
             // For CCW, mirror angles around vertical axis: θ → π - θ
-            const mirroredStart = this.direction === -1 ? (Math.PI - startAngle) : startAngle;
-            const mirroredEnd = this.direction === -1 ? (Math.PI - endAngle) : endAngle;
-            
+            // IMPORTANT: Must swap start and end to maintain correct arc direction
+            const mirroredStart =
+              this.direction === -1 ? Math.PI - endAngle : startAngle;
+            const mirroredEnd =
+              this.direction === -1 ? Math.PI - startAngle : endAngle;
+
             this.drawSector(i, mirroredStart, mirroredEnd);
           }
 
@@ -606,13 +609,13 @@
         `.trim();
         }
 
-         getPointOnShape(angle, radius) {
-           // Calculate point on shape (interpolated between circle and square)
-           const t = this.cornerRadius;
+        getPointOnShape(angle, radius) {
+          // Calculate point on shape (interpolated between circle and square)
+          const t = this.cornerRadius;
 
-            // Pure circle coordinates
-            const circleX = this.centerX + radius * Math.cos(angle);
-            const circleY = this.centerY + radius * Math.sin(angle);
+          // Pure circle coordinates
+          const circleX = this.centerX + radius * Math.cos(angle);
+          const circleY = this.centerY + radius * Math.sin(angle);
 
           // Pure square coordinates (inscribed in circle)
           const absAngle = Math.abs(angle % (Math.PI * 2));
@@ -659,12 +662,12 @@
           text.setAttribute("text-anchor", "middle");
           text.setAttribute("dominant-baseline", "middle");
 
-          // For CCW mode, mirror the angle for text rotation
-          const mirroredAngle = this.direction === -1 ? Math.PI - angle : angle;
+          // Angle is already in the correct coordinate system (mirrored if CCW)
+          // No need to mirror again - that would be double-mirroring!
 
           // Rotate text to follow curve - always keep readable
           // Normalize angle to 0-360 range
-          let normalizedAngle = ((mirroredAngle * 180) / Math.PI) % 360;
+          let normalizedAngle = ((angle * 180) / Math.PI) % 360;
           if (normalizedAngle < 0) normalizedAngle += 360;
 
           // Base rotation perpendicular to radius
@@ -856,11 +859,14 @@
 
             const startAngle = angleOffset + progress;
             const endAngle = angleOffset + endProgress;
-            
+
             // For CCW, mirror angles around vertical axis: θ → π - θ
-            const mirroredStart = this.direction === -1 ? (Math.PI - startAngle) : startAngle;
-            const mirroredEnd = this.direction === -1 ? (Math.PI - endAngle) : endAngle;
-            
+            // IMPORTANT: Must swap start and end to maintain correct arc direction
+            const mirroredStart =
+              this.direction === -1 ? Math.PI - endAngle : startAngle;
+            const mirroredEnd =
+              this.direction === -1 ? Math.PI - startAngle : endAngle;
+
             this.drawSector(i, mirroredStart, mirroredEnd);
           }
 
@@ -933,11 +939,14 @@
 
             const startAngle = angleOffset + progress;
             const endAngle = angleOffset + endProgress;
-            
+
             // For CCW, mirror angles around vertical axis: θ → π - θ
-            const mirroredStart = this.direction === -1 ? (Math.PI - startAngle) : startAngle;
-            const mirroredEnd = this.direction === -1 ? (Math.PI - endAngle) : endAngle;
-            
+            // IMPORTANT: Must swap start and end to maintain correct arc direction
+            const mirroredStart =
+              this.direction === -1 ? Math.PI - endAngle : startAngle;
+            const mirroredEnd =
+              this.direction === -1 ? Math.PI - startAngle : endAngle;
+
             this.drawSector(i, mirroredStart, mirroredEnd);
           }
 
@@ -1034,8 +1043,11 @@
             const endAngle = dayAngle + sectorWidth / 2;
 
             // For CCW, mirror angles around vertical axis: θ → π - θ
-            const mirroredStart = this.direction === -1 ? (Math.PI - startAngle) : startAngle;
-            const mirroredEnd = this.direction === -1 ? (Math.PI - endAngle) : endAngle;
+            // IMPORTANT: Must swap start and end to maintain correct arc direction
+            const mirroredStart =
+              this.direction === -1 ? Math.PI - endAngle : startAngle;
+            const mirroredEnd =
+              this.direction === -1 ? Math.PI - startAngle : endAngle;
 
             this.drawSector(i, mirroredStart, mirroredEnd);
           }
@@ -1210,9 +1222,9 @@
           const rotationRad = (this.rotationOffset * Math.PI) / 180;
           const progress = (dayOfYear / daysInYear) * Math.PI * 2;
           const angle = baseOffset + rotationRad + progress;
-          
+
           // For CCW, mirror angle around vertical axis: θ → π - θ
-          const mirroredAngle = this.direction === -1 ? (Math.PI - angle) : angle;
+          const mirroredAngle = this.direction === -1 ? Math.PI - angle : angle;
 
           // Calculate line end point (just beyond outermost ring)
           const lineLength = adjustedRadius + 15; // Extend 15px beyond
