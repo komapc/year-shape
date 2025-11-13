@@ -147,6 +147,21 @@
     box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
   }
 
+  .week.current-week {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 8px rgba(96, 165, 250, 0.6), 0 0 16px rgba(96, 165, 250, 0.4);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 16px rgba(96, 165, 250, 0.8), 0 0 32px rgba(96, 165, 250, 0.6);
+      transform: scale(1.1);
+    }
+  }
+
   .modal {
     @apply fixed inset-0 items-center justify-center z-50
            backdrop-blur-sm
