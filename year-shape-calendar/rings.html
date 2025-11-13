@@ -405,45 +405,50 @@
           <!-- Ring groups (rendered by JavaScript) -->
           <g id="rings-container"></g>
 
-          <!-- Today indicator line -->
-          <line
-            id="todayLine"
-            x1="350"
-            y1="350"
-            x2="350"
-            y2="100"
-            stroke="#ff4444"
-            stroke-width="3"
-            stroke-dasharray="5,5"
-            opacity="0.8"
-            pointer-events="none"
-          >
-            <animate
-              attributeName="opacity"
-              values="0.8;1;0.8"
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </line>
+        <!-- Direction flow arrows (show CW or CCW) -->
+        <g id="directionArrows" opacity="0.3" pointer-events="none">
+          <!-- Will be populated by JavaScript -->
+        </g>
 
-          <!-- Today indicator dot at the end of line -->
-          <circle
-            id="todayDot"
-            cx="350"
-            cy="100"
-            r="6"
-            fill="#ff4444"
-            stroke="white"
-            stroke-width="2"
-            pointer-events="none"
-          >
-            <animate
-              attributeName="r"
-              values="6;8;6"
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </circle>
+        <!-- Today indicator line -->
+        <line
+          id="todayLine"
+          x1="350"
+          y1="350"
+          x2="350"
+          y2="100"
+          stroke="#ff4444"
+          stroke-width="3"
+          stroke-dasharray="5,5"
+          opacity="0.8"
+          pointer-events="none"
+        >
+          <animate
+            attributeName="opacity"
+            values="0.8;1;0.8"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+        </line>
+
+        <!-- Today indicator dot at the end of line -->
+        <circle
+          id="todayDot"
+          cx="350"
+          cy="100"
+          r="6"
+          fill="#ff4444"
+          stroke="white"
+          stroke-width="2"
+          pointer-events="none"
+        >
+          <animate
+            attributeName="r"
+            values="6;8;6"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+        </circle>
 
           <!-- Center text -->
           <text class="center-text" id="centerText" x="350" y="350">2025</text>
@@ -1129,6 +1134,9 @@
 
           // Update today indicator
           this.updateTodayIndicator(adjustedRadius);
+          
+          // Update direction arrows
+          this.updateDirectionArrows(adjustedRadius);
         }
 
         setRingWidth(width) {
@@ -1167,6 +1175,47 @@
 
         getRotationOffset() {
           return this.rotationOffset;
+        }
+
+        updateDirectionArrows(adjustedRadius) {
+          const arrowsGroup = document.getElementById("directionArrows");
+          if (!arrowsGroup) return;
+          
+          // Clear existing arrows
+          arrowsGroup.innerHTML = "";
+          
+          // Draw 4 curved arrows showing flow direction at cardinal points
+          const positions = [0, 90, 180, 270]; // Top, Right, Bottom, Left (degrees)
+          const arrowRadius = adjustedRadius + 25; // Just outside the calendar
+          
+          positions.forEach(degrees => {
+            const angleRad = (degrees * Math.PI / 180) - Math.PI / 2;
+            const x = this.centerX + arrowRadius * Math.cos(angleRad);
+            const y = this.centerY + arrowRadius * Math.sin(angleRad);
+            
+            // Create curved arrow path
+            const arrowSize = 20;
+            const curveOffset = this.direction === 1 ? arrowSize : -arrowSize;
+            
+            // Arrow pointing in flow direction
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            
+            if (this.direction === 1) {
+              // Clockwise arrow
+              path.setAttribute("d", `M ${x-5},${y-10} Q ${x+10},${y} ${x-5},${y+10} L ${x},${y+5} L ${x+5},${y+10}`);
+            } else {
+              // Counter-clockwise arrow
+              path.setAttribute("d", `M ${x+5},${y-10} Q ${x-10},${y} ${x+5},${y+10} L ${x},${y+5} L ${x-5},${y+10}`);
+            }
+            
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", "#60a5fa");
+            path.setAttribute("stroke-width", "3");
+            path.setAttribute("stroke-linecap", "round");
+            path.setAttribute("stroke-linejoin", "round");
+            
+            arrowsGroup.appendChild(path);
+          });
         }
 
         updateTodayIndicator(adjustedRadius) {
@@ -1216,13 +1265,16 @@
             ringOrder: this.getRingOrder(),
             ringVisibility: this.ringVisibility,
           };
-          localStorage.setItem('multiRingCalendarSettings', JSON.stringify(settings));
+          localStorage.setItem(
+            "multiRingCalendarSettings",
+            JSON.stringify(settings)
+          );
         }
 
         loadSettings() {
-          const saved = localStorage.getItem('multiRingCalendarSettings');
+          const saved = localStorage.getItem("multiRingCalendarSettings");
           if (!saved) return false;
-          
+
           try {
             const settings = JSON.parse(saved);
             this.cornerRadius = settings.cornerRadius || 0.5;
@@ -1234,7 +1286,7 @@
             }
             return settings;
           } catch (e) {
-            console.error('Failed to load settings:', e);
+            console.error("Failed to load settings:", e);
             return false;
           }
         }
@@ -1265,9 +1317,12 @@
       const savedSettings = ringSystem.loadSettings();
 
       // Add rings (from outermost to innermost)
-      const defaultOrder = ['holidays', 'weeks', 'hebrew', 'months', 'seasons'];
-      const ringOrder = savedSettings && savedSettings.ringOrder ? savedSettings.ringOrder : defaultOrder;
-      
+      const defaultOrder = ["holidays", "weeks", "hebrew", "months", "seasons"];
+      const ringOrder =
+        savedSettings && savedSettings.ringOrder
+          ? savedSettings.ringOrder
+          : defaultOrder;
+
       // Create ring instances
       const ringInstances = {
         holidays: new HolidaysRing(),
@@ -1278,30 +1333,40 @@
       };
 
       // Add rings in saved order
-      ringOrder.forEach(ringName => {
+      ringOrder.forEach((ringName) => {
         const ring = ringInstances[ringName];
         if (ring) {
           // Get saved visibility or use default
-          const defaultVisible = ringName !== 'holidays'; // Holidays hidden by default
-          const visible = savedSettings && savedSettings.ringVisibility 
-            ? savedSettings.ringVisibility[ringName] 
-            : defaultVisible;
+          const defaultVisible = ringName !== "holidays"; // Holidays hidden by default
+          const visible =
+            savedSettings && savedSettings.ringVisibility
+              ? savedSettings.ringVisibility[ringName]
+              : defaultVisible;
           ringSystem.addRing(ring, visible);
         }
       });
 
       // Apply saved settings to UI controls
       if (savedSettings) {
-        document.getElementById('cornerRadius').value = Math.round(savedSettings.cornerRadius * 100);
-        document.getElementById('cornerValue').textContent = `${Math.round(savedSettings.cornerRadius * 100)}%`;
-        document.getElementById('ringWidth').value = savedSettings.ringWidth;
-        document.getElementById('widthValue').textContent = `${savedSettings.ringWidth}px`;
-        
-        const directionText = savedSettings.direction === 1 ? 'CW' : 'CCW';
-        const directionIcon = savedSettings.direction === 1 ? '↻' : '↺';
-        document.getElementById('directionToggle').innerHTML = `${directionIcon} ${directionText}`;
+        document.getElementById("cornerRadius").value = Math.round(
+          savedSettings.cornerRadius * 100
+        );
+        document.getElementById("cornerValue").textContent = `${Math.round(
+          savedSettings.cornerRadius * 100
+        )}%`;
+        document.getElementById("ringWidth").value = savedSettings.ringWidth;
+        document.getElementById(
+          "widthValue"
+        ).textContent = `${savedSettings.ringWidth}px`;
+
+        const directionText = savedSettings.direction === 1 ? "CW" : "CCW";
+        const directionIcon = savedSettings.direction === 1 ? "↻" : "↺";
+        document.getElementById(
+          "directionToggle"
+        ).innerHTML = `${directionIcon} ${directionText}`;
         if (savedSettings.direction === -1) {
-          document.getElementById('directionToggle').style.background = 'rgba(100,200,255,0.3)';
+          document.getElementById("directionToggle").style.background =
+            "rgba(100,200,255,0.3)";
         }
       }
 
