@@ -18,6 +18,15 @@ export interface Translations {
   showZodiac: string;
   showHebrewMonth: string;
   lightTheme: string;
+  shapeSection: string;
+  cornerRadius: string;
+  themeLabel: string;
+  themeAuto: string;
+  themeLight: string;
+  themeDark: string;
+  language: string;
+  userAgreement: string;
+  closeSettings: string;
   
   // Calendar Controls
   calendarSection: string;
@@ -113,6 +122,15 @@ const en: Translations = {
   showZodiac: 'Show zodiac signs',
   showHebrewMonth: 'Show Hebrew month',
   lightTheme: 'Light theme',
+  shapeSection: 'Shape',
+  cornerRadius: 'Corner Radius',
+  themeLabel: 'Theme',
+  themeAuto: 'Auto',
+  themeLight: 'Light',
+  themeDark: 'Dark',
+  language: 'Language',
+  userAgreement: 'User Agreement',
+  closeSettings: 'Close settings',
   
   // Calendar Controls
   calendarSection: 'Calendar',
@@ -208,6 +226,15 @@ const he: Translations = {
   showZodiac: 'הצג מזלות',
   showHebrewMonth: 'הצג חודש עברי',
   lightTheme: 'ערכת נושא בהירה',
+  shapeSection: 'צורה',
+  cornerRadius: 'רדיוס פינות',
+  themeLabel: 'ערכת נושא',
+  themeAuto: 'אוטומטי',
+  themeLight: 'בהיר',
+  themeDark: 'כהה',
+  language: 'שפה',
+  userAgreement: 'הסכם משתמש',
+  closeSettings: 'סגור הגדרות',
   
   // Calendar Controls
   calendarSection: 'לוח שנה',
@@ -310,6 +337,15 @@ const eo: Translations = {
   showZodiac: 'Montri zodiakajn signojn',
   showHebrewMonth: 'Montri hebrean monaton',
   lightTheme: 'Hela temo',
+  shapeSection: 'Formo',
+  cornerRadius: 'Angula Radiuso',
+  themeLabel: 'Temo',
+  themeAuto: 'Aŭtomata',
+  themeLight: 'Hela',
+  themeDark: 'Malhela',
+  language: 'Lingvo',
+  userAgreement: 'Uzanto-Interkonsento',
+  closeSettings: 'Fermi agordojn',
   
   // Calendar Controls
   calendarSection: 'Kalendaro',
@@ -406,6 +442,15 @@ const uk: Translations = {
   showZodiac: 'Показати знаки зодіаку',
   showHebrewMonth: 'Показати єврейський місяць',
   lightTheme: 'Світла тема',
+  shapeSection: 'Форма',
+  cornerRadius: 'Радіус кутів',
+  themeLabel: 'Тема',
+  themeAuto: 'Авто',
+  themeLight: 'Світла',
+  themeDark: 'Темна',
+  language: 'Мова',
+  userAgreement: 'Угода користувача',
+  closeSettings: 'Закрити налаштування',
   
   // Calendar Controls
   calendarSection: 'Календар',
@@ -502,6 +547,15 @@ const tok: Translations = {
   showZodiac: 'o lukin e sitelen sewi',
   showHebrewMonth: 'o lukin e tenpo Epelanto',
   lightTheme: 'kule walo',
+  shapeSection: 'sitelen',
+  cornerRadius: 'sike lili',
+  themeLabel: 'kule',
+  themeAuto: 'awen',
+  themeLight: 'walo',
+  themeDark: 'pimeja',
+  language: 'toki',
+  userAgreement: 'nasin mi',
+  closeSettings: 'o pini e nasin',
   
   // Calendar Controls
   calendarSection: 'tenpo',
@@ -598,6 +652,15 @@ const pl: Translations = {
   showZodiac: 'Pokaż znaki zodiaku',
   showHebrewMonth: 'Pokaż miesiąc hebrajski',
   lightTheme: 'Jasny motyw',
+  shapeSection: 'Kształt',
+  cornerRadius: 'Promień narożnika',
+  themeLabel: 'Motyw',
+  themeAuto: 'Auto',
+  themeLight: 'Jasny',
+  themeDark: 'Ciemny',
+  language: 'Język',
+  userAgreement: 'Umowa użytkownika',
+  closeSettings: 'Zamknij ustawienia',
   
   // Calendar Controls
   calendarSection: 'Kalendarz',
@@ -694,6 +757,15 @@ const be: Translations = {
   showZodiac: 'Паказаць знакі зодыяка',
   showHebrewMonth: 'Паказаць яўрэйскі месяц',
   lightTheme: 'Светлая тэма',
+  shapeSection: 'Форма',
+  cornerRadius: 'Радыус кутоў',
+  themeLabel: 'Тэма',
+  themeAuto: 'Аўта',
+  themeLight: 'Светлая',
+  themeDark: 'Цёмная',
+  language: 'Мова',
+  userAgreement: 'Карыстальніцкая дамова',
+  closeSettings: 'Зачыніць налады',
   
   // Calendar Controls
   calendarSection: 'Каляндар',
@@ -790,6 +862,15 @@ const io: Translations = {
   showZodiac: 'Montrar zodiakala signi',
   showHebrewMonth: 'Montrar Hebrea monato',
   lightTheme: 'Klara temo',
+  shapeSection: 'Formo',
+  cornerRadius: 'Angula Radiuso',
+  themeLabel: 'Temo',
+  themeAuto: 'Automatala',
+  themeLight: 'Klara',
+  themeDark: 'Obskura',
+  language: 'Linguo',
+  userAgreement: 'Uzanto-Acordo',
+  closeSettings: 'Klozar ajusti',
   
   // Calendar Controls
   calendarSection: 'Kalendario',

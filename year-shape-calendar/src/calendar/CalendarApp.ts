@@ -876,30 +876,81 @@ export class CalendarApp {
     
     // Update header buttons
     this.toggleSettingsBtn.setAttribute('title', translations.settingsButton);
+    this.toggleSettingsBtn.setAttribute('aria-label', translations.settingsButton);
     this.toggleAboutBtn.setAttribute('title', translations.aboutButton);
+    this.toggleAboutBtn.setAttribute('aria-label', translations.aboutButton);
     this.headerSignInBtn.setAttribute('aria-label', translations.signInWithGoogle);
+    const signInText = this.headerSignInBtn.querySelector('span');
+    if (signInText) signInText.textContent = translations.signInWithGoogle;
     
     // Update settings panel
     const settingsTitle = document.querySelector('#settingsPanel h2');
     if (settingsTitle) settingsTitle.textContent = translations.settingsTitle;
     
+    const closeSettingsBtn = document.querySelector('#closeSettingsBtn');
+    if (closeSettingsBtn) {
+      closeSettingsBtn.setAttribute('aria-label', translations.closeSettings);
+      closeSettingsBtn.setAttribute('title', translations.closeSettings + ' (Esc)');
+    }
+    
+    // Update section headers
+    const shapeSectionHeader = document.querySelector('#settingsPanel h3');
+    if (shapeSectionHeader && shapeSectionHeader.textContent?.includes('Shape')) {
+      shapeSectionHeader.textContent = translations.shapeSection;
+    }
+    
+    const calendarSectionHeader = Array.from(document.querySelectorAll('#settingsPanel h3'))
+      .find(h => h.textContent?.includes('Calendar'));
+    if (calendarSectionHeader) calendarSectionHeader.textContent = translations.calendarSection;
+    
+    const displaySectionHeader = Array.from(document.querySelectorAll('#settingsPanel h3'))
+      .find(h => h.textContent?.includes('Display'));
+    if (displaySectionHeader) displaySectionHeader.textContent = translations.displaySection + ' & ' + translations.language;
+    
     // Update checkboxes labels
     const moonLabel = this.showMoonPhaseCheckbox.parentElement?.querySelector('span');
-    if (moonLabel && moonLabel.textContent?.includes('moon')) {
+    if (moonLabel) {
       moonLabel.innerHTML = `<span class="inline-block mr-2">🌙</span>${translations.showMoonPhase}`;
     }
     
     const zodiacLabel = this.showZodiacCheckbox.parentElement?.querySelector('span');
-    if (zodiacLabel && zodiacLabel.textContent?.includes('zodiac')) {
+    if (zodiacLabel) {
       zodiacLabel.innerHTML = `<span class="inline-block mr-2">♈</span>${translations.showZodiac}`;
     }
     
     const hebrewLabel = this.showHebrewMonthCheckbox.parentElement?.querySelector('span');
-    if (hebrewLabel && hebrewLabel.textContent?.includes('Hebrew')) {
+    if (hebrewLabel) {
       hebrewLabel.innerHTML = `<span class="inline-block mr-2">✡️</span>${translations.showHebrewMonth}`;
     }
     
+    // Update corner radius label
+    const cornerRadiusLabel = document.querySelector('label[for="radiusRange"]');
+    if (cornerRadiusLabel) cornerRadiusLabel.textContent = translations.cornerRadius;
+    
+    // Update theme label
+    const themeLabel = document.querySelector('#settingsPanel label[class*="font-medium"]');
+    if (themeLabel && themeLabel.textContent?.includes('Theme')) {
+      themeLabel.innerHTML = `<span class="inline-block">☀️</span>${translations.themeLabel}`;
+    }
+    
+    // Update theme radio labels
+    const themeAutoLabel = this.themeAutoRadio.parentElement?.querySelector('span');
+    if (themeAutoLabel) themeAutoLabel.textContent = translations.themeAuto;
+    
+    const themeLightLabel = this.themeLightRadio.parentElement?.querySelector('span');
+    if (themeLightLabel) themeLightLabel.textContent = translations.themeLight;
+    
+    const themeDarkLabel = this.themeDarkRadio.parentElement?.querySelector('span');
+    if (themeDarkLabel) themeDarkLabel.textContent = translations.themeDark;
+    
+    // Update language label
+    const languageLabel = document.querySelector('label[for="languageSelect"]');
+    if (languageLabel) languageLabel.textContent = translations.language;
+    
     // Update buttons
+    const timeFlowText = this.toggleDirectionBtn.querySelector('span:first-child');
+    if (timeFlowText) timeFlowText.textContent = translations.timeFlow;
+    
     const shiftBtn = this.shiftSeasonsBtn.querySelector('span:last-child');
     if (shiftBtn) shiftBtn.textContent = translations.shiftSeasons;
     
@@ -916,6 +967,16 @@ export class CalendarApp {
     const aboutDesc = this.aboutPanel.querySelector('p');
     if (aboutDesc) aboutDesc.textContent = translations.aboutDescription;
     
+    // Update footer links
+    const privacyLink = document.querySelector('a[href="privacy.html"]');
+    if (privacyLink) privacyLink.textContent = translations.privacyPolicy;
+    
+    const termsLink = document.querySelector('a[href="terms.html"]');
+    if (termsLink) termsLink.textContent = translations.termsOfService;
+    
+    const userAgreementLink = document.querySelector('a[href="agreement.html"]');
+    if (userAgreementLink) userAgreementLink.textContent = translations.userAgreement;
+    
     // Update season labels
     const seasonLabels = document.querySelectorAll('.season-label');
     seasonLabels.forEach((label) => {
@@ -925,6 +986,13 @@ export class CalendarApp {
       if (season === 'summer') label.textContent = translations.summer;
       if (season === 'autumn') label.textContent = translations.autumn;
     });
+    
+    // Update modal
+    const openInCalendarBtn = document.querySelector('#openInGoogle span');
+    if (openInCalendarBtn) openInCalendarBtn.textContent = translations.openInCalendar;
+    
+    const closeModalBtn = document.querySelector('#closeModal');
+    if (closeModalBtn) closeModalBtn.setAttribute('aria-label', translations.close);
   };
 
   /**
