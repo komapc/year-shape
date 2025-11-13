@@ -1,7 +1,7 @@
 # Session Handoff Document
 **Date:** 2025-11-13  
 **Project:** YearWheel (year-shape-calendar)  
-**Version:** v0.9.0 (Released) + v0.9.1 (ESC fix pending)
+**Version:** v0.9.1 (Released)
 
 ---
 
@@ -9,21 +9,22 @@
 
 ### ✅ Recently Completed
 
-1. **v0.9.0 Released** (November 13, 2025)
+1. **v0.9.1 Released** (November 13, 2025)
    - **Production:** https://yearwheel.pages.dev
-   - **Release Notes:** https://github.com/komapc/year-shape/releases/tag/v0.9.0
+   - **Release Notes:** https://github.com/komapc/year-shape/releases/tag/v0.9.1
+   - **Bug Fix:** ESC key URL sync issue resolved
    
-2. **Major Features Shipped:**
-   - 🎨 Theme Auto-Detection (Auto/Light/Dark, follows system)
-   - 📱 PWA Install Prompt (smart install button)
-   - 🌍 Ukrainian & Toki Pona translations (5 languages total)
-   - 85 tests (up from 68)
-   - Comprehensive CHANGELOG.md
+2. **v0.9.0 Released** (November 13, 2025)
+   - **Major Features:**
+     - 🎨 Theme Auto-Detection (Auto/Light/Dark, follows system)
+     - 📱 PWA Install Prompt (smart install button)
+     - 🌍 Ukrainian & Toki Pona translations (5 languages total)
+     - 85 tests (up from 68)
+     - Comprehensive CHANGELOG.md
 
-3. **ESC Bug Fixed** (PR #34 pending review)
-   - **PR:** https://github.com/komapc/year-shape/pull/34
-   - Fixed: ESC now clears URL hash when closing modals/panels
-   - Ready for merge to staging
+3. **PRs Completed:**
+   - **PR #34:** ESC key fix (merged to staging)
+   - **PR #35:** Release v0.9.1 (merged to main)
 
 ---
 
@@ -60,10 +61,8 @@
 ## 🌿 Git Branch Structure
 
 ### Branches
-- **`main`**: Production (v0.9.0) ✅ https://yearwheel.pages.dev
-- **`staging`**: Synced with main ✅ https://staging.yearwheel.pages.dev
-- **`fix/esc-url-sync`**: ESC bug fix (PR #34 pending)
-- **`feat/remaining-improvements`**: (merged, can delete)
+- **`main`**: Production (v0.9.1) ✅ https://yearwheel.pages.dev
+- **`staging`**: Synced with main (v0.9.1) ✅ https://staging.yearwheel.pages.dev
 
 ### Workflow
 1. **Feature development**: Create branch from `staging`
@@ -79,17 +78,7 @@
 
 ## 🔧 Current Open PRs
 
-### PR #34: ESC Key URL Sync Fix
-- **URL:** https://github.com/komapc/year-shape/pull/34
-- **Status:** Ready to merge to staging
-- **Changes:** 2 files (CalendarApp.ts, WeekModal.ts)
-- **Impact:** Bug fix, no breaking changes
-
-**Next Steps:**
-1. Review PR #34
-2. Merge to staging
-3. Test on https://staging.yearwheel.pages.dev
-4. Create release PR to main (v0.9.1)
+**No open PRs** - All clean! ✅
 
 ---
 
@@ -167,26 +156,25 @@ npm run test:ui     # Visual test UI
 ### Production
 - **URL:** https://yearwheel.pages.dev
 - **Branch:** `main`
-- **Version:** v0.9.0
+- **Version:** v0.9.1
 - **Status:** ✅ Live & stable
 
 ### Staging
 - **URL:** https://staging.yearwheel.pages.dev
 - **Branch:** `staging`
-- **Version:** Synced with main (v0.9.0)
+- **Version:** Synced with main (v0.9.1)
 - **Status:** ✅ Ready for testing
 
 ### PR Previews
 - **Pattern:** `https://<branch-name>.yearwheel.pages.dev`
-- **Current:** 
-  - `fix-esc-url-sync.yearwheel.pages.dev` (PR #34)
+- **Current:** None (all PRs merged)
 - **Auto-deployed:** On every PR push
 
 ---
 
 ## 🎨 Features Overview
 
-### Current (v0.9.0)
+### Current (v0.9.1)
 - ✅ Morphing calendar (circle ↔ square)
 - ✅ 52-week visualization + year navigation
 - ✅ Google Calendar integration (OAuth 2.0)
@@ -195,11 +183,9 @@ npm run test:ui     # Visual test UI
 - ✅ 5 languages (en, he, eo, uk, tok)
 - ✅ Keyboard shortcuts (S, ?, Esc, ← →)
 - ✅ Deep linking (#week/N, #year/YYYY)
+- ✅ ESC key clears URL hash (fixed in v0.9.1)
 - ✅ Moon phases & zodiac signs
 - ✅ Hebrew calendar (RTL support)
-
-### Upcoming (v0.9.1 - ESC fix)
-- 🔧 ESC key clears URL hash
 
 ---
 
@@ -272,16 +258,16 @@ VITE_GOOGLE_API_KEY=your_api_key
 
 ## 🐛 Known Issues
 
-1. ~~ESC key doesn't clear URL~~ → **FIXED in PR #34**
+1. ~~ESC key doesn't clear URL~~ → **FIXED in v0.9.1**
 2. Dependabot alert (1 moderate) - See: https://github.com/komapc/year-shape/security/dependabot/1
 
 ---
 
-## 📊 Project Stats (as of v0.9.0)
+## 📊 Project Stats (as of v0.9.1)
 
 | Metric | Count |
 |--------|-------|
-| **Version** | 0.9.0 |
+| **Version** | 0.9.1 |
 | **Lines of Code** | ~5,000+ |
 | **Test Files** | 8 |
 | **Tests** | 85 |
@@ -292,22 +278,18 @@ VITE_GOOGLE_API_KEY=your_api_key
 
 ---
 
-## 🎯 Immediate Next Steps
+## 🎯 Next Steps
 
-1. **Review & Merge PR #34** (ESC fix)
-   - https://github.com/komapc/year-shape/pull/34
-   
-2. **Test on Staging**
-   - https://staging.yearwheel.pages.dev
-   
-3. **Release v0.9.1** (if ESC fix merged)
-   - Create PR staging → main
-   - Tag & release
-
-4. **Future Considerations**
+1. **Future Features** (when ready)
    - Google OAuth production publishing
-   - Complete remaining translations
+   - Complete remaining translations (ru, es, fr, de)
    - Server-side settings (requires backend)
+   - Address Dependabot security alert
+
+2. **Maintenance**
+   - Monitor production deployment
+   - Collect user feedback
+   - Plan next feature release
 
 ---
 
@@ -342,16 +324,18 @@ VITE_GOOGLE_API_KEY=your_api_key
 
 ## 🎉 Recent Achievements
 
+- ✅ Released v0.9.1 (bug fix release)
 - ✅ Released v0.9.0 with major features
 - ✅ Increased test coverage 25% (68 → 85 tests)
 - ✅ Added comprehensive CHANGELOG
 - ✅ Fixed ESC URL sync bug
 - ✅ Created session handoff documentation
+- ✅ All PRs merged, branches synced
 
 ---
 
 **Session End Time:** 2025-11-13  
-**Ready for:** New session / PR review / v0.9.1 release
+**Ready for:** New session / Feature development / Maintenance
 
 ---
 

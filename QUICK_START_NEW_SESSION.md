@@ -2,43 +2,38 @@
 
 ## ✅ What Was Done Today
 
-1. **Released v0.9.0** 🎉
+1. **Released v0.9.1** 🎉
+   - ESC key URL sync bug fix
+   - Production deployment successful
+   - https://github.com/komapc/year-shape/releases/tag/v0.9.1
+
+2. **Released v0.9.0** 🎉
    - Theme auto-detection (Auto/Light/Dark)
    - PWA install prompt
    - Ukrainian & Toki Pona translations
    - 85 tests (up from 68)
    
-2. **Fixed ESC Bug** (PR #34 ready)
-   - ESC now clears URL hash
-   - https://github.com/komapc/year-shape/pull/34
+3. **All PRs Merged** ✅
+   - PR #34: ESC key fix
+   - PR #35: v0.9.1 release
 
-3. **Synced Staging with Main** ✅
-
-4. **Created Documentation**
-   - SESSION_HANDOFF.md (complete details)
+4. **Documentation Complete**
+   - SESSION_HANDOFF.md (updated for v0.9.1)
    - This quick start guide
 
 ---
 
-## 🎯 Immediate Next Steps
+## 🎯 Next Steps
 
-### 1. Review & Merge PR #34 (ESC Fix)
-```bash
-# View PR
-open https://github.com/komapc/year-shape/pull/34
+### All Clean! ✅
 
-# Test on staging
-open https://staging.yearwheel.pages.dev
+The project is in a stable state with all features working and deployed.
 
-# After testing, merge PR
-```
-
-### 2. Release v0.9.1 (Optional)
-```bash
-cd /home/mark/projects
-git checkout staging
-gh pr create --base main --title "Release v0.9.1: ESC URL Sync Fix"
-```
+**Future tasks** (when ready):
+- Google OAuth production publishing
+- Complete translations (ru, es, fr, de)
+- Address Dependabot security alert
+- Plan next feature release
 
 ---
 
@@ -54,13 +49,13 @@ gh pr create --base main --title "Release v0.9.1: ESC URL Sync Fix"
 ## 🔗 Important Links
 
 **Live Sites:**
-- Production: https://yearwheel.pages.dev (v0.9.0)
-- Staging: https://staging.yearwheel.pages.dev
+- Production: https://yearwheel.pages.dev (v0.9.1)
+- Staging: https://staging.yearwheel.pages.dev (v0.9.1)
 
 **GitHub:**
 - Repository: https://github.com/komapc/year-shape
-- PR #34 (ESC fix): https://github.com/komapc/year-shape/pull/34
-- Releases: https://github.com/komapc/year-shape/releases
+- Latest Release: https://github.com/komapc/year-shape/releases/tag/v0.9.1
+- All Releases: https://github.com/komapc/year-shape/releases
 
 ---
 
