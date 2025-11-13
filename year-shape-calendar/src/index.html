@@ -85,29 +85,6 @@
       <div class="grid lg:grid-cols-[1fr_280px] gap-8">
         <!-- Calendar Visualization -->
         <div class="flex flex-col items-center gap-6">
-          <!-- Year Navigation -->
-          <div class="flex items-center gap-4 glass px-6 py-3 rounded-xl border border-dark-border">
-            <button 
-              id="prevYear" 
-              class="btn text-xl p-2 w-10 h-10 flex items-center justify-center"
-              aria-label="Previous year"
-              title="Previous year"
-            >
-              ‹
-            </button>
-            <div id="yearDisplay" class="text-2xl font-bold text-primary-400 min-w-[100px] text-center">
-              <span id="currentYearText">2025</span>
-            </div>
-            <button 
-              id="nextYear" 
-              class="btn text-xl p-2 w-10 h-10 flex items-center justify-center"
-              aria-label="Next year"
-              title="Next year"
-            >
-              ›
-            </button>
-          </div>
-
           <div class="shape-wrap" style="border-radius: 50%;">
             <div 
               id="yearShape" 
@@ -116,6 +93,29 @@
               aria-label="Year calendar shape with 52 weeks arranged in seasonal quadrants"
             >
               <!-- Week elements will be inserted here by JavaScript -->
+            </div>
+
+            <!-- Year Navigation (Inside Circle) -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-auto z-20">
+              <button 
+                id="prevYear" 
+                class="btn text-sm p-1.5 w-7 h-7 flex items-center justify-center opacity-70 hover:opacity-100"
+                aria-label="Previous year"
+                title="Previous year (←)"
+              >
+                ‹
+              </button>
+              <div id="yearDisplay" class="text-lg font-semibold text-primary-400 min-w-[60px] text-center pointer-events-none">
+                <span id="currentYearText">2025</span>
+              </div>
+              <button 
+                id="nextYear" 
+                class="btn text-sm p-1.5 w-7 h-7 flex items-center justify-center opacity-70 hover:opacity-100"
+                aria-label="Next year"
+                title="Next year (→)"
+              >
+                ›
+              </button>
             </div>
 
             <!-- Season Labels -->
