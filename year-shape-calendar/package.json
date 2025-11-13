@@ -1,6 +1,6 @@
 {
   "name": "yearwheel",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Your year in a circle (or square)",
   "type": "module",
   "scripts": {
