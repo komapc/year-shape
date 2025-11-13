@@ -23,6 +23,7 @@ import { keyboardManager } from '../utils/keyboard';
 import { router } from '../utils/router';
 import { resolveTheme, applyTheme, watchSystemTheme } from '../utils/theme';
 import type { ThemePreference } from '../utils/theme';
+import { t, setLocale, initializeLocale, type Locale } from '../i18n';
 
 /**
  * Main application controller class for YearWheel.
@@ -174,6 +175,12 @@ export class CalendarApp {
     // ========================================
     this.settings = loadSettings();
     this.currentYear = new Date().getFullYear();
+    
+    // Initialize internationalization
+    initializeLocale();
+    if (this.settings.locale) {
+      setLocale(this.settings.locale as Locale);
+    }
     
     // ========================================
     // 3. Sync Settings to UI Controls
@@ -809,11 +816,16 @@ export class CalendarApp {
    * @returns {void}
    */
   private handleLanguageChange = (): void => {
-    const selectedLocale = this.languageSelect.value as any;
+    const selectedLocale = this.languageSelect.value as Locale;
     this.settings.locale = selectedLocale;
     saveSettings(this.settings);
-    // Reload page to apply new language
-    window.location.reload();
+    setLocale(selectedLocale);
+    
+    // Show toast and reload
+    toast.success(t().settingsSaved);
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   /**

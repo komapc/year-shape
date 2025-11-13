@@ -54,14 +54,26 @@ const currentLocale = getLocale(); // "he"
 
 ## Integration Status
 
-🚧 **In Progress**: Infrastructure is ready, but not yet integrated into UI components.
+🔄 **Partially Integrated**: Core infrastructure is now active!
 
-### Next Steps:
-1. Add language selector to settings panel
-2. Replace hardcoded strings in HTML with translation keys
-3. Update all components to use `t()` function
-4. Add language switcher icon in header
-5. Test all languages thoroughly
+### ✅ What Works:
+1. ✅ Locale initialization on app start
+2. ✅ Language selector in settings panel
+3. ✅ Locale persistence in localStorage
+4. ✅ HTML lang attribute updates
+5. ✅ RTL support for Hebrew
+6. ✅ Toast notifications use translations
+
+### 🚧 Still TODO:
+1. Replace hardcoded strings in HTML with dynamic updates
+2. Update all UI text to use `t()` function
+3. Implement real-time UI updates (currently requires page reload)
+4. Test all languages thoroughly
+
+### Current Behavior:
+- Select language → Settings saved toast (in selected language)
+- Page reloads → Lang attribute and RTL applied
+- Most UI text still in English (hardcoded in HTML)
 
 ## Translation Keys
 

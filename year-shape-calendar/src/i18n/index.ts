@@ -437,6 +437,9 @@ export const setLocale = (locale: Locale): void => {
     // Store in localStorage for persistence
     localStorage.setItem('yearwheel_locale', locale);
     
+    // Update HTML lang attribute
+    document.documentElement.setAttribute('lang', locale);
+    
     // Apply RTL for Hebrew
     if (locale === 'he') {
       document.documentElement.setAttribute('dir', 'rtl');
