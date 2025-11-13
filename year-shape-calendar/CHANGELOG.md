@@ -12,6 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server-side settings sync
 - Complete Russian, Spanish, French, German translations
 
+## [0.9.1] - 2025-11-13
+
+### Fixed
+- **ESC Key URL Sync**: ESC key now clears URL hash when closing modals/panels
+  - Pressing ESC in settings panel clears `#settings` from URL
+  - Pressing ESC in week modal clears `#week/N` from URL
+  - URL state now stays synchronized with UI state
+  - Browser back button works correctly after ESC
+  - Shareable URLs remain accurate
+
+### Technical
+- Updated `CalendarApp.ts`: ESC handler clears hash after closing settings/about
+- Updated `WeekModal.ts`: ESC handler clears hash after closing modal
+- Better URL/UI state consistency
+
 ## [0.9.0] - 2025-11-13
 
 ### Added
