@@ -11,14 +11,17 @@ An interactive calendar visualization that morphs between circular and square sh
 ## Features
 
 - 🔄 Morphing shape (circle ↔ square with smooth transitions)
-- 📅 52-week year visualization
+- 📅 52-week year visualization with year navigation
 - 🌍 Seasonal organization (Winter, Spring, Summer, Autumn)
 - 📊 Google Calendar integration (OAuth 2.0)
 - 🌙 Moon phases and zodiac signs on hover
-- 🌐 Multi-language support (7 languages)
-- 🎨 Light/Dark theme
+- 🌐 Multi-language support (5 complete: en, he, eo, uk, tok)
+- 🎨 Theme auto-detection (Auto/Light/Dark, follows system preference)
+- 📱 PWA support (installable, offline caching)
+- ⌨️ Keyboard shortcuts (S, ?, Esc, ← →)
+- 🔗 Deep linking (shareable week URLs)
 - 📱 Fully responsive design
-- ✡️ Hebrew calendar integration
+- ✡️ Hebrew calendar integration (RTL support)
 
 ## Quick Start
 
