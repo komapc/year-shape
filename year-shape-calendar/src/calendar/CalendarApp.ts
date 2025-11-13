@@ -388,6 +388,8 @@ export class CalendarApp {
       callback: () => {
         this.settingsPanel.classList.add('hidden');
         this.aboutPanel.classList.add('hidden');
+        // Clear URL hash to sync with UI state
+        router.navigate('');
       },
       description: 'Close all panels'
     });
