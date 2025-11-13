@@ -19,7 +19,7 @@ export interface AppSettings {
   
   // UI preferences
   theme?: 'light' | 'dark' | 'auto';
-  locale?: 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo';
+  locale?: 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo' | 'uk' | 'tok';
 }
 
 const SETTINGS_KEY = 'yearwheel_settings';
