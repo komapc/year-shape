@@ -52,6 +52,22 @@ export interface Translations {
   // Messages
   settingsSaved: string;
   autoSaved: string;
+  
+  // Event Management
+  createEvent: string;
+  editEvent: string;
+  deleteEvent: string;
+  eventTitle: string;
+  eventDate: string;
+  eventTime: string;
+  eventDescription: string;
+  saveEvent: string;
+  cancelEvent: string;
+  confirmDelete: string;
+  eventCreated: string;
+  eventUpdated: string;
+  eventDeleted: string;
+  eventError: string;
 }
 
 const en: Translations = {
@@ -101,6 +117,22 @@ const en: Translations = {
   // Messages
   settingsSaved: 'Settings saved',
   autoSaved: 'Settings are saved automatically',
+  
+  // Event Management
+  createEvent: 'Create Event',
+  editEvent: 'Edit Event',
+  deleteEvent: 'Delete Event',
+  eventTitle: 'Event Title',
+  eventDate: 'Date',
+  eventTime: 'Time',
+  eventDescription: 'Description',
+  saveEvent: 'Save Event',
+  cancelEvent: 'Cancel',
+  confirmDelete: 'Are you sure you want to delete this event?',
+  eventCreated: 'Event created successfully',
+  eventUpdated: 'Event updated successfully',
+  eventDeleted: 'Event deleted successfully',
+  eventError: 'Failed to save event. Please try again.',
 };
 
 const he: Translations = {
@@ -150,6 +182,22 @@ const he: Translations = {
   // Messages
   settingsSaved: 'ההגדרות נשמרו',
   autoSaved: 'ההגדרות נשמרות אוטומטית',
+  
+  // Event Management
+  createEvent: 'צור אירוע',
+  editEvent: 'ערוך אירוע',
+  deleteEvent: 'מחק אירוע',
+  eventTitle: 'כותרת האירוע',
+  eventDate: 'תאריך',
+  eventTime: 'שעה',
+  eventDescription: 'תיאור',
+  saveEvent: 'שמור אירוע',
+  cancelEvent: 'ביטול',
+  confirmDelete: 'האם אתה בטוח שברצונך למחוק אירוע זה?',
+  eventCreated: 'האירוע נוצר בהצלחה',
+  eventUpdated: 'האירוע עודכן בהצלחה',
+  eventDeleted: 'האירוע נמחק בהצלחה',
+  eventError: 'שמירת האירוע נכשלה. אנא נסה שוב.',
 };
 
 // Placeholder translations (to be completed)
@@ -206,6 +254,22 @@ const eo: Translations = {
   // Messages
   settingsSaved: 'Agordoj konservitaj',
   autoSaved: 'Agordoj estas aŭtomate konservitaj',
+  
+  // Event Management
+  createEvent: 'Krei Eventon',
+  editEvent: 'Redakti Eventon',
+  deleteEvent: 'Forigi Eventon',
+  eventTitle: 'Titolo de Evento',
+  eventDate: 'Dato',
+  eventTime: 'Horo',
+  eventDescription: 'Priskribo',
+  saveEvent: 'Konservi Eventon',
+  cancelEvent: 'Nuligi',
+  confirmDelete: 'Ĉu vi certas ke vi volas forigi ĉi tiun eventon?',
+  eventCreated: 'Evento sukcese kreita',
+  eventUpdated: 'Evento sukcese ĝisdatigita',
+  eventDeleted: 'Evento sukcese forigita',
+  eventError: 'Malsukcesis konservi eventon. Bonvolu provi denove.',
 };
 
 // Ukrainian translations
@@ -256,6 +320,22 @@ const uk: Translations = {
   // Messages
   settingsSaved: 'Налаштування збережено',
   autoSaved: 'Налаштування зберігаються автоматично',
+  
+  // Event Management
+  createEvent: 'Створити подію',
+  editEvent: 'Редагувати подію',
+  deleteEvent: 'Видалити подію',
+  eventTitle: 'Назва події',
+  eventDate: 'Дата',
+  eventTime: 'Час',
+  eventDescription: 'Опис',
+  saveEvent: 'Зберегти подію',
+  cancelEvent: 'Скасувати',
+  confirmDelete: 'Ви впевнені, що хочете видалити цю подію?',
+  eventCreated: 'Подію успішно створено',
+  eventUpdated: 'Подію успішно оновлено',
+  eventDeleted: 'Подію успішно видалено',
+  eventError: 'Не вдалося зберегти подію. Спробуйте ще раз.',
 };
 
 // Toki Pona translations (minimalist constructed language)
@@ -306,6 +386,22 @@ const tok: Translations = {
   // Messages
   settingsSaved: 'nasin li awen',
   autoSaved: 'nasin li awen lon tenpo ale',
+  
+  // Event Management
+  createEvent: 'o pali e lipu sin',
+  editEvent: 'o ante e lipu',
+  deleteEvent: 'o weka e lipu',
+  eventTitle: 'nimi lipu',
+  eventDate: 'tenpo suno',
+  eventTime: 'tenpo lili',
+  eventDescription: 'toki sona',
+  saveEvent: 'o awen e lipu',
+  cancelEvent: 'o pini',
+  confirmDelete: 'sina wile ala wile weka e lipu ni?',
+  eventCreated: 'lipu sin li lon',
+  eventUpdated: 'lipu li ante pona',
+  eventDeleted: 'lipu li weka pona',
+  eventError: 'lipu li ken ala awen. o sin.',
 };
 
 const translations: Record<Locale, Translations> = {

@@ -75,6 +75,7 @@ See `Translations` interface in `src/i18n/index.ts` for all available keys:
 - Modal
 - Tooltips
 - Messages
+- Event Management (create, edit, delete events)
 
 ## Contributing Translations
 
