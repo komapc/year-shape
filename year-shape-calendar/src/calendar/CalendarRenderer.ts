@@ -8,6 +8,7 @@ import { calculatePositionOnPath, degreesToRadians } from '../utils/math';
 import { getMonthNamesShort, getMonthStartWeek } from '../utils/date';
 import { createElement } from '../utils/dom';
 import { WeekElement } from './WeekElement';
+import { t } from '../i18n';
 
 export class CalendarRenderer {
   private container: HTMLElement;
@@ -68,29 +69,89 @@ export class CalendarRenderer {
   private initializeMonthLabels = (): void => {
     const months = getMonthNamesShort();
     
-    months.forEach((monthName) => {
+    months.forEach((monthName, monthIndex) => {
       const label = createElement('div', [
         'month-label',
         'absolute',
         'text-xs',
         'font-medium',
-        'pointer-events-none',
+        'pointer-events-auto',
+        'cursor-pointer',
         'transition-all',
         'duration-300',
+        'hover:scale-110',
+        'hover:font-bold',
       ]);
       label.textContent = monthName;
       label.style.color = 'rgba(255, 255, 255, 0.4)';
+      label.setAttribute('data-month-index', String(monthIndex));
+      label.title = monthName; // Tooltip
+      
+      // Add hover effect to highlight month's weeks
+      label.addEventListener('mouseenter', () => {
+        this.handleMonthHover(monthIndex, true);
+        label.style.color = 'rgba(59, 130, 246, 1)'; // Primary color on hover
+      });
+      label.addEventListener('mouseleave', () => {
+        this.handleMonthHover(monthIndex, false);
+        label.style.color = 'rgba(255, 255, 255, 0.4)'; // Back to original
+      });
       
       this.monthLabels.push(label);
       this.container.appendChild(label);
     });
   };
+  
+  /**
+   * Handle month label hover - highlight all weeks in that month
+   */
+  private handleMonthHover = (monthIndex: number, isHovering: boolean): void => {
+    const currentYear = new Date().getFullYear();
+    const monthStartWeek = getMonthStartWeek(monthIndex, currentYear);
+    
+    // Calculate how many weeks this month spans (approximately 4-5 weeks)
+    const nextMonthIndex = (monthIndex + 1) % 12;
+    const nextMonthStartWeek = getMonthStartWeek(nextMonthIndex, currentYear);
+    
+    // Handle year boundary
+    let weeksInMonth: number[];
+    if (nextMonthStartWeek > monthStartWeek) {
+      weeksInMonth = Array.from(
+        { length: nextMonthStartWeek - monthStartWeek }, 
+        (_, i) => monthStartWeek + i
+      );
+    } else {
+      // December wrapping to January
+      weeksInMonth = Array.from(
+        { length: 52 - monthStartWeek }, 
+        (_, i) => monthStartWeek + i
+      );
+    }
+    
+    // Apply/remove highlight to weeks in this month
+    weeksInMonth.forEach(weekIndex => {
+      const weekElement = this.weeks[weekIndex];
+      if (weekElement) {
+        const element = weekElement.getElement();
+        if (isHovering) {
+          element.style.transform = 'scale(2)';
+          element.style.zIndex = '20';
+          element.style.filter = 'brightness(1.3)';
+        } else {
+          element.style.transform = '';
+          element.style.zIndex = '';
+          element.style.filter = '';
+        }
+      }
+    });
+  };
 
   /**
-   * Initialize season labels
+   * Initialize season labels (localized)
    */
   private initializeSeasonLabels = (): void => {
-    const seasonNames = ['Winter', 'Spring', 'Summer', 'Autumn'];
+    const trans = t();
+    const seasonNames = [trans.winter, trans.spring, trans.summer, trans.autumn];
     
     seasonNames.forEach((seasonName, index) => {
       const label = createElement('div', [
@@ -379,12 +440,13 @@ export class CalendarRenderer {
       const label = this.seasonLabels[seasonIndex];
       if (!label) return;
       
-      // Update label text to match current season order
+      // Update label text to match current season order (localized)
+      const trans = t();
       const seasonNames: Record<Season, string> = {
-        winter: 'Winter',
-        spring: 'Spring',
-        summer: 'Summer',
-        autumn: 'Autumn',
+        winter: trans.winter,
+        spring: trans.spring,
+        summer: trans.summer,
+        autumn: trans.autumn,
       };
       label.textContent = seasonNames[season];
       

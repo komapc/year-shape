@@ -12,6 +12,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server-side settings sync
 - Complete Russian, Spanish, French, German translations
 
+## [0.10.0] - 2025-11-13
+
+### 🌍 Major Feature: Complete Internationalization
+
+**8 Complete Languages** (123 strings each):
+- 🇺🇸 English (en)
+- 🇮🇱 Hebrew (he) - Full RTL support
+- 🌐 Esperanto (eo)
+- 🏳️ Toki Pona (tok) - Minimalist constructed language
+- 🇵🇱 Polish (pl) - NEW
+- 🇺🇦 Ukrainian (uk)
+- 🇧🇾 Belarusian (be) - NEW
+- 🌐 Ido (io) - NEW (Reformed Esperanto)
+
+**Full Translation Coverage:**
+- All UI text (header, settings, buttons, labels)
+- Month names (12 per language)
+- Day names (7 per language)
+- Season names (4 per language)
+- Event management strings (14 per language)
+- Toast notifications
+- Modal content
+- Footer links
+
+**Total: 984 active translations!**
+
+### 🎨 New Features
+
+- **Month Hover Effect**: Hover on month label → all weeks in that month enlarge
+  - 2x scale for visual grouping
+  - Brightness boost for visibility
+  - Month label highlights in blue
+  - Works in all languages
+- **Larger Week Circles**: Doubled from 8px to 16px for better visibility
+- **Dynamic UI Updates**: All text updates based on selected language
+- **Hebrew Optimizations**: Simplified translations, more natural Hebrew
+
+### 🔒 Security
+
+- **Fixed Critical Vulnerability**: Upgraded vite 5.4.21 → 7.2.2
+  - Fixed esbuild vulnerability (GHSA-67mh-4wv8-2f99)
+  - **0 vulnerabilities remaining!**
+- Updated dependencies for security patches
+
+### 🐛 Bug Fixes
+
+- **User Name Display**: Fixed "Hello, User" bug on session restore
+  - Now loads user info from localStorage correctly
+  - Shows actual name from Google account
+- **i18n Selector Reliability**: Fixed language switching after reload
+  - Uses data attributes instead of text content matching
+  - Works correctly in all languages after page reload
+- **Package Version**: Updated to 0.9.1 consistently
+
+### 🎨 UI/UX Improvements
+
+- Hebrew translations simplified and more natural
+- Toki Pona translations refined (tenpo mun, mi li seme?, o kepeken Google)
+- Better month name abbreviations (auto-generated from translations)
+- Seasons translate dynamically
+- Interactive month labels with hover feedback
+
+### 📦 New Translation Keys
+
+Added 32 new translation keys:
+- 12 month names
+- 7 day names  
+- 4 season names
+- 9 UI labels (shapeSection, cornerRadius, themeLabel, etc.)
+
+### 🌐 New Languages Added
+
+- **Polish (pl)**: Complete with 123 strings
+- **Belarusian (be)**: Complete with 123 strings  
+- **Ido (io)**: Reformed Esperanto, complete with 123 strings
+
+### Performance
+
+- Faster build times with vite 7
+- Better translation lookup performance
+- Optimized UI update cycle
+
+### Technical
+
+- vite 5.4.21 → 7.2.2 (major version upgrade)
+- All 85 tests passing
+- TypeScript strict mode compilation successful
+- Zero linter errors
+- Production build verified
+- i18n infrastructure fully integrated
+
 ## [0.9.2] - 2025-11-13
 
 ### Fixed

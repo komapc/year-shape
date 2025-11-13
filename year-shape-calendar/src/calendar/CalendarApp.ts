@@ -23,6 +23,7 @@ import { keyboardManager } from '../utils/keyboard';
 import { router } from '../utils/router';
 import { resolveTheme, applyTheme, watchSystemTheme } from '../utils/theme';
 import type { ThemePreference } from '../utils/theme';
+import { t, setLocale, initializeLocale, type Locale } from '../i18n';
 
 /**
  * Main application controller class for YearWheel.
@@ -175,6 +176,12 @@ export class CalendarApp {
     this.settings = loadSettings();
     this.currentYear = new Date().getFullYear();
     
+    // Initialize internationalization
+    initializeLocale();
+    if (this.settings.locale) {
+      setLocale(this.settings.locale as Locale);
+    }
+    
     // ========================================
     // 3. Sync Settings to UI Controls
     // ========================================
@@ -203,6 +210,9 @@ export class CalendarApp {
     
     // Watch for system theme changes if 'auto' is selected
     this.setupSystemThemeWatch();
+    
+    // Update all UI text with current translations
+    this.updateUIText();
 
     // ========================================
     // 4. Initialize Core Components
@@ -809,11 +819,16 @@ export class CalendarApp {
    * @returns {void}
    */
   private handleLanguageChange = (): void => {
-    const selectedLocale = this.languageSelect.value as any;
+    const selectedLocale = this.languageSelect.value as Locale;
     this.settings.locale = selectedLocale;
     saveSettings(this.settings);
-    // Reload page to apply new language
-    window.location.reload();
+    setLocale(selectedLocale);
+    
+    // Show toast and reload
+    toast.success(t().settingsSaved);
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   /**
@@ -851,6 +866,133 @@ export class CalendarApp {
       // Hide logout button
       this.logoutBtn.classList.add('hidden');
     }
+  };
+
+  /**
+   * Update all UI text with current translations
+   */
+  private updateUIText = (): void => {
+    const translations = t();
+    
+    // Update header buttons
+    this.toggleSettingsBtn.setAttribute('title', translations.settingsButton);
+    this.toggleSettingsBtn.setAttribute('aria-label', translations.settingsButton);
+    this.toggleAboutBtn.setAttribute('title', translations.aboutButton);
+    this.toggleAboutBtn.setAttribute('aria-label', translations.aboutButton);
+    this.headerSignInBtn.setAttribute('aria-label', translations.signInWithGoogle);
+    const signInText = this.headerSignInBtn.querySelector('span');
+    if (signInText) signInText.textContent = translations.signInWithGoogle;
+    
+    // Update settings panel
+    const settingsTitle = document.querySelector('#settingsPanel h2');
+    if (settingsTitle) settingsTitle.textContent = translations.settingsTitle;
+    
+    const closeSettingsBtn = document.querySelector('#closeSettingsBtn');
+    if (closeSettingsBtn) {
+      closeSettingsBtn.setAttribute('aria-label', translations.closeSettings);
+      closeSettingsBtn.setAttribute('title', translations.closeSettings + ' (Esc)');
+    }
+    
+    // Update section headers (using data attributes)
+    const shapeHeader = document.querySelector('[data-i18n-header="shape"]');
+    if (shapeHeader) shapeHeader.textContent = translations.shapeSection;
+    
+    const calendarHeader = document.querySelector('[data-i18n-header="calendar"]');
+    if (calendarHeader) calendarHeader.textContent = translations.calendarSection;
+    
+    const displayHeader = document.querySelector('[data-i18n-header="display"]');
+    if (displayHeader) displayHeader.textContent = translations.displaySection + ' & ' + translations.language;
+    
+    const tooltipsHeader = document.querySelector('[data-i18n-header="tooltips"]');
+    if (tooltipsHeader) tooltipsHeader.textContent = translations.displaySection;
+    
+    // Update checkboxes labels (using data attributes for reliability)
+    const moonLabel = document.querySelector('[data-i18n-label="showMoonPhase"]');
+    if (moonLabel) {
+      moonLabel.innerHTML = `<span class="inline-block mr-2">🌙</span>${translations.showMoonPhase}`;
+    }
+    
+    const zodiacLabel = document.querySelector('[data-i18n-label="showZodiac"]');
+    if (zodiacLabel) {
+      zodiacLabel.innerHTML = `<span class="inline-block mr-2">♈</span>${translations.showZodiac}`;
+    }
+    
+    const hebrewLabel = document.querySelector('[data-i18n-label="showHebrewMonth"]');
+    if (hebrewLabel) {
+      hebrewLabel.innerHTML = `<span class="inline-block mr-2">✡️</span>${translations.showHebrewMonth}`;
+    }
+    
+    // Update corner radius label
+    const cornerRadiusLabel = document.querySelector('label[for="radiusRange"]');
+    if (cornerRadiusLabel) cornerRadiusLabel.textContent = translations.cornerRadius;
+    
+    // Update theme label (find by emoji instead of text)
+    const themeLabel = Array.from(document.querySelectorAll('#settingsPanel label'))
+      .find(l => l.innerHTML.includes('☀️'));
+    if (themeLabel) {
+      themeLabel.innerHTML = `<span class="inline-block">☀️</span>${translations.themeLabel}`;
+    }
+    
+    // Update theme radio labels
+    const themeAutoLabel = this.themeAutoRadio.parentElement?.querySelector('span');
+    if (themeAutoLabel) themeAutoLabel.textContent = translations.themeAuto;
+    
+    const themeLightLabel = this.themeLightRadio.parentElement?.querySelector('span');
+    if (themeLightLabel) themeLightLabel.textContent = translations.themeLight;
+    
+    const themeDarkLabel = this.themeDarkRadio.parentElement?.querySelector('span');
+    if (themeDarkLabel) themeDarkLabel.textContent = translations.themeDark;
+    
+    // Update language label
+    const languageLabel = document.querySelector('label[for="languageSelect"]');
+    if (languageLabel) languageLabel.textContent = translations.language;
+    
+    // Update buttons
+    const timeFlowText = this.toggleDirectionBtn.querySelector('span:first-child');
+    if (timeFlowText) timeFlowText.textContent = translations.timeFlow;
+    
+    const shiftBtn = this.shiftSeasonsBtn.querySelector('span:last-child');
+    if (shiftBtn) shiftBtn.textContent = translations.shiftSeasons;
+    
+    const refreshBtn = this.refreshEventsBtn.querySelector('span:last-child');
+    if (refreshBtn) refreshBtn.textContent = translations.refreshEvents;
+    
+    const logoutBtn = this.logoutBtn.querySelector('span:last-child');
+    if (logoutBtn) logoutBtn.textContent = translations.signOut;
+    
+    // Update about panel
+    const aboutTitle = this.aboutPanel.querySelector('h2');
+    if (aboutTitle) aboutTitle.textContent = translations.aboutTitle;
+    
+    const aboutDesc = this.aboutPanel.querySelector('p');
+    if (aboutDesc) aboutDesc.textContent = translations.aboutDescription;
+    
+    // Update footer links
+    const privacyLink = document.querySelector('a[href="privacy.html"]');
+    if (privacyLink) privacyLink.textContent = translations.privacyPolicy;
+    
+    const termsLink = document.querySelector('a[href="terms.html"]');
+    if (termsLink) termsLink.textContent = translations.termsOfService;
+    
+    const userAgreementLink = document.querySelector('a[href="agreement.html"]');
+    if (userAgreementLink) userAgreementLink.textContent = translations.userAgreement;
+    
+    // Update season labels
+    const seasonLabels = document.querySelectorAll('.season-label');
+    seasonLabels.forEach((label) => {
+      const season = label.getAttribute('data-season');
+      if (season === 'winter') label.textContent = translations.winter;
+      if (season === 'spring') label.textContent = translations.spring;
+      if (season === 'summer') label.textContent = translations.summer;
+      if (season === 'autumn') label.textContent = translations.autumn;
+    });
+    
+    // Update modal
+    const openInCalendarBtn = document.querySelector('#openInGoogle span');
+    if (openInCalendarBtn) openInCalendarBtn.textContent = translations.openInCalendar;
+    
+    const closeModalBtn = document.querySelector('#closeModal');
+    if (closeModalBtn) closeModalBtn.setAttribute('aria-label', translations.close);
   };
 
   /**

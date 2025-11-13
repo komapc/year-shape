@@ -121,6 +121,22 @@ class GoogleCalendarService {
             this.isAuthenticated = true;
             const minutesLeft = Math.floor((expiryTime - now) / (60 * 1000));
             console.log(`✅ Session restored! Token valid for ${minutesLeft} more minutes`);
+            
+            // Load user info from localStorage or fetch if not available
+            const storedUserInfo = localStorage.getItem(this.USER_INFO_KEY);
+            if (storedUserInfo) {
+              try {
+                this.userInfo = JSON.parse(storedUserInfo);
+                console.log('✅ User info loaded from storage:', this.userInfo);
+              } catch (err) {
+                console.warn('Failed to parse stored user info, will fetch fresh:', err);
+                await this.fetchUserInfo();
+              }
+            } else {
+              // Fetch user info if not in storage
+              await this.fetchUserInfo();
+            }
+            
             return true;
           } else {
             console.warn('❌ gapi.client not available, cannot restore session');

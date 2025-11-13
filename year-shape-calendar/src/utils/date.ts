@@ -3,6 +3,7 @@
  */
 
 import type { CalendarEvent } from '../types';
+import { t } from '../i18n';
 
 /**
  * Get the week number of a date (0-51)
@@ -50,23 +51,23 @@ export const formatDate = (date: Date): string => {
 };
 
 /**
- * Get month names
+ * Get month names (localized)
  */
 export const getMonthNames = (): string[] => {
+  const trans = t();
   return [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    trans.january, trans.february, trans.march, trans.april, 
+    trans.may, trans.june, trans.july, trans.august,
+    trans.september, trans.october, trans.november, trans.december
   ];
 };
 
 /**
- * Get abbreviated month names
+ * Get abbreviated month names (localized, first 3 chars)
  */
 export const getMonthNamesShort = (): string[] => {
-  return [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-  ];
+  const months = getMonthNames();
+  return months.map(m => m.substring(0, 3));
 };
 
 /**
