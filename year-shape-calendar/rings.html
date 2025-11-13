@@ -674,14 +674,14 @@
             `rotate(${rotation}, ${point.x}, ${point.y})`
           );
           text.textContent = label;
-          
+
           // Counter-mirror text when in CCW mode so it stays readable after SVG flip
           if (this.direction === -1) {
-            text.style.transform = 'scaleX(-1)';
+            text.style.transform = "scaleX(-1)";
             text.style.transformOrigin = `${point.x}px ${point.y}px`;
-            text.style.transformBox = 'fill-box';
+            text.style.transformBox = "fill-box";
           } else {
-            text.style.transform = '';
+            text.style.transform = "";
           }
 
           this.svgGroup.appendChild(text);
