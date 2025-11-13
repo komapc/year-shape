@@ -22,7 +22,7 @@
  * - 5-minute safety buffer before expiry
  * 
  * @author YearWheel Team
- * @version 0.5.0
+ * @version 0.9.1
  */
 
 import type { CalendarEvent } from '../types';

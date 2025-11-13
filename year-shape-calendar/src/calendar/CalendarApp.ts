@@ -577,6 +577,10 @@ export class CalendarApp {
     } catch (error) {
       console.error('Sign-in error:', error);
       toast.error('Failed to sign in with Google. Please try again.');
+      
+      // Reset button state on error
+      this.headerSignInBtn.disabled = false;
+      this.headerSignInBtn.textContent = 'Sign in with Google';
     }
   };
 
