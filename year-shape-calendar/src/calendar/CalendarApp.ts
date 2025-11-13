@@ -537,6 +537,9 @@ export class CalendarApp {
 
     const events = week.getEvents();
     this.modal.open(weekIndex, events);
+    
+    // Update URL to reflect opened week
+    router.navigate(`week/${weekIndex + 1}`); // Convert 0-based to 1-based for URL
   };
 
   /**
