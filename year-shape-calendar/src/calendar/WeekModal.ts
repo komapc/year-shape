@@ -6,6 +6,7 @@ import type { CalendarEvent } from '../types';
 import { DAYS_OF_WEEK } from '../utils/constants';
 import { getWeekStartDate, formatDate, openGoogleCalendarForWeek } from '../utils/date';
 import { getElement, createElement, makeAccessible } from '../utils/dom';
+import { router } from '../utils/router';
 
 export class WeekModal {
   private modal: HTMLElement;
@@ -52,6 +53,8 @@ export class WeekModal {
     document.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'Escape' && this.isOpen()) {
         this.close();
+        // Clear URL hash to sync with UI state
+        router.navigate('');
       }
     });
   };
