@@ -540,8 +540,9 @@
           const startOffset = baseOffset + rotationRad;
 
           for (let i = 0; i < this.sectorCount; i++) {
-            const startAngle = startOffset + direction * i * anglePerSector;
-            const endAngle = startAngle + direction * anglePerSector;
+            // Direction doesn't change visual layout - only conceptual flow
+            const startAngle = startOffset + i * anglePerSector;
+            const endAngle = startAngle + anglePerSector;
             this.drawSector(i, startAngle, endAngle);
           }
 
@@ -839,8 +840,9 @@
             const progress = (month.startDay / daysInYear) * Math.PI * 2;
             const endProgress = (month.endDay / daysInYear) * Math.PI * 2;
 
-            const startAngle = angleOffset + direction * progress;
-            const endAngle = angleOffset + direction * endProgress;
+            // Direction doesn't change visual layout - only conceptual flow
+            const startAngle = angleOffset + progress;
+            const endAngle = angleOffset + endProgress;
             this.drawSector(i, startAngle, endAngle);
           }
 
@@ -911,8 +913,9 @@
             const progress = (month.startDay / daysInYear) * Math.PI * 2;
             const endProgress = (month.endDay / daysInYear) * Math.PI * 2;
 
-            const startAngle = angleOffset + direction * progress;
-            const endAngle = angleOffset + direction * endProgress;
+            // Direction doesn't change visual layout - only conceptual flow
+            const startAngle = angleOffset + progress;
+            const endAngle = angleOffset + endProgress;
             this.drawSector(i, startAngle, endAngle);
           }
 
@@ -1001,10 +1004,11 @@
           for (let i = 0; i < this.holidays.length; i++) {
             const holiday = this.holidays[i];
             const dayProgress = (holiday.day / daysInYear) * Math.PI * 2;
-            const dayAngle = angleOffset + direction * dayProgress;
+            // Direction doesn't change visual layout - only conceptual flow
+            const dayAngle = angleOffset + dayProgress;
 
             // Make a small sector (±2 days width for visibility)
-            const sectorWidth = (3 / daysInYear) * Math.PI * 2 * direction;
+            const sectorWidth = (3 / daysInYear) * Math.PI * 2;
             const startAngle = dayAngle - sectorWidth / 2;
             const endAngle = dayAngle + sectorWidth / 2;
 
@@ -1178,7 +1182,8 @@
           const baseOffset = -Math.PI / 2; // Start at top
           const rotationRad = (this.rotationOffset * Math.PI) / 180;
           const progress = (dayOfYear / daysInYear) * Math.PI * 2;
-          const angle = baseOffset + rotationRad + this.direction * progress;
+          // Direction doesn't change visual layout - only conceptual flow
+          const angle = baseOffset + rotationRad + progress;
 
           // Calculate line end point (just beyond outermost ring)
           const lineLength = adjustedRadius + 15; // Extend 15px beyond
