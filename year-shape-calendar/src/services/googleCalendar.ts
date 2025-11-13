@@ -34,8 +34,10 @@ class GoogleCalendarService {
   private gapiInitialized = false;
   private gisInitialized = false;
   private isAuthenticated = false;
+  private userInfo: { name?: string; email?: string } | null = null;
   private readonly TOKEN_STORAGE_KEY = 'google_access_token';
   private readonly TOKEN_EXPIRY_KEY = 'google_token_expiry';
+  private readonly USER_INFO_KEY = 'google_user_info';
 
   /**
    * Initialize Google API client
@@ -205,6 +207,9 @@ class GoogleCalendarService {
           this.storeSession(response.access_token, parseInt(response.expires_in as unknown as string, 10));
         }
         
+        // Fetch and store user info
+        this.fetchUserInfo().catch(err => console.warn('Failed to fetch user info:', err));
+        
         resolve();
       };
 
@@ -226,7 +231,51 @@ class GoogleCalendarService {
       google.accounts.oauth2.revoke(token.access_token);
       gapi.client.setToken(null);
       this.isAuthenticated = false;
+      this.userInfo = null;
+      this.clearSession();
+      localStorage.removeItem(this.USER_INFO_KEY);
     }
+  };
+
+  /**
+   * Fetch user info from Google
+   */
+  private fetchUserInfo = async (): Promise<void> => {
+    try {
+      const response = await gapi.client.request({
+        path: 'https://www.googleapis.com/oauth2/v2/userinfo'
+      });
+      
+      this.userInfo = {
+        name: response.result.name,
+        email: response.result.email
+      };
+      
+      // Store user info
+      localStorage.setItem(this.USER_INFO_KEY, JSON.stringify(this.userInfo));
+    } catch (error) {
+      console.warn('Failed to fetch user info:', error);
+    }
+  };
+
+  /**
+   * Get stored user info
+   */
+  getUserInfo = (): { name?: string; email?: string } | null => {
+    if (this.userInfo) return this.userInfo;
+    
+    // Try to load from localStorage
+    try {
+      const stored = localStorage.getItem(this.USER_INFO_KEY);
+      if (stored) {
+        this.userInfo = JSON.parse(stored);
+        return this.userInfo;
+      }
+    } catch (error) {
+      console.warn('Failed to load user info:', error);
+    }
+    
+    return null;
   };
 
   /**

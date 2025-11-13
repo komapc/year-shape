@@ -63,8 +63,11 @@ export class CalendarApp {
   /** Button to refresh Google Calendar events */
   private refreshEventsBtn: HTMLButtonElement;
   
-  /** Google Sign In button */
-  private signInBtn: HTMLButtonElement;
+  /** Google Sign In button (in settings, removed) */
+  // private signInBtn: HTMLButtonElement;
+  
+  /** Logout button */
+  private logoutBtn: HTMLButtonElement;
   
   /** Toggle button for About panel */
   private toggleAboutBtn: HTMLButtonElement;
@@ -140,7 +143,7 @@ export class CalendarApp {
     this.toggleDirectionBtn = getElement<HTMLButtonElement>('toggleDirection');
     this.shiftSeasonsBtn = getElement<HTMLButtonElement>('shiftSeasons');
     this.refreshEventsBtn = getElement<HTMLButtonElement>('refreshEvents');
-    this.signInBtn = getElement<HTMLButtonElement>('signInBtn');
+    this.logoutBtn = getElement<HTMLButtonElement>('logoutBtn');
     this.toggleAboutBtn = getElement<HTMLButtonElement>('toggleAbout');
     this.toggleSettingsBtn = getElement<HTMLButtonElement>('toggleSettings');
     this.closeSettingsBtn = getElement<HTMLButtonElement>('closeSettingsBtn');
@@ -172,13 +175,25 @@ export class CalendarApp {
     this.lightThemeCheckbox.checked = this.settings.theme === 'light';
     this.languageSelect.value = this.settings.locale || 'en';
     
+    // Apply saved corner radius
+    this.radiusInput.value = this.settings.cornerRadius.toString();
+    const wrapElement = document.querySelector('.shape-wrap') as HTMLElement;
+    if (wrapElement) {
+      wrapElement.style.borderRadius = `${this.settings.cornerRadius}%`;
+    }
+    
     // Apply theme to body element
     this.applyTheme(this.settings.theme || 'dark');
 
     // ========================================
     // 4. Initialize Core Components
     // ========================================
-    this.renderer = new CalendarRenderer(this.shapeContainer);
+    this.renderer = new CalendarRenderer(
+      this.shapeContainer,
+      this.settings.cornerRadius / 50, // Convert slider value to 0-1
+      this.settings.direction,
+      this.settings.rotationOffset
+    );
     this.modal = new WeekModal();
 
     // ========================================
@@ -290,9 +305,11 @@ export class CalendarApp {
     // Refresh events
     this.refreshEventsBtn.addEventListener('click', this.handleRefreshEvents);
 
-    // Google sign-in (both buttons)
-    this.signInBtn.addEventListener('click', this.handleSignIn);
+    // Google sign-in (header button only)
     this.headerSignInBtn.addEventListener('click', this.handleSignIn);
+    
+    // Logout
+    this.logoutBtn.addEventListener('click', this.handleLogout);
 
     // Week click handler
     this.renderer.onWeekClick(this.handleWeekClick);
@@ -428,6 +445,10 @@ export class CalendarApp {
     
     // Update week positions to follow the shape
     this.renderer.setCornerRadius(parseFloat(value));
+    
+    // Save to settings
+    this.settings.cornerRadius = parseFloat(value);
+    saveSettings(this.settings);
   };
 
   /**
@@ -448,13 +469,21 @@ export class CalendarApp {
       <span class="direction-icon">${directionIcon}</span>
       <span>${directionText}</span>
     `;
+    
+    // Save to settings
+    this.settings.direction = newDirection;
+    saveSettings(this.settings);
   };
 
   /**
    * Handle shift seasons (rotate clockwise)
    */
   private handleShiftSeasons = (): void => {
-    this.renderer.shiftSeasons();
+    const newOffset = this.renderer.shiftSeasons();
+    
+    // Save to settings
+    this.settings.rotationOffset = newOffset;
+    saveSettings(this.settings);
   };
 
   /**
@@ -503,23 +532,33 @@ export class CalendarApp {
     }
 
     try {
-      this.signInBtn.disabled = true;
-      this.signInBtn.textContent = 'Signing in...';
+      this.headerSignInBtn.disabled = true;
+      this.headerSignInBtn.textContent = 'Signing in...';
 
       await googleCalendarService.signIn();
 
-      this.signInBtn.textContent = 'Signed In';
-      this.signInBtn.classList.add('bg-green-600');
+      this.updateLoginStatus(true);
       this.refreshEventsBtn.disabled = false;
 
       // Auto-fetch events after sign-in
       await this.handleRefreshEvents();
+      
+      toast.success('Signed in successfully!');
     } catch (error) {
       console.error('Sign-in error:', error);
       toast.error('Failed to sign in with Google. Please try again.');
-      this.signInBtn.textContent = 'Sign in with Google';
-      this.signInBtn.disabled = false;
     }
+  };
+
+  /**
+   * Handle Google sign-out
+   */
+  private handleLogout = (): void => {
+    googleCalendarService.signOut();
+    this.updateLoginStatus(false);
+    this.eventsByWeek = {};
+    this.renderer.updateEvents(this.eventsByWeek);
+    toast.info('Signed out successfully');
   };
 
   /**
@@ -740,16 +779,26 @@ export class CalendarApp {
     const statusText = this.loginStatus.querySelector('.status-text') as HTMLElement;
     
     if (isLoggedIn) {
-      // Show "Logged in" status, hide sign-in button
+      // Get user info from Google
+      const userInfo = googleCalendarService.getUserInfo();
+      const displayName = userInfo?.name || 'User';
+      
+      // Show personalized "Logged in" status, hide sign-in button
       this.loginStatus.classList.remove('hidden');
       this.headerSignInBtn.classList.add('hidden');
       statusDot.classList.remove('bg-red-500');
       statusDot.classList.add('bg-green-500');
-      statusText.textContent = 'Logged in';
+      statusText.textContent = `Hello, ${displayName}`;
+      
+      // Show logout button, hide sign-in from settings
+      this.logoutBtn.classList.remove('hidden');
     } else {
       // Hide status, show sign-in button in header
       this.loginStatus.classList.add('hidden');
       this.headerSignInBtn.classList.remove('hidden');
+      
+      // Hide logout button
+      this.logoutBtn.classList.add('hidden');
     }
   };
 
@@ -763,8 +812,8 @@ export class CalendarApp {
     this.toggleDirectionBtn.removeEventListener('click', this.handleDirectionToggle);
     this.shiftSeasonsBtn.removeEventListener('click', this.handleShiftSeasons);
     this.refreshEventsBtn.removeEventListener('click', this.handleRefreshEvents);
-    this.signInBtn.removeEventListener('click', this.handleSignIn);
     this.headerSignInBtn.removeEventListener('click', this.handleSignIn);
+    this.logoutBtn.removeEventListener('click', this.handleLogout);
     this.toggleAboutBtn.removeEventListener('click', this.handleToggleAbout);
     this.toggleSettingsBtn.removeEventListener('click', this.handleToggleSettings);
     this.closeSettingsBtn.removeEventListener('click', this.handleCloseSettings);
