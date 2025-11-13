@@ -8,6 +8,7 @@ import { calculatePositionOnPath, degreesToRadians } from '../utils/math';
 import { getMonthNamesShort, getMonthStartWeek } from '../utils/date';
 import { createElement } from '../utils/dom';
 import { WeekElement } from './WeekElement';
+import { t } from '../i18n';
 
 export class CalendarRenderer {
   private container: HTMLElement;
@@ -87,10 +88,11 @@ export class CalendarRenderer {
   };
 
   /**
-   * Initialize season labels
+   * Initialize season labels (localized)
    */
   private initializeSeasonLabels = (): void => {
-    const seasonNames = ['Winter', 'Spring', 'Summer', 'Autumn'];
+    const trans = t();
+    const seasonNames = [trans.winter, trans.spring, trans.summer, trans.autumn];
     
     seasonNames.forEach((seasonName, index) => {
       const label = createElement('div', [
@@ -379,12 +381,13 @@ export class CalendarRenderer {
       const label = this.seasonLabels[seasonIndex];
       if (!label) return;
       
-      // Update label text to match current season order
+      // Update label text to match current season order (localized)
+      const trans = t();
       const seasonNames: Record<Season, string> = {
-        winter: 'Winter',
-        spring: 'Spring',
-        summer: 'Summer',
-        autumn: 'Autumn',
+        winter: trans.winter,
+        spring: trans.spring,
+        summer: trans.summer,
+        autumn: trans.autumn,
       };
       label.textContent = seasonNames[season];
       
