@@ -203,24 +203,46 @@
                   </div>
                 </label>
 
-                <!-- Theme Toggle -->
-                <label class="flex items-center justify-between cursor-pointer group">
-                  <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">
-                    <span class="inline-block mr-2">☀️</span>
-                    Light theme
-                  </span>
-                  <div class="relative">
-                    <input 
-                      type="checkbox" 
-                      id="lightTheme" 
-                      class="sr-only peer"
-                    />
-                    <div class="w-11 h-6 bg-dark-card rounded-full peer peer-checked:bg-primary-500 
-                                peer-focus:ring-2 peer-focus:ring-primary-400/50 transition-colors"></div>
-                    <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full 
-                                peer-checked:translate-x-5 transition-transform"></div>
+                <!-- Theme Selector -->
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <span class="inline-block">☀️</span>
+                    Theme
+                  </label>
+                  <div class="flex gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="radio" 
+                        name="theme" 
+                        value="auto"
+                        id="themeAuto" 
+                        class="w-4 h-4 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                        checked
+                      />
+                      <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">Auto</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="radio" 
+                        name="theme" 
+                        value="light"
+                        id="themeLight" 
+                        class="w-4 h-4 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                      />
+                      <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">Light</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="radio" 
+                        name="theme" 
+                        value="dark"
+                        id="themeDark" 
+                        class="w-4 h-4 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                      />
+                      <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">Dark</span>
+                    </label>
                   </div>
-                </label>
+                </div>
               </div>
 
               <!-- Shape Controls -->
