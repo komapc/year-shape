@@ -429,6 +429,7 @@
         this.innerRadius = innerRadius;
         this.outerRadius = outerRadius;
         this.cornerRadius = cornerRadius;
+        this.direction = direction; // Store for label drawing
 
         // Clear previous content
         this.svgGroup.innerHTML = '';
@@ -542,7 +543,13 @@
         let normalizedAngle = (angle * 180 / Math.PI) % 360;
         if (normalizedAngle < 0) normalizedAngle += 360;
         
+        // Base rotation perpendicular to radius
         let rotation = normalizedAngle + 90;
+        
+        // Adjust for direction (CCW needs different rotation)
+        if (this.direction === -1) {
+          rotation = normalizedAngle - 90;
+        }
         
         // Flip text if it would be upside down (reading from outside)
         if (rotation > 90 && rotation < 270) {
@@ -692,6 +699,7 @@
         this.innerRadius = innerRadius;
         this.outerRadius = outerRadius;
         this.cornerRadius = cornerRadius;
+        this.direction = direction; // Store for label drawing
 
         // Clear previous content
         this.svgGroup.innerHTML = '';
@@ -755,6 +763,7 @@
         this.innerRadius = innerRadius;
         this.outerRadius = outerRadius;
         this.cornerRadius = cornerRadius;
+        this.direction = direction; // Store for label drawing
 
         // Clear previous content
         this.svgGroup.innerHTML = '';
@@ -839,6 +848,7 @@
         this.innerRadius = innerRadius;
         this.outerRadius = outerRadius;
         this.cornerRadius = cornerRadius;
+        this.direction = direction; // Store for label drawing
 
         // Clear previous content
         this.svgGroup.innerHTML = '';
