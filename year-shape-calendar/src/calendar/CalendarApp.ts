@@ -210,6 +210,9 @@ export class CalendarApp {
     
     // Watch for system theme changes if 'auto' is selected
     this.setupSystemThemeWatch();
+    
+    // Update all UI text with current translations
+    this.updateUIText();
 
     // ========================================
     // 4. Initialize Core Components
@@ -863,6 +866,65 @@ export class CalendarApp {
       // Hide logout button
       this.logoutBtn.classList.add('hidden');
     }
+  };
+
+  /**
+   * Update all UI text with current translations
+   */
+  private updateUIText = (): void => {
+    const translations = t();
+    
+    // Update header buttons
+    this.toggleSettingsBtn.setAttribute('title', translations.settingsButton);
+    this.toggleAboutBtn.setAttribute('title', translations.aboutButton);
+    this.headerSignInBtn.setAttribute('aria-label', translations.signInWithGoogle);
+    
+    // Update settings panel
+    const settingsTitle = document.querySelector('#settingsPanel h2');
+    if (settingsTitle) settingsTitle.textContent = translations.settingsTitle;
+    
+    // Update checkboxes labels
+    const moonLabel = this.showMoonPhaseCheckbox.parentElement?.querySelector('span');
+    if (moonLabel && moonLabel.textContent?.includes('moon')) {
+      moonLabel.innerHTML = `<span class="inline-block mr-2">🌙</span>${translations.showMoonPhase}`;
+    }
+    
+    const zodiacLabel = this.showZodiacCheckbox.parentElement?.querySelector('span');
+    if (zodiacLabel && zodiacLabel.textContent?.includes('zodiac')) {
+      zodiacLabel.innerHTML = `<span class="inline-block mr-2">♈</span>${translations.showZodiac}`;
+    }
+    
+    const hebrewLabel = this.showHebrewMonthCheckbox.parentElement?.querySelector('span');
+    if (hebrewLabel && hebrewLabel.textContent?.includes('Hebrew')) {
+      hebrewLabel.innerHTML = `<span class="inline-block mr-2">✡️</span>${translations.showHebrewMonth}`;
+    }
+    
+    // Update buttons
+    const shiftBtn = this.shiftSeasonsBtn.querySelector('span:last-child');
+    if (shiftBtn) shiftBtn.textContent = translations.shiftSeasons;
+    
+    const refreshBtn = this.refreshEventsBtn.querySelector('span:last-child');
+    if (refreshBtn) refreshBtn.textContent = translations.refreshEvents;
+    
+    const logoutBtn = this.logoutBtn.querySelector('span:last-child');
+    if (logoutBtn) logoutBtn.textContent = translations.signOut;
+    
+    // Update about panel
+    const aboutTitle = this.aboutPanel.querySelector('h2');
+    if (aboutTitle) aboutTitle.textContent = translations.aboutTitle;
+    
+    const aboutDesc = this.aboutPanel.querySelector('p');
+    if (aboutDesc) aboutDesc.textContent = translations.aboutDescription;
+    
+    // Update season labels
+    const seasonLabels = document.querySelectorAll('.season-label');
+    seasonLabels.forEach((label) => {
+      const season = label.getAttribute('data-season');
+      if (season === 'winter') label.textContent = translations.winter;
+      if (season === 'spring') label.textContent = translations.spring;
+      if (season === 'summer') label.textContent = translations.summer;
+      if (season === 'autumn') label.textContent = translations.autumn;
+    });
   };
 
   /**

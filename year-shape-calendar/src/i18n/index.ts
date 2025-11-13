@@ -27,6 +27,7 @@ export interface Translations {
   shiftSeasons: string;
   refreshEvents: string;
   signInWithGoogle: string;
+  signOut: string;
   
   // About
   aboutTitle: string;
@@ -121,6 +122,7 @@ const en: Translations = {
   shiftSeasons: 'Shift Seasons',
   refreshEvents: 'Refresh Events',
   signInWithGoogle: 'Sign in with Google',
+  signOut: 'Sign out',
   
   // About
   aboutTitle: 'About',
@@ -215,6 +217,7 @@ const he: Translations = {
   shiftSeasons: 'הזז עונות',
   refreshEvents: 'רענן אירועים',
   signInWithGoogle: 'התחבר עם Google',
+  signOut: 'התנתק',
   
   // About
   aboutTitle: 'אודות',
@@ -316,6 +319,7 @@ const eo: Translations = {
   shiftSeasons: 'Ŝovi Sezonojn',
   refreshEvents: 'Aktualigi Eventojn',
   signInWithGoogle: 'Ensaluti per Google',
+  signOut: 'Elsaluti',
   
   // About
   aboutTitle: 'Pri',
@@ -411,6 +415,7 @@ const uk: Translations = {
   shiftSeasons: 'Змістити Сезони',
   refreshEvents: 'Оновити Події',
   signInWithGoogle: 'Увійти через Google',
+  signOut: 'Вийти',
   
   // About
   aboutTitle: 'Про додаток',
@@ -506,6 +511,7 @@ const tok: Translations = {
   shiftSeasons: 'ante e tenpo seli',
   refreshEvents: 'sin e lipu',
   signInWithGoogle: 'o kama lon kepeken Google',
+  signOut: 'o weka lon',
   
   // About
   aboutTitle: 'sona',
@@ -601,6 +607,7 @@ const pl: Translations = {
   shiftSeasons: 'Przesuń pory roku',
   refreshEvents: 'Odśwież wydarzenia',
   signInWithGoogle: 'Zaloguj się przez Google',
+  signOut: 'Wyloguj się',
   
   // About
   aboutTitle: 'O programie',
@@ -696,6 +703,7 @@ const be: Translations = {
   shiftSeasons: 'Зрушыць поры года',
   refreshEvents: 'Абнавіць падзеі',
   signInWithGoogle: 'Увайсці праз Google',
+  signOut: 'Выйсці',
   
   // About
   aboutTitle: 'Пра праграму',
@@ -791,6 +799,7 @@ const io: Translations = {
   shiftSeasons: 'Chanjar Sezoni',
   refreshEvents: 'Refreskar Eventi',
   signInWithGoogle: 'Enirar per Google',
+  signOut: 'Ekirar',
   
   // About
   aboutTitle: 'Pri',
