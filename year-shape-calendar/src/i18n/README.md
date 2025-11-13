@@ -6,7 +6,9 @@ YearWheel is being prepared for multi-language support.
 
 - 🇺🇸 **English** (en) - ✅ Complete
 - 🇮🇱 **Hebrew** (he) - ✅ Complete (RTL support)
+- 🇺🇦 **Ukrainian** (uk) - ✅ Complete
 - 🌐 **Esperanto** (eo) - ✅ Complete
+- 🏳️ **Toki Pona** (tok) - ✅ Complete (minimalist constructed language)
 - 🇷🇺 **Russian** (ru) - 🚧 Planned
 - 🇪🇸 **Spanish** (es) - 🚧 Planned
 - 🇫🇷 **French** (fr) - 🚧 Planned
