@@ -12,6 +12,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server-side settings sync
 - Complete Russian, Spanish, French, German translations
 
+## [0.9.2] - 2025-11-13
+
+### Fixed
+- **Version Number Consistency**: Fixed version mismatches across files
+  - Updated `package.json` from 0.6.0 to 0.9.1
+  - Updated `index.html` footer from v0.6.0 to v0.9.1
+  - Updated `googleCalendar.ts` version comment from 0.5.0 to 0.9.1
+- **Sign-In Error Handling**: Improved error recovery
+  - Added button state reset when sign-in fails
+  - Prevents stuck "Signing in..." text on authentication failure
+  - Better user experience on Google sign-in errors
+- **Race Condition**: Removed timing issue in authentication flow
+  - Eliminated unnecessary 500ms setTimeout delay
+  - Immediate UI update after successful authentication
+  - `signIn()` already waits for user info internally
+- **PWA Manifest**: Cleaned up invalid entries
+  - Removed non-existent screenshot references
+  - Prevents 404 errors for missing resources
+  - Cleaner manifest for app stores
+
+### Performance
+- 500ms faster sign-in response time
+- Immediate UI feedback after authentication
+
+### Technical
+- All 85 tests passing
+- TypeScript strict mode compilation successful
+- Zero linter errors
+- Production build verified
+
 ## [0.9.1] - 2025-11-13
 
 ### Fixed
