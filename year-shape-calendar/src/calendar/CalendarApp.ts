@@ -893,32 +893,31 @@ export class CalendarApp {
       closeSettingsBtn.setAttribute('title', translations.closeSettings + ' (Esc)');
     }
     
-    // Update section headers
-    const shapeSectionHeader = document.querySelector('#settingsPanel h3');
-    if (shapeSectionHeader && shapeSectionHeader.textContent?.includes('Shape')) {
-      shapeSectionHeader.textContent = translations.shapeSection;
-    }
+    // Update section headers (using data attributes)
+    const shapeHeader = document.querySelector('[data-i18n-header="shape"]');
+    if (shapeHeader) shapeHeader.textContent = translations.shapeSection;
     
-    const calendarSectionHeader = Array.from(document.querySelectorAll('#settingsPanel h3'))
-      .find(h => h.textContent?.includes('Calendar'));
-    if (calendarSectionHeader) calendarSectionHeader.textContent = translations.calendarSection;
+    const calendarHeader = document.querySelector('[data-i18n-header="calendar"]');
+    if (calendarHeader) calendarHeader.textContent = translations.calendarSection;
     
-    const displaySectionHeader = Array.from(document.querySelectorAll('#settingsPanel h3'))
-      .find(h => h.textContent?.includes('Display'));
-    if (displaySectionHeader) displaySectionHeader.textContent = translations.displaySection + ' & ' + translations.language;
+    const displayHeader = document.querySelector('[data-i18n-header="display"]');
+    if (displayHeader) displayHeader.textContent = translations.displaySection + ' & ' + translations.language;
     
-    // Update checkboxes labels
-    const moonLabel = this.showMoonPhaseCheckbox.parentElement?.querySelector('span');
+    const tooltipsHeader = document.querySelector('[data-i18n-header="tooltips"]');
+    if (tooltipsHeader) tooltipsHeader.textContent = translations.displaySection;
+    
+    // Update checkboxes labels (using data attributes for reliability)
+    const moonLabel = document.querySelector('[data-i18n-label="showMoonPhase"]');
     if (moonLabel) {
       moonLabel.innerHTML = `<span class="inline-block mr-2">🌙</span>${translations.showMoonPhase}`;
     }
     
-    const zodiacLabel = this.showZodiacCheckbox.parentElement?.querySelector('span');
+    const zodiacLabel = document.querySelector('[data-i18n-label="showZodiac"]');
     if (zodiacLabel) {
       zodiacLabel.innerHTML = `<span class="inline-block mr-2">♈</span>${translations.showZodiac}`;
     }
     
-    const hebrewLabel = this.showHebrewMonthCheckbox.parentElement?.querySelector('span');
+    const hebrewLabel = document.querySelector('[data-i18n-label="showHebrewMonth"]');
     if (hebrewLabel) {
       hebrewLabel.innerHTML = `<span class="inline-block mr-2">✡️</span>${translations.showHebrewMonth}`;
     }
@@ -927,9 +926,10 @@ export class CalendarApp {
     const cornerRadiusLabel = document.querySelector('label[for="radiusRange"]');
     if (cornerRadiusLabel) cornerRadiusLabel.textContent = translations.cornerRadius;
     
-    // Update theme label
-    const themeLabel = document.querySelector('#settingsPanel label[class*="font-medium"]');
-    if (themeLabel && themeLabel.textContent?.includes('Theme')) {
+    // Update theme label (find by emoji instead of text)
+    const themeLabel = Array.from(document.querySelectorAll('#settingsPanel label'))
+      .find(l => l.innerHTML.includes('☀️'));
+    if (themeLabel) {
       themeLabel.innerHTML = `<span class="inline-block">☀️</span>${translations.themeLabel}`;
     }
     
