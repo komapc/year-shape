@@ -438,6 +438,15 @@ export class CalendarRenderer {
     const diff = now.getTime() - startOfYear.getTime();
     const oneWeek = 1000 * 60 * 60 * 24 * 7;
     const currentWeek = Math.floor(diff / oneWeek);
+
+    // Add glow effect to current week
+    this.weeks.forEach((week, index) => {
+      if (index === currentWeek) {
+        week.getElement().classList.add('current-week');
+      } else {
+        week.getElement().classList.remove('current-week');
+      }
+    });
     
     // Position indicator at current week
     const progress = currentWeek / CALENDAR_CONFIG.totalWeeks;

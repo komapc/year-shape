@@ -12,7 +12,25 @@ const initApp = (): void => {
     console.log('Year Shape Calendar initialized successfully');
   } catch (error) {
     console.error('Failed to initialize application:', error);
-    alert('Failed to load calendar. Please refresh the page.');
+    
+    // Show error UI instead of alert
+    document.body.innerHTML = `
+      <div class="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#07101a] to-[#0b1220] px-6">
+        <div class="glass rounded-xl border border-red-500/50 p-8 max-w-md text-center">
+          <div class="text-6xl mb-4">⚠️</div>
+          <h1 class="text-2xl font-bold text-red-400 mb-4">Failed to Load YearWheel</h1>
+          <p class="text-gray-300 mb-6">
+            ${error instanceof Error ? error.message : 'Unknown error occurred'}
+          </p>
+          <button 
+            onclick="location.reload()" 
+            class="btn primary px-6 py-3"
+          >
+            ↻ Retry
+          </button>
+        </div>
+      </div>
+    `;
   }
 };
 

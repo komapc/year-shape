@@ -18,6 +18,9 @@ import { googleCalendarService } from '../services/googleCalendar';
 import { getElement } from '../utils/dom';
 import { openGoogleCalendarForWeek } from '../utils/date';
 import { loadSettings, saveSettings, type AppSettings } from '../utils/settings';
+import { toast } from '../utils/toast';
+import { keyboardManager } from '../utils/keyboard';
+import { router } from '../utils/router';
 
 /**
  * Main application controller class for YearWheel.
@@ -182,6 +185,8 @@ export class CalendarApp {
     // 5. Setup Event Handlers
     // ========================================
     this.attachEventListeners();
+    this.registerKeyboardShortcuts();
+    this.registerRoutes();
     
     // ========================================
     // 6. Initialize Google Calendar (Async)
@@ -315,6 +320,101 @@ export class CalendarApp {
   };
 
   /**
+   * Register keyboard shortcuts
+   */
+  private registerKeyboardShortcuts = (): void => {
+    // S - Toggle settings
+    keyboardManager.register({
+      key: 's',
+      callback: () => {
+        this.handleToggleSettings();
+      },
+      description: 'Toggle settings panel'
+    });
+
+    // ? - Toggle about/help
+    keyboardManager.register({
+      key: '?',
+      callback: () => {
+        this.handleToggleAbout();
+      },
+      description: 'Toggle about panel'
+    });
+
+    // Escape - Close all panels
+    keyboardManager.register({
+      key: 'escape',
+      callback: () => {
+        this.settingsPanel.classList.add('hidden');
+        this.aboutPanel.classList.add('hidden');
+      },
+      description: 'Close all panels'
+    });
+
+    // Left arrow - Previous year
+    keyboardManager.register({
+      key: 'arrowleft',
+      callback: () => {
+        this.handlePrevYear();
+      },
+      description: 'Previous year'
+    });
+
+    // Right arrow - Next year
+    keyboardManager.register({
+      key: 'arrowright',
+      callback: () => {
+        this.handleNextYear();
+      },
+      description: 'Next year'
+    });
+  };
+
+  /**
+   * Register hash routes for SPA navigation
+   */
+  private registerRoutes = (): void => {
+    // #settings - Open settings panel
+    router.register('settings', () => {
+      this.settingsPanel.classList.remove('hidden');
+      this.aboutPanel.classList.add('hidden');
+    });
+
+    // #about - Open about panel  
+    router.register('about', () => {
+      this.aboutPanel.classList.remove('hidden');
+      this.settingsPanel.classList.add('hidden');
+    });
+
+    // #week/:weekNumber - Open week modal
+    router.register('week/:id', (params) => {
+      const weekNumber = parseInt(params?.id || '0', 10);
+      if (weekNumber >= 1 && weekNumber <= 52) {
+        this.handleWeekClick(weekNumber - 1); // Convert 1-based to 0-based
+      }
+    });
+
+    // #year/:year - Navigate to specific year
+    router.register('year/:year', (params) => {
+      const year = parseInt(params?.year || '', 10);
+      if (year >= 2000 && year <= 2100) {
+        this.currentYear = year;
+        this.updateYearDisplay();
+        this.renderer.layoutWeeks();
+        if (googleCalendarService.getAuthStatus()) {
+          this.handleRefreshEvents();
+        }
+      }
+    });
+
+    // Root / no hash - Close all panels
+    router.register('', () => {
+      this.settingsPanel.classList.add('hidden');
+      this.aboutPanel.classList.add('hidden');
+    });
+  };
+
+  /**
    * Handle corner radius change
    */
   private handleRadiusChange = (event: Event): void => {
@@ -373,14 +473,15 @@ export class CalendarApp {
         this.refreshEventsBtn.disabled = true;
         this.refreshEventsBtn.textContent = 'Loading...';
 
-        const events = await googleCalendarService.fetchEvents();
+        const events = await googleCalendarService.fetchEvents(this.currentYear);
         this.eventsByWeek = events;
         this.renderer.updateEvents(this.eventsByWeek);
 
         this.refreshEventsBtn.textContent = 'Refresh Events';
+        toast.success(`Loaded events for ${this.currentYear}`);
       } catch (error) {
         console.error('Error fetching events:', error);
-        alert('Failed to fetch calendar events. Please try again.');
+        toast.error('Failed to fetch calendar events. Please try again.');
       } finally {
         this.refreshEventsBtn.disabled = false;
       }
@@ -394,10 +495,9 @@ export class CalendarApp {
    */
   private handleSignIn = async (): Promise<void> => {
     if (!googleCalendarService.isReady()) {
-      alert(
-        'Google Calendar integration not configured.\n\n' +
-        'Please add your Google OAuth Client ID and API Key to\n' +
-        'src/utils/constants.ts to enable this feature.'
+      toast.warning(
+        'Google Calendar integration not configured. Please add your Google OAuth Client ID and API Key to enable this feature.',
+        7000
       );
       return;
     }
@@ -416,7 +516,7 @@ export class CalendarApp {
       await this.handleRefreshEvents();
     } catch (error) {
       console.error('Sign-in error:', error);
-      alert('Failed to sign in. Please try again.');
+      toast.error('Failed to sign in with Google. Please try again.');
       this.signInBtn.textContent = 'Sign in with Google';
       this.signInBtn.disabled = false;
     }
@@ -450,21 +550,31 @@ export class CalendarApp {
    * Handle toggle about panel
    */
   private handleToggleAbout = (): void => {
-    this.aboutPanel.classList.toggle('hidden');
+    const isHidden = this.aboutPanel.classList.contains('hidden');
+    if (isHidden) {
+      router.navigate('about');
+    } else {
+      router.navigate('');
+    }
   };
 
   /**
    * Handle toggle settings panel
    */
   private handleToggleSettings = (): void => {
-    this.settingsPanel.classList.toggle('hidden');
+    const isHidden = this.settingsPanel.classList.contains('hidden');
+    if (isHidden) {
+      router.navigate('settings');
+    } else {
+      router.navigate('');
+    }
   };
 
   /**
    * Handle close settings panel (mobile)
    */
   private handleCloseSettings = (): void => {
-    this.settingsPanel.classList.add('hidden');
+    router.navigate('');
   };
 
   /**
@@ -474,6 +584,11 @@ export class CalendarApp {
     this.currentYear--;
     this.updateYearDisplay();
     this.renderer.layoutWeeks();
+    
+    // Re-fetch events if logged in
+    if (googleCalendarService.getAuthStatus()) {
+      this.handleRefreshEvents();
+    }
   };
 
   /**
@@ -483,6 +598,11 @@ export class CalendarApp {
     this.currentYear++;
     this.updateYearDisplay();
     this.renderer.layoutWeeks();
+    
+    // Re-fetch events if logged in
+    if (googleCalendarService.getAuthStatus()) {
+      this.handleRefreshEvents();
+    }
   };
 
   /**
@@ -628,6 +748,42 @@ export class CalendarApp {
       this.loginStatus.classList.add('hidden');
       this.headerSignInBtn.classList.remove('hidden');
     }
+  };
+
+  /**
+   * Cleanup method - removes event listeners and stops timers
+   * Call this before destroying the app instance
+   */
+  destroy = (): void => {
+    // Remove event listeners
+    this.radiusInput.removeEventListener('input', this.handleRadiusChange);
+    this.toggleDirectionBtn.removeEventListener('click', this.handleDirectionToggle);
+    this.shiftSeasonsBtn.removeEventListener('click', this.handleShiftSeasons);
+    this.refreshEventsBtn.removeEventListener('click', this.handleRefreshEvents);
+    this.signInBtn.removeEventListener('click', this.handleSignIn);
+    this.headerSignInBtn.removeEventListener('click', this.handleSignIn);
+    this.toggleAboutBtn.removeEventListener('click', this.handleToggleAbout);
+    this.toggleSettingsBtn.removeEventListener('click', this.handleToggleSettings);
+    this.closeSettingsBtn.removeEventListener('click', this.handleCloseSettings);
+    this.showMoonPhaseCheckbox.removeEventListener('change', this.handleMoonPhaseToggle);
+    this.showZodiacCheckbox.removeEventListener('change', this.handleZodiacToggle);
+    this.showHebrewMonthCheckbox.removeEventListener('change', this.handleHebrewMonthToggle);
+    this.lightThemeCheckbox.removeEventListener('change', this.handleThemeToggle);
+    this.languageSelect.removeEventListener('change', this.handleLanguageChange);
+    this.prevYearBtn.removeEventListener('click', this.handlePrevYear);
+    this.nextYearBtn.removeEventListener('click', this.handleNextYear);
+    window.removeEventListener('resize', this.handleResize);
+
+    // Cleanup renderer (stops timers)
+    this.renderer.destroy();
+    
+    // Cleanup keyboard shortcuts
+    keyboardManager.destroy();
+    
+    // Cleanup router
+    router.destroy();
+    
+    console.log('CalendarApp destroyed and cleaned up');
   };
 }
 
