@@ -563,11 +563,8 @@ export class CalendarApp {
 
       await googleCalendarService.signIn();
 
-      // Wait a moment for user info to be fetched
-      setTimeout(() => {
-        this.updateLoginStatus(true);
-      }, 500);
-      
+      // User info is already fetched by signIn, update UI immediately
+      this.updateLoginStatus(true);
       this.refreshEventsBtn.disabled = false;
 
       // Auto-fetch events after sign-in
@@ -577,6 +574,10 @@ export class CalendarApp {
     } catch (error) {
       console.error('Sign-in error:', error);
       toast.error('Failed to sign in with Google. Please try again.');
+      
+      // Reset button state on error
+      this.headerSignInBtn.disabled = false;
+      this.headerSignInBtn.textContent = 'Sign in with Google';
     }
   };
 
