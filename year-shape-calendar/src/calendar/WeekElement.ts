@@ -30,8 +30,8 @@ export class WeekElement {
     const element = createElement('div', [
       'week',
       'absolute',
-      'w-2',
-      'h-2',
+      'w-4',
+      'h-4',
       'rounded-sm',
       'transition-all',
       'duration-300',
@@ -161,9 +161,9 @@ export class WeekElement {
    * Set position of the week element
    */
   setPosition = (x: number, y: number): void => {
-    // Center the element at the given position (element is 8px × 8px)
-    this.element.style.left = `${x - 4}px`;
-    this.element.style.top = `${y - 4}px`;
+    // Center the element at the given position (element is 16px × 16px)
+    this.element.style.left = `${x - 8}px`;
+    this.element.style.top = `${y - 8}px`;
   };
 
   /**
