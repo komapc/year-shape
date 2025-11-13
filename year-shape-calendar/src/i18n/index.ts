@@ -216,76 +216,76 @@ const en: Translations = {
 const he: Translations = {
   // Header
   appTitle: 'גלגל השנה',
-  settingsButton: 'הגדרות ובקרות',
+  settingsButton: 'הגדרות',
   aboutButton: 'אודות',
   
   // Settings
-  settingsTitle: 'הגדרות ובקרות',
+  settingsTitle: 'הגדרות',
   displaySection: 'תצוגה',
-  showMoonPhase: 'הצג מצב ירח',
-  showZodiac: 'הצג מזלות',
-  showHebrewMonth: 'הצג חודש עברי',
-  lightTheme: 'ערכת נושא בהירה',
+  showMoonPhase: 'ירח',
+  showZodiac: 'מזלות',
+  showHebrewMonth: 'חודש עברי',
+  lightTheme: 'בהיר',
   shapeSection: 'צורה',
-  cornerRadius: 'רדיוס פינות',
-  themeLabel: 'ערכת נושא',
+  cornerRadius: 'עיגול פינות',
+  themeLabel: 'נושא',
   themeAuto: 'אוטומטי',
   themeLight: 'בהיר',
   themeDark: 'כהה',
   language: 'שפה',
-  userAgreement: 'הסכם משתמש',
-  closeSettings: 'סגור הגדרות',
+  userAgreement: 'הסכם',
+  closeSettings: 'סגור',
   
   // Calendar Controls
   calendarSection: 'לוח שנה',
-  timeFlow: 'כיוון הזמן',
-  timeFlowCW: 'עם כיוון השעון',
-  timeFlowCCW: 'נגד כיוון השעון',
+  timeFlow: 'כיוון זמן',
+  timeFlowCW: 'עם השעון',
+  timeFlowCCW: 'נגד השעון',
   shiftSeasons: 'הזז עונות',
-  refreshEvents: 'רענן אירועים',
-  signInWithGoogle: 'התחבר עם Google',
+  refreshEvents: 'רענן',
+  signInWithGoogle: 'התחבר',
   signOut: 'התנתק',
   
   // About
   aboutTitle: 'אודות',
-  aboutDescription: 'לוח שנה אינטראקטיבי המציג את כל השנה כצורה משתנה.',
+  aboutDescription: 'לוח שנה אינטראקטיבי שמציג את השנה בצורה משתנה',
   features: 'תכונות:',
   
   // Legend
   hasEvents: 'יש אירועים',
-  noEvents: 'אין אירועים (גוון עונתי)',
+  noEvents: 'אין אירועים',
   
   // Footer
-  privacyPolicy: 'מדיניות פרטיות',
+  privacyPolicy: 'פרטיות',
   termsOfService: 'תנאי שימוש',
   
   // Modal
   week: 'שבוע',
-  openInCalendar: 'פתח בלוח שנה',
+  openInCalendar: 'פתח ביומן',
   close: 'סגור',
   
   // Tooltips
-  hoverForDetails: 'רחף מעל שבועות לראות מצב ירח ומזלות',
+  hoverForDetails: 'העבר עכבר על שבועות לפרטים',
   
   // Messages
-  settingsSaved: 'ההגדרות נשמרו',
-  autoSaved: 'ההגדרות נשמרות אוטומטית',
+  settingsSaved: 'נשמר',
+  autoSaved: 'שמירה אוטומטית',
   
   // Event Management
   createEvent: 'צור אירוע',
-  editEvent: 'ערוך אירוע',
-  deleteEvent: 'מחק אירוע',
-  eventTitle: 'כותרת האירוע',
+  editEvent: 'ערוך',
+  deleteEvent: 'מחק',
+  eventTitle: 'כותרת',
   eventDate: 'תאריך',
   eventTime: 'שעה',
   eventDescription: 'תיאור',
-  saveEvent: 'שמור אירוע',
-  cancelEvent: 'ביטול',
-  confirmDelete: 'האם אתה בטוח שברצונך למחוק אירוע זה?',
-  eventCreated: 'האירוע נוצר בהצלחה',
-  eventUpdated: 'האירוע עודכן בהצלחה',
-  eventDeleted: 'האירוע נמחק בהצלחה',
-  eventError: 'שמירת האירוע נכשלה. אנא נסה שוב.',
+  saveEvent: 'שמור',
+  cancelEvent: 'בטל',
+  confirmDelete: 'למחוק את האירוע?',
+  eventCreated: 'נוצר בהצלחה',
+  eventUpdated: 'עודכן בהצלחה',
+  eventDeleted: 'נמחק בהצלחה',
+  eventError: 'השמירה נכשלה',
   
   // Months
   january: 'ינואר',
