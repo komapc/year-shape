@@ -2,17 +2,25 @@
 
 YearWheel is being prepared for multi-language support.
 
-## Supported Languages (Planned)
+## Supported Languages
 
-- 🇺🇸 **English** (en) - ✅ Complete
-- 🇮🇱 **Hebrew** (he) - ✅ Complete (RTL support)
-- 🇺🇦 **Ukrainian** (uk) - ✅ Complete
-- 🌐 **Esperanto** (eo) - ✅ Complete
-- 🏳️ **Toki Pona** (tok) - ✅ Complete (minimalist constructed language)
-- 🇷🇺 **Russian** (ru) - 🚧 Planned
-- 🇪🇸 **Spanish** (es) - 🚧 Planned
-- 🇫🇷 **French** (fr) - 🚧 Planned
-- 🇩🇪 **German** (de) - 🚧 Planned
+### ✅ Complete Translations (8 languages):
+
+1. 🇺🇸 **English** (en) - Complete (113 strings)
+2. 🇮🇱 **Hebrew** (he) - Complete + RTL support (113 strings)
+3. 🌐 **Esperanto** (eo) - Complete (113 strings)
+4. 🏳️ **Toki Pona** (tok) - Complete (113 strings)
+5. 🇵🇱 **Polish** (pl) - Complete (113 strings)
+6. 🇺🇦 **Ukrainian** (uk) - Complete (113 strings)
+7. 🇧🇾 **Belarusian** (be) - Complete (113 strings)
+8. 🌐 **Ido** (io) - Complete (113 strings)
+
+### 🚧 Placeholder Translations (4 languages):
+
+- 🇷🇺 **Russian** (ru) - Using English placeholders
+- 🇪🇸 **Spanish** (es) - Using English placeholders
+- 🇫🇷 **French** (fr) - Using English placeholders
+- 🇩🇪 **German** (de) - Using English placeholders
 
 ## Usage
 

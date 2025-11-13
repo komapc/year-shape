@@ -3,7 +3,7 @@
  * Prepares infrastructure for multi-language support
  */
 
-export type Locale = 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo' | 'uk' | 'tok';
+export type Locale = 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo' | 'uk' | 'tok' | 'pl' | 'be' | 'io';
 
 export interface Translations {
   // Header
@@ -68,6 +68,35 @@ export interface Translations {
   eventUpdated: string;
   eventDeleted: string;
   eventError: string;
+  
+  // Months
+  january: string;
+  february: string;
+  march: string;
+  april: string;
+  may: string;
+  june: string;
+  july: string;
+  august: string;
+  september: string;
+  october: string;
+  november: string;
+  december: string;
+  
+  // Days of week
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+  sunday: string;
+  
+  // Seasons
+  winter: string;
+  spring: string;
+  summer: string;
+  autumn: string;
 }
 
 const en: Translations = {
@@ -133,6 +162,35 @@ const en: Translations = {
   eventUpdated: 'Event updated successfully',
   eventDeleted: 'Event deleted successfully',
   eventError: 'Failed to save event. Please try again.',
+  
+  // Months
+  january: 'January',
+  february: 'February',
+  march: 'March',
+  april: 'April',
+  may: 'May',
+  june: 'June',
+  july: 'July',
+  august: 'August',
+  september: 'September',
+  october: 'October',
+  november: 'November',
+  december: 'December',
+  
+  // Days of week
+  monday: 'Monday',
+  tuesday: 'Tuesday',
+  wednesday: 'Wednesday',
+  thursday: 'Thursday',
+  friday: 'Friday',
+  saturday: 'Saturday',
+  sunday: 'Sunday',
+  
+  // Seasons
+  winter: 'Winter',
+  spring: 'Spring',
+  summer: 'Summer',
+  autumn: 'Autumn',
 };
 
 const he: Translations = {
@@ -198,6 +256,35 @@ const he: Translations = {
   eventUpdated: 'האירוע עודכן בהצלחה',
   eventDeleted: 'האירוע נמחק בהצלחה',
   eventError: 'שמירת האירוע נכשלה. אנא נסה שוב.',
+  
+  // Months
+  january: 'ינואר',
+  february: 'פברואר',
+  march: 'מרץ',
+  april: 'אפריל',
+  may: 'מאי',
+  june: 'יוני',
+  july: 'יולי',
+  august: 'אוגוסט',
+  september: 'ספטמבר',
+  october: 'אוקטובר',
+  november: 'נובמבר',
+  december: 'דצמבר',
+  
+  // Days of week
+  monday: 'שני',
+  tuesday: 'שלישי',
+  wednesday: 'רביעי',
+  thursday: 'חמישי',
+  friday: 'שישי',
+  saturday: 'שבת',
+  sunday: 'ראשון',
+  
+  // Seasons
+  winter: 'חורף',
+  spring: 'אביב',
+  summer: 'קיץ',
+  autumn: 'סתיו',
 };
 
 // Placeholder translations (to be completed)
@@ -270,6 +357,35 @@ const eo: Translations = {
   eventUpdated: 'Evento sukcese ĝisdatigita',
   eventDeleted: 'Evento sukcese forigita',
   eventError: 'Malsukcesis konservi eventon. Bonvolu provi denove.',
+  
+  // Months
+  january: 'Januaro',
+  february: 'Februaro',
+  march: 'Marto',
+  april: 'Aprilo',
+  may: 'Majo',
+  june: 'Junio',
+  july: 'Julio',
+  august: 'Aŭgusto',
+  september: 'Septembro',
+  october: 'Oktobro',
+  november: 'Novembro',
+  december: 'Decembro',
+  
+  // Days of week
+  monday: 'Lundo',
+  tuesday: 'Mardo',
+  wednesday: 'Merkredo',
+  thursday: 'Ĵaŭdo',
+  friday: 'Vendredo',
+  saturday: 'Sabato',
+  sunday: 'Dimanĉo',
+  
+  // Seasons
+  winter: 'Vintro',
+  spring: 'Printempo',
+  summer: 'Somero',
+  autumn: 'Aŭtuno',
 };
 
 // Ukrainian translations
@@ -336,6 +452,35 @@ const uk: Translations = {
   eventUpdated: 'Подію успішно оновлено',
   eventDeleted: 'Подію успішно видалено',
   eventError: 'Не вдалося зберегти подію. Спробуйте ще раз.',
+  
+  // Months
+  january: 'Січень',
+  february: 'Лютий',
+  march: 'Березень',
+  april: 'Квітень',
+  may: 'Травень',
+  june: 'Червень',
+  july: 'Липень',
+  august: 'Серпень',
+  september: 'Вересень',
+  october: 'Жовтень',
+  november: 'Листопад',
+  december: 'Грудень',
+  
+  // Days of week
+  monday: 'Понеділок',
+  tuesday: 'Вівторок',
+  wednesday: 'Середа',
+  thursday: 'Четвер',
+  friday: 'П\'ятниця',
+  saturday: 'Субота',
+  sunday: 'Неділя',
+  
+  // Seasons
+  winter: 'Зима',
+  spring: 'Весна',
+  summer: 'Літо',
+  autumn: 'Осінь',
 };
 
 // Toki Pona translations (minimalist constructed language)
@@ -402,6 +547,320 @@ const tok: Translations = {
   eventUpdated: 'lipu li ante pona',
   eventDeleted: 'lipu li weka pona',
   eventError: 'lipu li ken ala awen. o sin.',
+  
+  // Months (using numbers in Toki Pona style)
+  january: 'tenpo nanpa wan',
+  february: 'tenpo nanpa tu',
+  march: 'tenpo nanpa tu wan',
+  april: 'tenpo nanpa tu tu',
+  may: 'tenpo nanpa luka',
+  june: 'tenpo nanpa luka wan',
+  july: 'tenpo nanpa luka tu',
+  august: 'tenpo nanpa luka tu wan',
+  september: 'tenpo nanpa luka tu tu',
+  october: 'tenpo nanpa luka luka',
+  november: 'tenpo nanpa luka luka wan',
+  december: 'tenpo nanpa luka luka tu',
+  
+  // Days of week
+  monday: 'suno nanpa wan',
+  tuesday: 'suno nanpa tu',
+  wednesday: 'suno nanpa tu wan',
+  thursday: 'suno nanpa tu tu',
+  friday: 'suno nanpa luka',
+  saturday: 'suno nanpa luka wan',
+  sunday: 'suno nanpa luka tu',
+  
+  // Seasons
+  winter: 'tenpo lete',
+  spring: 'tenpo kasi',
+  summer: 'tenpo seli',
+  autumn: 'tenpo pi kule jelo',
+};
+
+// Polish translations
+const pl: Translations = {
+  // Header
+  appTitle: 'KołoRoku',
+  settingsButton: 'Ustawienia i sterowanie',
+  aboutButton: 'O programie',
+  
+  // Settings
+  settingsTitle: 'Ustawienia i sterowanie',
+  displaySection: 'Wyświetlanie',
+  showMoonPhase: 'Pokaż fazę księżyca',
+  showZodiac: 'Pokaż znaki zodiaku',
+  showHebrewMonth: 'Pokaż miesiąc hebrajski',
+  lightTheme: 'Jasny motyw',
+  
+  // Calendar Controls
+  calendarSection: 'Kalendarz',
+  timeFlow: 'Przepływ czasu',
+  timeFlowCW: 'Zgodnie',
+  timeFlowCCW: 'Przeciwnie',
+  shiftSeasons: 'Przesuń pory roku',
+  refreshEvents: 'Odśwież wydarzenia',
+  signInWithGoogle: 'Zaloguj się przez Google',
+  
+  // About
+  aboutTitle: 'O programie',
+  aboutDescription: 'Interaktywny kalendarz wizualizujący cały rok jako zmieniającą się formę.',
+  features: 'Funkcje:',
+  
+  // Legend
+  hasEvents: 'Ma wydarzenia',
+  noEvents: 'Brak wydarzeń (sezonowy odcień)',
+  
+  // Footer
+  privacyPolicy: 'Polityka prywatności',
+  termsOfService: 'Warunki korzystania',
+  
+  // Modal
+  week: 'Tydzień',
+  openInCalendar: 'Otwórz w kalendarzu',
+  close: 'Zamknij',
+  
+  // Tooltips
+  hoverForDetails: 'Najedź na tygodnie aby zobaczyć fazę księżyca i znaki zodiaku',
+  
+  // Messages
+  settingsSaved: 'Ustawienia zapisane',
+  autoSaved: 'Ustawienia są zapisywane automatycznie',
+  
+  // Event Management
+  createEvent: 'Utwórz wydarzenie',
+  editEvent: 'Edytuj wydarzenie',
+  deleteEvent: 'Usuń wydarzenie',
+  eventTitle: 'Tytuł wydarzenia',
+  eventDate: 'Data',
+  eventTime: 'Czas',
+  eventDescription: 'Opis',
+  saveEvent: 'Zapisz wydarzenie',
+  cancelEvent: 'Anuluj',
+  confirmDelete: 'Czy na pewno chcesz usunąć to wydarzenie?',
+  eventCreated: 'Wydarzenie utworzone pomyślnie',
+  eventUpdated: 'Wydarzenie zaktualizowane pomyślnie',
+  eventDeleted: 'Wydarzenie usunięte pomyślnie',
+  eventError: 'Nie udało się zapisać wydarzenia. Spróbuj ponownie.',
+  
+  // Months
+  january: 'Styczeń',
+  february: 'Luty',
+  march: 'Marzec',
+  april: 'Kwiecień',
+  may: 'Maj',
+  june: 'Czerwiec',
+  july: 'Lipiec',
+  august: 'Sierpień',
+  september: 'Wrzesień',
+  october: 'Październik',
+  november: 'Listopad',
+  december: 'Grudzień',
+  
+  // Days of week
+  monday: 'Poniedziałek',
+  tuesday: 'Wtorek',
+  wednesday: 'Środa',
+  thursday: 'Czwartek',
+  friday: 'Piątek',
+  saturday: 'Sobota',
+  sunday: 'Niedziela',
+  
+  // Seasons
+  winter: 'Zima',
+  spring: 'Wiosna',
+  summer: 'Lato',
+  autumn: 'Jesień',
+};
+
+// Belarusian translations
+const be: Translations = {
+  // Header
+  appTitle: 'КолаГода',
+  settingsButton: 'Налады і кіраванне',
+  aboutButton: 'Пра праграму',
+  
+  // Settings
+  settingsTitle: 'Налады і кіраванне',
+  displaySection: 'Адлюстраванне',
+  showMoonPhase: 'Паказаць фазу месяца',
+  showZodiac: 'Паказаць знакі зодыяка',
+  showHebrewMonth: 'Паказаць яўрэйскі месяц',
+  lightTheme: 'Светлая тэма',
+  
+  // Calendar Controls
+  calendarSection: 'Каляндар',
+  timeFlow: 'Плынь часу',
+  timeFlowCW: 'Па гадзіннікавай',
+  timeFlowCCW: 'Супраць гадзіннікавай',
+  shiftSeasons: 'Зрушыць поры года',
+  refreshEvents: 'Абнавіць падзеі',
+  signInWithGoogle: 'Увайсці праз Google',
+  
+  // About
+  aboutTitle: 'Пра праграму',
+  aboutDescription: 'Інтэрактыўны каляндар, які візуалізуе ўвесь год як змяняльную форму.',
+  features: 'Функцыі:',
+  
+  // Legend
+  hasEvents: 'Ёсць падзеі',
+  noEvents: 'Няма падзей (сезонны адценне)',
+  
+  // Footer
+  privacyPolicy: 'Палітыка прыватнасці',
+  termsOfService: 'Умовы карыстання',
+  
+  // Modal
+  week: 'Тыдзень',
+  openInCalendar: 'Адкрыць у календары',
+  close: 'Зачыніць',
+  
+  // Tooltips
+  hoverForDetails: 'Навядзіце курсор на тыдні, каб убачыць фазу месяца і знакі зодыяка',
+  
+  // Messages
+  settingsSaved: 'Налады захаваны',
+  autoSaved: 'Налады захоўваюцца аўтаматычна',
+  
+  // Event Management
+  createEvent: 'Стварыць падзею',
+  editEvent: 'Рэдагаваць падзею',
+  deleteEvent: 'Выдаліць падзею',
+  eventTitle: 'Назва падзеі',
+  eventDate: 'Дата',
+  eventTime: 'Час',
+  eventDescription: 'Апісанне',
+  saveEvent: 'Захаваць падзею',
+  cancelEvent: 'Адмяніць',
+  confirmDelete: 'Вы ўпэўнены, што хочаце выдаліць гэтую падзею?',
+  eventCreated: 'Падзея паспяхова створана',
+  eventUpdated: 'Падзея паспяхова абноўлена',
+  eventDeleted: 'Падзея паспяхова выдалена',
+  eventError: 'Не атрымалася захаваць падзею. Паспрабуйце яшчэ раз.',
+  
+  // Months
+  january: 'Студзень',
+  february: 'Люты',
+  march: 'Сакавік',
+  april: 'Красавік',
+  may: 'Май',
+  june: 'Чэрвень',
+  july: 'Ліпень',
+  august: 'Жнівень',
+  september: 'Верасень',
+  october: 'Кастрычнік',
+  november: 'Лістапад',
+  december: 'Снежань',
+  
+  // Days of week
+  monday: 'Панядзелак',
+  tuesday: 'Аўторак',
+  wednesday: 'Серада',
+  thursday: 'Чацвер',
+  friday: 'Пятніца',
+  saturday: 'Субота',
+  sunday: 'Нядзеля',
+  
+  // Seasons
+  winter: 'Зіма',
+  spring: 'Вясна',
+  summer: 'Лета',
+  autumn: 'Восень',
+};
+
+// Ido translations
+const io: Translations = {
+  // Header
+  appTitle: 'YearWheel',
+  settingsButton: 'Ajusti e Kontroli',
+  aboutButton: 'Pri',
+  
+  // Settings
+  settingsTitle: 'Ajusti e Kontroli',
+  displaySection: 'Montrado',
+  showMoonPhase: 'Montrar lunofazo',
+  showZodiac: 'Montrar zodiakala signi',
+  showHebrewMonth: 'Montrar Hebrea monato',
+  lightTheme: 'Klara temo',
+  
+  // Calendar Controls
+  calendarSection: 'Kalendario',
+  timeFlow: 'Tempofluo',
+  timeFlowCW: 'Dextre',
+  timeFlowCCW: 'Sinistrere',
+  shiftSeasons: 'Chanjar Sezoni',
+  refreshEvents: 'Refreskar Eventi',
+  signInWithGoogle: 'Enirar per Google',
+  
+  // About
+  aboutTitle: 'Pri',
+  aboutDescription: 'Interagiva kalendario qui vizualigas la tota yaro kom transformanta formo.',
+  features: 'Funcioni:',
+  
+  // Legend
+  hasEvents: 'Havas eventi',
+  noEvents: 'Nula eventi (sezonala nuanco)',
+  
+  // Footer
+  privacyPolicy: 'Privateso Politiko',
+  termsOfService: 'Kondici di Servo',
+  
+  // Modal
+  week: 'Semano',
+  openInCalendar: 'Apertez en Kalendario',
+  close: 'Klozez',
+  
+  // Tooltips
+  hoverForDetails: 'Survolar semani por vidar lunofazo e zodiakala info',
+  
+  // Messages
+  settingsSaved: 'Ajusti konservita',
+  autoSaved: 'Ajusti esas automatale konservita',
+  
+  // Event Management
+  createEvent: 'Krear Evento',
+  editEvent: 'Redaktar Evento',
+  deleteEvent: 'Efacar Evento',
+  eventTitle: 'Titulo di Evento',
+  eventDate: 'Dato',
+  eventTime: 'Horo',
+  eventDescription: 'Deskripto',
+  saveEvent: 'Konservar Evento',
+  cancelEvent: 'Nuligar',
+  confirmDelete: 'Ka vu esas certa ke vu volas efacar ca evento?',
+  eventCreated: 'Evento sucesoza kreita',
+  eventUpdated: 'Evento sucesoza aktualigita',
+  eventDeleted: 'Evento sucesoza efacita',
+  eventError: 'Ne sucesis konservar evento. Voluntez probar itere.',
+  
+  // Months
+  january: 'Januaro',
+  february: 'Februaro',
+  march: 'Marto',
+  april: 'Aprilo',
+  may: 'Mayo',
+  june: 'Junio',
+  july: 'Julio',
+  august: 'Agosto',
+  september: 'Septembro',
+  october: 'Oktobro',
+  november: 'Novembro',
+  december: 'Decembro',
+  
+  // Days of week
+  monday: 'Lundio',
+  tuesday: 'Mardio',
+  wednesday: 'Merkurdio',
+  thursday: 'Jovdio',
+  friday: 'Venerdio',
+  saturday: 'Saturdio',
+  sunday: 'Sundio',
+  
+  // Seasons
+  winter: 'Vintro',
+  spring: 'Printempo',
+  summer: 'Somero',
+  autumn: 'Autuno',
 };
 
 const translations: Record<Locale, Translations> = {
@@ -414,6 +873,9 @@ const translations: Record<Locale, Translations> = {
   eo,
   uk,
   tok,
+  pl,
+  be,
+  io,
 };
 
 /**
