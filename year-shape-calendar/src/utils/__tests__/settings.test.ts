@@ -29,7 +29,7 @@ describe('Settings Utilities', () => {
       expect(settings.showHebrewMonth).toBe(false);
       expect(settings.cornerRadius).toBe(50);
       expect(settings.direction).toBe(-1);
-      expect(settings.theme).toBe('dark');
+      expect(settings.theme).toBe('auto');
     });
 
     it('should load saved settings from localStorage', () => {

@@ -8,9 +8,9 @@ Welcome to my collection of web applications and experiments! This repository co
 
 ### 🎡 [YearWheel](./year-shape-calendar/)
 
-**Status:** ✅ Active | **Version:** 0.6.0 | **Tech:** TypeScript, Vite, TailwindCSS
+**Status:** ✅ Active | **Version:** 0.9.0 | **Tech:** TypeScript, Vite, TailwindCSS
 
-An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, seasonal organization, and a beautiful modern UI.
+An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, PWA support, theme auto-detection, 5 languages, and a beautiful modern UI.
 
 **Environments:**
 - **Production (Cloudflare):** https://yearwheel.pages.dev/
@@ -23,7 +23,9 @@ An interactive calendar visualization that morphs between circular and square sh
 - 📅 52-week year visualization
 - 🌍 Seasonal organization (Winter, Spring, Summer, Autumn)
 - 📊 Google Calendar API integration
-- 🎨 Modern, accessible UI
+- 🎨 Theme auto-detection (follows system preference)
+- 📱 PWA support (installable, offline-ready)
+- 🌐 5 languages (en, he, eo, uk, tok)
 - 📱 Fully responsive design
 
 **Quick Start:**

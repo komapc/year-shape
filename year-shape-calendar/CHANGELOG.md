@@ -5,121 +5,226 @@ All notable changes to YearWheel will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0] - 2025-11-12
+## [Unreleased]
 
-### Added
-- 🎨 Custom favicon with year wheel design
-- 📄 User Agreement page (public/agreement.html)
-- 🌐 Cloudflare Pages deployment with PR previews
-- 🏗️ Staging environment infrastructure
-- 🌍 Language selector (7 languages: EN, HE, EO, RU, ES, FR, DE)
-- 🟢 Login status indicator in header
-- 📚 Comprehensive documentation (1400+ lines):
-  - DEPLOYMENT.md - Complete deployment guide
-  - CLOUDFLARE.md - Cloudflare Pages setup
-  - CLOUDFLARE_DEPLOY.md - Redeployment instructions
-  - STAGING.md - Staging environment options
-  - PREVIEW_ENVIRONMENTS.md - Preview environment strategies
-  - DOCUMENTATION.md - Architecture and code docs
+### Pending
+- Google OAuth production publishing
+- Server-side settings sync
+- Complete Russian, Spanish, French, German translations
 
-### Changed
-- ✨ New tagline: "Your year in a circle (or square)"
-- ⚙️ Consolidated all settings into organized Settings panel with sections:
-  - Shape (Corner Radius, Direction, Shift Seasons)
-  - Calendar (Refresh Events, Sign in with Google)
-  - Display & Language (Language selector)
-  - Tooltips & Theme (Moon phase, Zodiac, Hebrew month, Light theme)
-- 🎯 Fixed arrow rotation formula (finally correct after 5 iterations!)
-- 📏 Increased arrow length to 180px (almost touches target week)
-- 📝 Updated meta description and page title
+## [0.9.1] - 2025-11-13
 
 ### Fixed
-- 🎯 Arrow now points OUTWARD correctly (rotation formula: angle + 90)
-- 🔗 Privacy and Terms links use relative paths (work on both platforms)
-- 🔐 Session persistence after page refresh
-- 🔄 Removed duplicate "Sign in with Google" button
-- 🎭 Removed demo events (only show real calendar data)
+- **ESC Key URL Sync**: ESC key now clears URL hash when closing modals/panels
+  - Pressing ESC in settings panel clears `#settings` from URL
+  - Pressing ESC in week modal clears `#week/N` from URL
+  - URL state now stays synchronized with UI state
+  - Browser back button works correctly after ESC
+  - Shareable URLs remain accurate
 
-### Removed
-- ❌ Events legend ("Has events / No events")
-- ❌ "Settings are saved automatically" notice
-- ❌ Scattered controls from header (now in Settings panel)
+### Technical
+- Updated `CalendarApp.ts`: ESC handler clears hash after closing settings/about
+- Updated `WeekModal.ts`: ESC handler clears hash after closing modal
+- Better URL/UI state consistency
 
-### Infrastructure
-- Dual deployment: Cloudflare Pages (primary) + GitHub Pages (legacy)
-- Staging branch with automatic deployments
-- PR preview environments on Cloudflare
-- GitHub Pages workflow updated with test step
-
-## [0.5.0] - 2025-11-11
+## [0.9.0] - 2025-11-13
 
 ### Added
-- 📚 Comprehensive code documentation with JSDoc headers
-- 🧪 Unit tests (68 tests) with Vitest
-- 🌐 Internationalization (i18n) infrastructure
-- 🌙 Moon phase calculations and display
-- ♈ Zodiac sign calculations and display
-- ✡️ Hebrew calendar integration
-- ⚙️ Settings persistence to localStorage
-- 🎨 Light theme support
+- **Theme Auto-Detection**: Follows system preference (prefers-color-scheme)
+  - 3-way selector: Auto / Light / Dark
+  - Live system theme tracking
+  - Default: 'auto' mode for native feel
+- **PWA Install Prompt**: Smart install button in header
+  - Auto-detection of installability
+  - Auto-hide after installation
+  - Standalone mode detection
+- **Internationalization Expansion**:
+  - Ukrainian (uk) - Complete professional translation
+  - Toki Pona (tok) - Minimalist constructed language
+  - Total: 5 complete languages (en, he, eo, uk, tok)
 
 ### Changed
-- Project name: "Year Shape Calendar" → "YearWheel"
-- Improved superellipse formula for smoother morphing
-- Enhanced tooltip system with astronomical data
+- Theme selector changed from toggle to radio buttons
+- Default theme is now 'auto' (was 'dark')
+- Improved settings panel layout
+
+### Technical
+- New `src/utils/theme.ts` module
+- New `PWAInstallManager` class
+- Expanded locale type definitions
+- Memory leak prevention in theme watcher
+- 85 tests (up from 68)
+
+## [0.8.1] - 2025-11-13
 
 ### Fixed
-- Google Calendar URL format
-- TypeScript compilation errors
-- Arrow indicator positioning
-
-## [0.4.0] - 2025-11-10
-
-### Added
-- 🌍 Esperanto language support
-- 🧪 Initial unit test suite
-- CI/CD integration for tests
-
-## [0.3.0] - 2025-11-09
-
-### Added
-- Settings panel with display options
-- Session persistence for Google Calendar login
-- Current week arrow indicator
+- Year selector positioning (moved to top of circle, avoids clock overlap)
+- Settings persistence bug (corner radius, direction, rotation now save correctly)
 
 ### Changed
-- Renamed from "Year Shape Calendar" to "YearWheel"
+- Year navigation repositioned inside circle for cleaner UI
+- Smaller, more elegant year selector buttons
 
-## [0.2.0] - 2025-11-08
+## [0.8.0] - 2025-11-13
 
 ### Added
-- Google Calendar API integration
-- OAuth 2.0 authentication
-- Week modal (Soviet-style diary view)
-- Month and season labels
-- Seasonal color tints
+- **Year Navigation**: Navigate between years with prev/next buttons
+  - Keyboard shortcuts: ← (previous), → (next)
+  - Hash routing: `#year/YYYY`
+  - Dynamic calendar re-rendering
+  - Year-specific Google Calendar event fetching
+- **Personalized Auth UX**:
+  - "Hello, [User Name]" greeting when logged in
+  - Logout button in settings panel
+  - "Sign in with Google" clarified text
+  - User info fetched from Google OAuth
+- **Week URL Sharing**: Click week → `#week/N` shareable URL
+- **Hash-Based Routing**: SPA navigation with browser history
+  - Routes: `#settings`, `#about`, `#week/N`, `#year/YYYY`
+  - Browser back/forward support
+- **Toast Notifications**: Modern, non-blocking user feedback
+  - Types: success, error, warning, info
+  - Auto-dismiss with manual close option
+  - Replaces all `alert()` calls
+- **Keyboard Shortcuts**:
+  - `S` - Open settings
+  - `?` - Open about
+  - `Esc` - Close panels/modals
+  - `← →` - Navigate years
+- **Error Boundary**: Graceful error handling with retry button
+- **Memory Leak Fixes**: Cleanup/destroy patterns for event listeners
 
 ### Changed
-- Improved shape morphing algorithm
+- Settings now persist correctly to localStorage
+- Current week has pulsing glow effect
+- Close button visible on all screen sizes (not just mobile)
 
-## [0.1.0] - 2025-11-07
+### Technical
+- New utilities: `toast.ts`, `keyboard.ts`, `router.ts`
+- Cleanup methods prevent memory leaks
+- Better event listener management
+
+## [0.7.0] - 2025-11-12
 
 ### Added
-- Initial release
-- Basic year wheel visualization
-- Shape morphing (circle ↔ square)
-- 52 weeks layout
-- Seasonal organization
-- Direction control (CW/CCW)
-- Corner radius slider
+- **PWA Support**: Full Progressive Web App implementation
+  - Offline caching with service worker
+  - App installation support
+  - `manifest.json` with app metadata
+  - Runtime caching for Google APIs
+- **Light Theme Improvements**:
+  - Enhanced background gradient
+  - Better button styles and hover states
+  - Improved contrast and readability
+  - Polished modal and week elements
+
+### Changed
+- Button colors now solid (was semi-transparent)
+- Improved mobile UI with close button for settings
+
+### Fixed
+- Inconsistent button colors across app
+- PWA caching issues in development
+
+### Technical
+- Added `vite-plugin-pwa`
+- Workbox configuration for caching strategies
+- Disabled PWA in dev mode
+
+## [0.6.0] - 2025-11-11
+
+### Added
+- **Google Calendar Integration**: OAuth 2.0 with event fetching
+- **Settings Panel**: Comprehensive configuration UI
+  - Display options (moon phase, zodiac, Hebrew month)
+  - Theme toggle (light/dark)
+  - Language selector (7 languages)
+  - Shape controls (corner radius, direction, rotation)
+- **Internationalization Infrastructure**:
+  - English (en) ✅
+  - Hebrew (he) with RTL support ✅
+  - Esperanto (eo) ✅
+  - Russian, Spanish, French, German (placeholders)
+- **Week Detail Modal**: Soviet-style diary view
+  - Date and week number
+  - Event list
+  - Open in Google Calendar link
+
+### Changed
+- Migrated to Cloudflare Pages (primary hosting)
+- GitHub Pages now legacy/backup
+
+### Technical
+- TypeScript strict mode
+- Vitest for testing (68 tests)
+- TailwindCSS for styling
+- date-fns for date handling
+
+## [0.5.0] - 2025-11-10
+
+### Added
+- **Calendar Renderer**: Sophisticated layout engine
+  - Morphing shape (circle ↔ square)
+  - 52-week visualization
+  - Seasonal organization
+  - Month labels
+- **Astronomical Features**:
+  - Moon phase calculations
+  - Zodiac sign mapping
+  - Hebrew calendar integration
+- **Tooltips**: Rich hover information
+  - Week number and date range
+  - Moon phase with emoji
+  - Zodiac sign
+  - Hebrew month (optional)
+
+### Technical
+- Modular architecture
+- Comprehensive mathematical utilities
+- Astronomy calculations (Meeus algorithms)
+- Hebrew calendar conversions
+
+## [0.4.0] - 2025-11-09
+
+### Added
+- **Project Structure**: Organized codebase
+  - `src/calendar/` - Calendar components
+  - `src/utils/` - Utility functions
+  - `src/types/` - TypeScript types
+  - `src/i18n/` - Internationalization
+- **Build System**: Vite configuration
+- **Testing**: Vitest setup with initial tests
+
+## [0.3.0] - 2025-11-08
+
+### Added
+- **Shape Morphing**: Dynamic corner radius adjustment
+- **Direction Toggle**: Clockwise/Counter-clockwise time flow
+- **Season Rotation**: 90-degree increments
+
+## [0.2.0] - 2025-11-07
+
+### Added
+- **Week Elements**: Interactive week visualization
+- **Event Indicators**: Visual representation of calendar events
+- **Seasonal Colors**: Dynamic theming per season
+
+## [0.1.0] - 2025-11-06
+
+### Added
+- **Initial Release**: Basic circular calendar
+- **52-Week Layout**: Basic positioning
+- **Development Environment**: TypeScript + Vite
 
 ---
 
-## Version Policy
+## Version Numbering
 
-- **MAJOR (x.0.0):** Breaking changes, major redesigns
-- **MINOR (0.x.0):** New features, significant improvements
-- **PATCH (0.0.x):** Bug fixes, minor tweaks
+- **Major (X.0.0)**: Breaking changes, major rewrites
+- **Minor (0.X.0)**: New features, non-breaking changes
+- **Patch (0.0.X)**: Bug fixes, minor improvements
 
-Current version: **0.6.0**
+---
 
+**Live:** https://yearwheel.pages.dev/  
+**Staging:** https://staging.yearwheel.pages.dev/
