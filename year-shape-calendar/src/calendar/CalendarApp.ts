@@ -537,7 +537,11 @@ export class CalendarApp {
 
       await googleCalendarService.signIn();
 
-      this.updateLoginStatus(true);
+      // Wait a moment for user info to be fetched
+      setTimeout(() => {
+        this.updateLoginStatus(true);
+      }, 500);
+      
       this.refreshEventsBtn.disabled = false;
 
       // Auto-fetch events after sign-in

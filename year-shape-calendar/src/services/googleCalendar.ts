@@ -207,10 +207,16 @@ class GoogleCalendarService {
           this.storeSession(response.access_token, parseInt(response.expires_in as unknown as string, 10));
         }
         
-        // Fetch and store user info
-        this.fetchUserInfo().catch(err => console.warn('Failed to fetch user info:', err));
-        
+        // Fetch and store user info before resolving
+        this.fetchUserInfo()
+          .then(() => {
+            console.log('✅ User info fetched:', this.userInfo);
         resolve();
+          })
+          .catch(err => {
+            console.warn('Failed to fetch user info:', err);
+            resolve(); // Still resolve even if user info fails
+          });
       };
 
       // Request access token
