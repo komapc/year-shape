@@ -405,7 +405,6 @@
           <!-- Ring groups (rendered by JavaScript) -->
           <g id="rings-container"></g>
 
-
           <!-- Today indicator line -->
           <line
             id="todayLine"
@@ -447,7 +446,13 @@
           </circle>
 
           <!-- Center text (will be counter-mirrored by JavaScript in CCW mode) -->
-          <text class="center-text" id="centerText" x="350" y="350" transform-origin="350 350">
+          <text
+            class="center-text"
+            id="centerText"
+            x="350"
+            y="350"
+            transform-origin="350 350"
+          >
             2025
           </text>
         </svg>
@@ -664,13 +669,20 @@
             rotation += 180;
           }
 
-          // Counter-mirror text when in CCW mode so it stays readable after SVG flip
-          const mirrorFix = this.direction === -1 ? ` scale(-1, 1)` : '';
           text.setAttribute(
             "transform",
-            `rotate(${rotation}, ${point.x}, ${point.y})${mirrorFix}`
+            `rotate(${rotation}, ${point.x}, ${point.y})`
           );
           text.textContent = label;
+          
+          // Counter-mirror text when in CCW mode so it stays readable after SVG flip
+          if (this.direction === -1) {
+            text.style.transform = 'scaleX(-1)';
+            text.style.transformOrigin = `${point.x}px ${point.y}px`;
+            text.style.transformBox = 'fill-box';
+          } else {
+            text.style.transform = '';
+          }
 
           this.svgGroup.appendChild(text);
         }
@@ -1136,21 +1148,21 @@
           this.updateTodayIndicator(adjustedRadius);
 
           // Apply mirroring for CCW (horizontal flip around vertical axis)
-          const svg = document.getElementById('calendar-svg');
-          const centerText = document.getElementById('centerText');
-          
+          const svg = document.getElementById("calendar-svg");
+          const centerText = document.getElementById("centerText");
+
           if (this.direction === -1) {
             // Mirror entire SVG
-            svg.style.transform = 'scaleX(-1)';
+            svg.style.transform = "scaleX(-1)";
             // Counter-mirror center text so it's readable
             if (centerText) {
-              centerText.setAttribute('transform', 'scale(-1, 1)');
+              centerText.setAttribute("transform", "scale(-1, 1)");
             }
           } else {
             // Normal mode
-            svg.style.transform = '';
+            svg.style.transform = "";
             if (centerText) {
-              centerText.setAttribute('transform', '');
+              centerText.setAttribute("transform", "");
             }
           }
         }
