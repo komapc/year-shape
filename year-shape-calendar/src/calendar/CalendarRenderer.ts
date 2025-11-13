@@ -23,8 +23,17 @@ export class CalendarRenderer {
   private eventsByWeek: Record<number, CalendarEvent[]> = {};
   private timeUpdateInterval: number | null = null;
 
-  constructor(container: HTMLElement) {
+  constructor(
+    container: HTMLElement,
+    initialCornerRadius: number = 1,
+    initialDirection: Direction = -1,
+    initialRotationOffset: number = 0
+  ) {
     this.container = container;
+    this.cornerRadius = initialCornerRadius;
+    this.direction = initialDirection;
+    this.rotationOffset = initialRotationOffset;
+    
     this.initializeWeeks();
     this.initializeMonthLabels();
     this.initializeSeasonLabels();
@@ -506,13 +515,16 @@ export class CalendarRenderer {
   /**
    * Shift entire calendar clockwise by 90 degrees
    * Rotates months, weeks, seasons, and indicators together
+   * @returns {number} The new rotation offset
    */
-  shiftSeasons = (): void => {
+  shiftSeasons = (): number => {
     // Increment rotation by 90 degrees (clockwise)
     this.rotationOffset = (this.rotationOffset + 90) % 360;
     
     // Re-layout everything with new rotation
     this.layoutWeeks();
+    
+    return this.rotationOffset;
   };
 
   /**
