@@ -18,8 +18,8 @@ export interface AppSettings {
   rotationOffset: number;         // 0, 90, 180, or 270
   
   // UI preferences
-  theme?: 'light' | 'dark';
-  locale?: 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo';
+  theme?: 'light' | 'dark' | 'auto';
+  locale?: 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo' | 'uk' | 'tok';
 }
 
 const SETTINGS_KEY = 'yearwheel_settings';
@@ -37,7 +37,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   rotationOffset: 0,
   
   // UI preferences
-  theme: 'dark',
+  theme: 'auto',
   locale: 'en',
 };
 

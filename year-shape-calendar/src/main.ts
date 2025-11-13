@@ -4,11 +4,16 @@
 
 import './style.css';
 import { CalendarApp } from './calendar/CalendarApp';
+import { pwaInstallManager } from './utils/pwaInstall';
 
 // Initialize app when DOM is ready
 const initApp = (): void => {
   try {
     new CalendarApp();
+    
+    // Initialize PWA install manager
+    console.log('PWA Install Manager initialized:', pwaInstallManager);
+    
     console.log('Year Shape Calendar initialized successfully');
   } catch (error) {
     console.error('Failed to initialize application:', error);

@@ -3,7 +3,7 @@
  * Prepares infrastructure for multi-language support
  */
 
-export type Locale = 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo';
+export type Locale = 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo' | 'uk' | 'tok';
 
 export interface Translations {
   // Header
@@ -208,6 +208,106 @@ const eo: Translations = {
   autoSaved: 'Agordoj estas aŭtomate konservitaj',
 };
 
+// Ukrainian translations
+const uk: Translations = {
+  // Header
+  appTitle: 'Колесо Року',
+  settingsButton: 'Налаштування та Керування',
+  aboutButton: 'Про додаток',
+  
+  // Settings
+  settingsTitle: 'Налаштування та Керування',
+  displaySection: 'Відображення',
+  showMoonPhase: 'Показати фазу місяця',
+  showZodiac: 'Показати знаки зодіаку',
+  showHebrewMonth: 'Показати єврейський місяць',
+  lightTheme: 'Світла тема',
+  
+  // Calendar Controls
+  calendarSection: 'Календар',
+  timeFlow: 'Напрямок часу',
+  timeFlowCW: 'За годинниковою',
+  timeFlowCCW: 'Проти годинникової',
+  shiftSeasons: 'Змістити Сезони',
+  refreshEvents: 'Оновити Події',
+  signInWithGoogle: 'Увійти через Google',
+  
+  // About
+  aboutTitle: 'Про додаток',
+  aboutDescription: 'Інтерактивний календар, який відображає весь рік у вигляді форми, що змінюється.',
+  features: 'Можливості:',
+  
+  // Legend
+  hasEvents: 'Є події',
+  noEvents: 'Немає подій (сезонний відтінок)',
+  
+  // Footer
+  privacyPolicy: 'Політика конфіденційності',
+  termsOfService: 'Умови користування',
+  
+  // Modal
+  week: 'Тиждень',
+  openInCalendar: 'Відкрити в Календарі',
+  close: 'Закрити',
+  
+  // Tooltips
+  hoverForDetails: 'Наведіть курсор на тижні, щоб побачити фазу місяця та знак зодіаку',
+  
+  // Messages
+  settingsSaved: 'Налаштування збережено',
+  autoSaved: 'Налаштування зберігаються автоматично',
+};
+
+// Toki Pona translations (minimalist constructed language)
+const tok: Translations = {
+  // Header
+  appTitle: 'sike tenpo sike',
+  settingsButton: 'nasin pali',
+  aboutButton: 'sona',
+  
+  // Settings
+  settingsTitle: 'nasin pali',
+  displaySection: 'lukin',
+  showMoonPhase: 'o lukin e mun',
+  showZodiac: 'o lukin e sitelen sewi',
+  showHebrewMonth: 'o lukin e tenpo Epelanto',
+  lightTheme: 'kule walo',
+  
+  // Calendar Controls
+  calendarSection: 'tenpo',
+  timeFlow: 'tawa tenpo',
+  timeFlowCW: 'tawa poka',
+  timeFlowCCW: 'tawa monsi',
+  shiftSeasons: 'ante e tenpo seli',
+  refreshEvents: 'sin e lipu',
+  signInWithGoogle: 'o kama lon kepeken Google',
+  
+  // About
+  aboutTitle: 'sona',
+  aboutDescription: 'ilo tenpo ni li pana e sona pi tenpo sike ale kepeken sitelen sike.',
+  features: 'ijo pona:',
+  
+  // Legend
+  hasEvents: 'lipu li lon',
+  noEvents: 'lipu li lon ala',
+  
+  // Footer
+  privacyPolicy: 'nasin len',
+  termsOfService: 'nasin kepeken',
+  
+  // Modal
+  week: 'esun',
+  openInCalendar: 'o open lon ilo tenpo',
+  close: 'o pini',
+  
+  // Tooltips
+  hoverForDetails: 'o lukin e esun tan sona pi mun en sitelen sewi',
+  
+  // Messages
+  settingsSaved: 'nasin li awen',
+  autoSaved: 'nasin li awen lon tenpo ale',
+};
+
 const translations: Record<Locale, Translations> = {
   en,
   he,
@@ -216,6 +316,8 @@ const translations: Record<Locale, Translations> = {
   fr,
   de,
   eo,
+  uk,
+  tok,
 };
 
 /**

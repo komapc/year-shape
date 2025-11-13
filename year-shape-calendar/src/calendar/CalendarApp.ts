@@ -21,6 +21,8 @@ import { loadSettings, saveSettings, type AppSettings } from '../utils/settings'
 import { toast } from '../utils/toast';
 import { keyboardManager } from '../utils/keyboard';
 import { router } from '../utils/router';
+import { resolveTheme, applyTheme, watchSystemTheme } from '../utils/theme';
+import type { ThemePreference } from '../utils/theme';
 
 /**
  * Main application controller class for YearWheel.
@@ -93,11 +95,16 @@ export class CalendarApp {
   /** Checkbox to show/hide Hebrew months in tooltips */
   private showHebrewMonthCheckbox: HTMLInputElement;
   
-  /** Checkbox to toggle light/dark theme */
-  private lightThemeCheckbox: HTMLInputElement;
+  /** Theme radio buttons */
+  private themeAutoRadio: HTMLInputElement;
+  private themeLightRadio: HTMLInputElement;
+  private themeDarkRadio: HTMLInputElement;
   
   /** Language select dropdown */
   private languageSelect: HTMLSelectElement;
+  
+  /** System theme change cleanup function */
+  private cleanupSystemThemeWatch: (() => void) | null = null;
   
   /** Login status indicator element */
   private loginStatus: HTMLElement;
@@ -152,7 +159,9 @@ export class CalendarApp {
     this.showMoonPhaseCheckbox = getElement<HTMLInputElement>('showMoonPhase');
     this.showZodiacCheckbox = getElement<HTMLInputElement>('showZodiac');
     this.showHebrewMonthCheckbox = getElement<HTMLInputElement>('showHebrewMonth');
-    this.lightThemeCheckbox = getElement<HTMLInputElement>('lightTheme');
+    this.themeAutoRadio = getElement<HTMLInputElement>('themeAuto');
+    this.themeLightRadio = getElement<HTMLInputElement>('themeLight');
+    this.themeDarkRadio = getElement<HTMLInputElement>('themeDark');
     this.languageSelect = getElement<HTMLSelectElement>('languageSelect');
     this.loginStatus = getElement('loginStatus');
     this.headerSignInBtn = getElement<HTMLButtonElement>('headerSignInBtn');
@@ -172,7 +181,13 @@ export class CalendarApp {
     this.showMoonPhaseCheckbox.checked = this.settings.showMoonPhase;
     this.showZodiacCheckbox.checked = this.settings.showZodiac;
     this.showHebrewMonthCheckbox.checked = this.settings.showHebrewMonth;
-    this.lightThemeCheckbox.checked = this.settings.theme === 'light';
+    
+    // Set theme radio buttons
+    const themePreference = this.settings.theme || 'auto';
+    this.themeAutoRadio.checked = themePreference === 'auto';
+    this.themeLightRadio.checked = themePreference === 'light';
+    this.themeDarkRadio.checked = themePreference === 'dark';
+    
     this.languageSelect.value = this.settings.locale || 'en';
     
     // Apply saved corner radius
@@ -183,7 +198,11 @@ export class CalendarApp {
     }
     
     // Apply theme to body element
-    this.applyTheme(this.settings.theme || 'dark');
+    const themeToApply = resolveTheme(this.settings.theme || 'auto');
+    applyTheme(themeToApply);
+    
+    // Watch for system theme changes if 'auto' is selected
+    this.setupSystemThemeWatch();
 
     // ========================================
     // 4. Initialize Core Components
@@ -328,7 +347,12 @@ export class CalendarApp {
     this.showMoonPhaseCheckbox.addEventListener('change', this.handleMoonPhaseToggle);
     this.showZodiacCheckbox.addEventListener('change', this.handleZodiacToggle);
     this.showHebrewMonthCheckbox.addEventListener('change', this.handleHebrewMonthToggle);
-    this.lightThemeCheckbox.addEventListener('change', this.handleThemeToggle);
+    
+    // Theme radio buttons
+    this.themeAutoRadio.addEventListener('change', this.handleThemeChange);
+    this.themeLightRadio.addEventListener('change', this.handleThemeChange);
+    this.themeDarkRadio.addEventListener('change', this.handleThemeChange);
+    
     this.languageSelect.addEventListener('change', this.handleLanguageChange);
 
     // Year navigation
@@ -688,22 +712,42 @@ export class CalendarApp {
   /**
    * Handle theme toggle
    */
-  private handleThemeToggle = (event: Event): void => {
-    const checkbox = event.target as HTMLInputElement;
-    const newTheme = checkbox.checked ? 'light' : 'dark';
+  /**
+   * Handle theme change from radio buttons
+   */
+  private handleThemeChange = (event: Event): void => {
+    const radio = event.target as HTMLInputElement;
+    const newTheme = radio.value as ThemePreference;
+    
     this.settings.theme = newTheme;
     saveSettings(this.settings);
-    this.applyTheme(newTheme);
+    
+    // Apply the resolved theme
+    const resolvedTheme = resolveTheme(newTheme);
+    applyTheme(resolvedTheme);
+    
+    // Setup or cleanup system theme watching
+    this.setupSystemThemeWatch();
+    
+    toast.success(`Theme set to ${newTheme}${newTheme === 'auto' ? ' (follows system)' : ''}`);
   };
 
   /**
-   * Apply theme to document
+   * Setup system theme watcher if 'auto' is selected
    */
-  private applyTheme = (theme: 'light' | 'dark'): void => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light-theme');
-    } else {
-      document.documentElement.classList.remove('light-theme');
+  private setupSystemThemeWatch = (): void => {
+    // Cleanup previous watcher if exists
+    if (this.cleanupSystemThemeWatch) {
+      this.cleanupSystemThemeWatch();
+      this.cleanupSystemThemeWatch = null;
+    }
+    
+    // Only watch if theme is set to 'auto'
+    if (this.settings.theme === 'auto') {
+      this.cleanupSystemThemeWatch = watchSystemTheme((newSystemTheme) => {
+        applyTheme(newSystemTheme);
+        console.log(`System theme changed to: ${newSystemTheme}`);
+      });
     }
   };
 
@@ -824,7 +868,12 @@ export class CalendarApp {
     this.showMoonPhaseCheckbox.removeEventListener('change', this.handleMoonPhaseToggle);
     this.showZodiacCheckbox.removeEventListener('change', this.handleZodiacToggle);
     this.showHebrewMonthCheckbox.removeEventListener('change', this.handleHebrewMonthToggle);
-    this.lightThemeCheckbox.removeEventListener('change', this.handleThemeToggle);
+    
+    // Theme radio buttons
+    this.themeAutoRadio.removeEventListener('change', this.handleThemeChange);
+    this.themeLightRadio.removeEventListener('change', this.handleThemeChange);
+    this.themeDarkRadio.removeEventListener('change', this.handleThemeChange);
+    
     this.languageSelect.removeEventListener('change', this.handleLanguageChange);
     this.prevYearBtn.removeEventListener('click', this.handlePrevYear);
     this.nextYearBtn.removeEventListener('click', this.handleNextYear);
@@ -838,6 +887,11 @@ export class CalendarApp {
     
     // Cleanup router
     router.destroy();
+    
+    // Cleanup system theme watcher
+    if (this.cleanupSystemThemeWatch) {
+      this.cleanupSystemThemeWatch();
+    }
     
     console.log('CalendarApp destroyed and cleaned up');
   };
