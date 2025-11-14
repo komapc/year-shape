@@ -370,65 +370,86 @@
     </style>
   </head>
   <body>
-    <h1>🎯 Multi-Ring Calendar</h1>
+    <!-- Header with Mode Selector -->
+    <header
+      style="
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 0 20px;
+      "
+    >
+      <div style="display: flex; align-items: center; gap: 15px">
+        <h1 style="margin: 0; font-size: 1.8rem">🎯 YearWheel</h1>
+        <!-- Mode Selector -->
+        <select
+          id="modeSelector"
+          style="
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            outline: none;
+          "
+          aria-label="Select calendar mode"
+          title="Calendar Mode"
+        >
+          <option value="old">Classic</option>
+          <option value="rings" selected>Rings</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+    </header>
+
+    <h1 style="margin-top: 0; margin-bottom: 10px">🎯 Multi-Ring Calendar</h1>
     <p class="subtitle">
       Perimeter-preserving morphing shape with 5 calendar rings + drag-and-drop
       reordering
     </p>
 
-    <div class="controls">
-      <div class="control-group">
-        <label>
-          Shape (Square ↔ Circle)
-          <span class="value-display" id="cornerValue">50%</span>
-        </label>
-        <input type="range" id="cornerRadius" min="0" max="100" value="50" />
+    <!-- Layer Controls at top (hideable) -->
+    <div class="layer-controls" id="layerControls" style="margin-bottom: 20px">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        "
+      >
+        <h3 style="margin: 0">📚 Layer Controls</h3>
+        <button
+          id="toggleLayerControls"
+          style="
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+          "
+          title="Toggle Layer Controls"
+        >
+          <span id="layerControlsToggleText">▼ Hide</span>
+        </button>
       </div>
-
-      <div class="control-group">
-        <label>
-          Ring Width
-          <span class="value-display" id="widthValue">50px</span>
-        </label>
-        <input type="range" id="ringWidth" min="30" max="80" value="50" />
-      </div>
-
-      <div class="control-group">
-        <label>Direction & Rotation</label>
-        <div style="display: flex; gap: 10px; margin-top: 8px">
-          <button
-            id="directionToggle"
-            style="
-              flex: 1;
-              padding: 8px;
-              background: rgba(255, 255, 255, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              border-radius: 6px;
-              color: white;
-              cursor: pointer;
-              font-weight: 600;
-              transition: all 0.2s;
-            "
-          >
-            ↻ CW
-          </button>
-          <button
-            id="rotateYear"
-            style="
-              flex: 1;
-              padding: 8px;
-              background: rgba(255, 255, 255, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              border-radius: 6px;
-              color: white;
-              cursor: pointer;
-              font-weight: 600;
-              transition: all 0.2s;
-            "
-          >
-            🔄 Rotate 90°
-          </button>
-        </div>
+      <div id="layerControlsContent">
+        <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px">
+          Drag to reorder • Click checkbox to show/hide
+        </p>
+        <ul class="layer-list" id="layerList">
+          <!-- Populated by JavaScript -->
+        </ul>
       </div>
     </div>
 
@@ -559,15 +580,62 @@
           </text>
         </svg>
       </div>
+    </div>
 
-      <div class="layer-controls">
-        <h3>📚 Layer Controls</h3>
-        <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px">
-          Drag to reorder • Click checkbox to show/hide
-        </p>
-        <ul class="layer-list" id="layerList">
-          <!-- Populated by JavaScript -->
-        </ul>
+    <!-- Controls at bottom -->
+    <div class="controls" style="margin-top: 20px; margin-bottom: 0">
+      <div class="control-group">
+        <label>
+          Shape (Square ↔ Circle)
+          <span class="value-display" id="cornerValue">50%</span>
+        </label>
+        <input type="range" id="cornerRadius" min="0" max="100" value="50" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          Ring Width
+          <span class="value-display" id="widthValue">50px</span>
+        </label>
+        <input type="range" id="ringWidth" min="30" max="80" value="50" />
+      </div>
+
+      <div class="control-group">
+        <label>Direction & Rotation</label>
+        <div style="display: flex; gap: 10px; margin-top: 8px">
+          <button
+            id="directionToggle"
+            style="
+              flex: 1;
+              padding: 8px;
+              background: rgba(255, 255, 255, 0.2);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              border-radius: 6px;
+              color: white;
+              cursor: pointer;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+          >
+            ↻ CW
+          </button>
+          <button
+            id="rotateYear"
+            style="
+              flex: 1;
+              padding: 8px;
+              background: rgba(255, 255, 255, 0.2);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              border-radius: 6px;
+              color: white;
+              cursor: pointer;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+          >
+            🔄 Rotate 90°
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1761,6 +1829,109 @@
           rotateYearBtn.style.transform = "";
         }, 200);
       });
+
+      // ============================================
+      // LAYER CONTROLS TOGGLE
+      // ============================================
+
+      const layerControls = document.getElementById("layerControls");
+      const layerControlsContent = document.getElementById(
+        "layerControlsContent"
+      );
+      const toggleLayerControls = document.getElementById(
+        "toggleLayerControls"
+      );
+      const layerControlsToggleText = document.getElementById(
+        "layerControlsToggleText"
+      );
+      let layerControlsVisible = true;
+
+      if (
+        toggleLayerControls &&
+        layerControlsContent &&
+        layerControlsToggleText
+      ) {
+        toggleLayerControls.addEventListener("click", () => {
+          layerControlsVisible = !layerControlsVisible;
+          if (layerControlsVisible) {
+            layerControlsContent.style.display = "block";
+            layerControlsToggleText.textContent = "▼ Hide";
+          } else {
+            layerControlsContent.style.display = "none";
+            layerControlsToggleText.textContent = "▶ Show";
+          }
+        });
+      }
+
+      // ============================================
+      // MODE SELECTOR
+      // ============================================
+
+      const modeSelector = document.getElementById("modeSelector");
+
+      if (modeSelector) {
+        // Load saved mode preference
+        const savedSettings = localStorage.getItem("yearwheel_settings");
+        if (savedSettings) {
+          try {
+            const settings = JSON.parse(savedSettings);
+            if (settings.mode && settings.mode !== "rings") {
+              modeSelector.value = settings.mode;
+            }
+          } catch (e) {
+            console.error("Failed to load mode settings:", e);
+          }
+        }
+
+        // Handle mode change
+        modeSelector.addEventListener("change", (e) => {
+          const selectedMode = e.target.value;
+
+          // Save mode preference
+          const savedSettings = localStorage.getItem("yearwheel_settings");
+          let settings = {};
+          if (savedSettings) {
+            try {
+              settings = JSON.parse(savedSettings);
+            } catch (e) {
+              console.error("Failed to parse settings:", e);
+            }
+          }
+          settings.mode = selectedMode;
+          localStorage.setItem("yearwheel_settings", JSON.stringify(settings));
+
+          // Navigate to selected mode
+          // Determine base path based on current location
+          let basePath = "";
+          const currentPath = window.location.pathname;
+          if (currentPath.includes("/year-shape/")) {
+            basePath = "/year-shape";
+          } else if (
+            currentPath !== "/" &&
+            currentPath !== "/index.html" &&
+            currentPath !== "/rings.html"
+          ) {
+            // Extract base path from current path (e.g., /year-shape/rings.html -> /year-shape)
+            const pathParts = currentPath.split("/");
+            if (pathParts.length > 2) {
+              basePath = "/" + pathParts[1];
+            }
+          }
+
+          if (selectedMode === "old") {
+            // Navigate to index.html with old mode
+            window.location.href = basePath + "/index.html#old";
+          } else if (selectedMode === "zoom") {
+            // Navigate to index.html with zoom mode
+            const currentYear = new Date().getFullYear();
+            window.location.href =
+              basePath + `/index.html#zoom/year/${currentYear}`;
+          } else {
+            // Already in rings mode, just ensure selector is correct
+            modeSelector.value = "rings";
+          }
+        });
+      }
     </script>
   </body>
 </html>
