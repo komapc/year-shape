@@ -41,6 +41,7 @@ describe('Settings Utilities', () => {
         direction: 1,
         seasons: ['spring', 'summer', 'autumn', 'winter'],
         rotationOffset: 90,
+        mode: 'old',
         theme: 'light',
       };
 
@@ -93,6 +94,7 @@ describe('Settings Utilities', () => {
         direction: 1,
         seasons: ['winter', 'spring', 'summer', 'autumn'],
         rotationOffset: 0,
+        mode: 'old',
         theme: 'light',
       };
 
@@ -117,6 +119,7 @@ describe('Settings Utilities', () => {
         direction: -1,
         seasons: ['winter', 'spring', 'summer', 'autumn'],
         rotationOffset: 0,
+        mode: 'old',
         theme: 'dark',
       };
 
@@ -143,6 +146,7 @@ describe('Settings Utilities', () => {
         direction: 1,
         seasons: ['spring', 'summer', 'autumn', 'winter'],
         rotationOffset: 180,
+        mode: 'old',
         theme: 'dark',
         locale: 'en',
       };
@@ -164,6 +168,7 @@ describe('Settings Utilities', () => {
         direction: 1,
         seasons: ['winter', 'spring', 'summer', 'autumn'],
         rotationOffset: 270,
+        mode: 'old',
         theme: 'light',
         locale: 'he',
       };

@@ -14,16 +14,18 @@
 import type { CalendarEvent } from '../types';
 import { CalendarRenderer } from './CalendarRenderer';
 import { WeekModal } from './WeekModal';
+import { ZoomMode } from './ZoomMode';
 import { googleCalendarService } from '../services/googleCalendar';
 import { getElement } from '../utils/dom';
 import { openGoogleCalendarForWeek } from '../utils/date';
-import { loadSettings, saveSettings, type AppSettings } from '../utils/settings';
+import { loadSettings, saveSettings, type AppSettings, type CalendarMode } from '../utils/settings';
 import { toast } from '../utils/toast';
 import { keyboardManager } from '../utils/keyboard';
 import { router } from '../utils/router';
 import { resolveTheme, applyTheme, watchSystemTheme } from '../utils/theme';
 import type { ThemePreference } from '../utils/theme';
 import { t, setLocale, initializeLocale, type Locale } from '../i18n';
+import { getModeFromHash, navigateToMode } from '../utils/modeNavigation';
 
 /**
  * Main application controller class for YearWheel.
@@ -39,13 +41,19 @@ import { t, setLocale, initializeLocale, type Locale } from '../i18n';
  */
 export class CalendarApp {
   /** Calendar rendering engine - handles visual layout and positioning */
-  private renderer: CalendarRenderer;
+  private renderer: CalendarRenderer | null = null;
+  
+  /** Zoom mode renderer - handles zoom mode visualization */
+  private zoomMode: ZoomMode | null = null;
   
   /** Week detail modal - displays Soviet-style diary view */
   private modal: WeekModal;
   
   /** Google Calendar events indexed by week number (1-52) */
   private eventsByWeek: Record<number, CalendarEvent[]> = {};
+  
+  /** Current calendar mode */
+  private currentMode: CalendarMode = 'old';
 
   // ========================================
   // UI Element References
@@ -103,6 +111,19 @@ export class CalendarApp {
   
   /** Language select dropdown */
   private languageSelect: HTMLSelectElement;
+  
+  /** Mode selector dropdown (header) - replaced with radio buttons */
+  private modeSelector: HTMLSelectElement | null = null;
+  
+  /** Mode radio buttons (header) */
+  private headerModeOldRadio: HTMLInputElement;
+  private headerModeRingsRadio: HTMLInputElement;
+  private headerModeZoomRadio: HTMLInputElement;
+  
+  /** Mode radio buttons (settings) */
+  private modeOldRadio: HTMLInputElement;
+  private modeRingsRadio: HTMLInputElement;
+  private modeZoomRadio: HTMLInputElement;
   
   /** System theme change cleanup function */
   private cleanupSystemThemeWatch: (() => void) | null = null;
@@ -164,6 +185,18 @@ export class CalendarApp {
     this.themeLightRadio = getElement<HTMLInputElement>('themeLight');
     this.themeDarkRadio = getElement<HTMLInputElement>('themeDark');
     this.languageSelect = getElement<HTMLSelectElement>('languageSelect');
+    // Try to get mode selector (may not exist if replaced with radio buttons)
+    try {
+      this.modeSelector = getElement<HTMLSelectElement>('modeSelector');
+    } catch {
+      this.modeSelector = null;
+    }
+    this.headerModeOldRadio = getElement<HTMLInputElement>('headerModeOld');
+    this.headerModeRingsRadio = getElement<HTMLInputElement>('headerModeRings');
+    this.headerModeZoomRadio = getElement<HTMLInputElement>('headerModeZoom');
+    this.modeOldRadio = getElement<HTMLInputElement>('modeOld');
+    this.modeRingsRadio = getElement<HTMLInputElement>('modeRings');
+    this.modeZoomRadio = getElement<HTMLInputElement>('modeZoom');
     this.loginStatus = getElement('loginStatus');
     this.headerSignInBtn = getElement<HTMLButtonElement>('headerSignInBtn');
     this.prevYearBtn = getElement<HTMLButtonElement>('prevYear');
@@ -197,6 +230,34 @@ export class CalendarApp {
     
     this.languageSelect.value = this.settings.locale || 'en';
     
+    // Set mode from settings or URL (default to 'zoom' instead of 'old')
+    this.currentMode = this.settings.mode || 'zoom';
+    const urlMode = this.getModeFromURL();
+    if (urlMode) {
+      this.currentMode = urlMode;
+      this.settings.mode = urlMode;
+      saveSettings(this.settings);
+    }
+    
+    // Sync mode to UI controls
+    if (this.modeSelector) {
+      this.modeSelector.value = this.currentMode;
+    }
+    // Header radio buttons
+    this.headerModeOldRadio.checked = this.currentMode === 'old';
+    this.headerModeRingsRadio.checked = this.currentMode === 'rings';
+    this.headerModeZoomRadio.checked = this.currentMode === 'zoom';
+    // Settings radio buttons
+    if (this.modeOldRadio) {
+      this.modeOldRadio.checked = this.currentMode === 'old';
+    }
+    if (this.modeRingsRadio) {
+      this.modeRingsRadio.checked = this.currentMode === 'rings';
+    }
+    if (this.modeZoomRadio) {
+      this.modeZoomRadio.checked = this.currentMode === 'zoom';
+    }
+    
     // Apply saved corner radius
     this.radiusInput.value = this.settings.cornerRadius.toString();
     const wrapElement = document.querySelector('.shape-wrap') as HTMLElement;
@@ -217,13 +278,10 @@ export class CalendarApp {
     // ========================================
     // 4. Initialize Core Components
     // ========================================
-    this.renderer = new CalendarRenderer(
-      this.shapeContainer,
-      this.settings.cornerRadius / 50, // Convert slider value to 0-1
-      this.settings.direction,
-      this.settings.rotationOffset
-    );
     this.modal = new WeekModal();
+    
+    // Initialize mode-specific renderer
+    this.initializeMode();
 
     // ========================================
     // 5. Setup Event Handlers
@@ -243,8 +301,7 @@ export class CalendarApp {
     // Update year display
     this.updateYearDisplay();
     
-    // Note: No demo events - only real Google Calendar events are displayed
-    this.renderer.layoutWeeks();
+    // Note: Initial layout is handled by initializeMode()
   }
 
   /**
@@ -340,9 +397,6 @@ export class CalendarApp {
     // Logout
     this.logoutBtn.addEventListener('click', this.handleLogout);
 
-    // Week click handler
-    this.renderer.onWeekClick(this.handleWeekClick);
-
     // Window resize
     window.addEventListener('resize', this.handleResize);
 
@@ -368,6 +422,27 @@ export class CalendarApp {
     // Year navigation
     this.prevYearBtn.addEventListener('click', this.handlePrevYear);
     this.nextYearBtn.addEventListener('click', this.handleNextYear);
+    
+    // Mode selector (header) - may be select or radio buttons
+    if (this.modeSelector) {
+      this.modeSelector.addEventListener('change', this.handleModeChange);
+    }
+    
+    // Mode radio buttons (header)
+    this.headerModeOldRadio.addEventListener('change', this.handleModeChange);
+    this.headerModeRingsRadio.addEventListener('change', this.handleModeChange);
+    this.headerModeZoomRadio.addEventListener('change', this.handleModeChange);
+    
+    // Mode radio buttons (settings)
+    if (this.modeOldRadio) {
+      this.modeOldRadio.addEventListener('change', this.handleModeChange);
+    }
+    if (this.modeRingsRadio) {
+      this.modeRingsRadio.addEventListener('change', this.handleModeChange);
+    }
+    if (this.modeZoomRadio) {
+      this.modeZoomRadio.addEventListener('change', this.handleModeChange);
+    }
   };
 
   /**
@@ -447,24 +522,224 @@ export class CalendarApp {
       }
     });
 
-    // #year/:year - Navigate to specific year
+    // #year/:year - Navigate to specific year (old mode)
     router.register('year/:year', (params) => {
       const year = parseInt(params?.year || '', 10);
       if (year >= 2000 && year <= 2100) {
         this.currentYear = year;
         this.updateYearDisplay();
-        this.renderer.layoutWeeks();
+        if (this.renderer) {
+          this.renderer.layoutWeeks();
+        }
         if (googleCalendarService.getAuthStatus()) {
           this.handleRefreshEvents();
         }
       }
     });
 
+    // Mode routes
+    router.register('zoom', () => {
+      this.switchMode('zoom');
+    });
+    
+    router.register('zoom/year/:year', (params) => {
+      const year = parseInt(params?.year || '', 10);
+      if (year >= 2000 && year <= 2100) {
+        this.currentYear = year;
+        this.switchMode('zoom');
+        if (this.zoomMode) {
+          this.zoomMode.setYear(year);
+        }
+      }
+    });
+    
+    router.register('rings', () => {
+      // Check if we're already on rings.html
+      if (window.location.pathname.includes('rings.html')) {
+        // Already on rings page, just update the mode selector if it exists
+        const modeSelector = document.getElementById('modeSelector');
+        if (modeSelector) {
+          (modeSelector as HTMLSelectElement).value = 'rings';
+        }
+      } else {
+        // Navigate to rings.html using shared utility
+        navigateToMode('rings');
+      }
+    });
+    
+    router.register('old', () => {
+      this.switchMode('old');
+    });
+    
     // Root / no hash - Close all panels
     router.register('', () => {
       this.settingsPanel.classList.add('hidden');
       this.aboutPanel.classList.add('hidden');
+      // Use saved mode or default
+      if (!this.getModeFromURL()) {
+        this.switchMode(this.settings.mode || 'old');
+      }
     });
+  };
+  
+  /**
+   * Get mode from URL hash
+   */
+  private getModeFromURL = (): CalendarMode | null => {
+    return getModeFromHash();
+  };
+  
+  /**
+   * Initialize mode-specific renderer
+   */
+  private initializeMode = (): void => {
+    if (this.currentMode === 'zoom') {
+      this.initializeZoomMode();
+    } else if (this.currentMode === 'rings') {
+      // Redirect to rings.html
+      window.location.href = '/rings.html';
+      return;
+    } else {
+      this.initializeOldMode();
+    }
+  };
+  
+  /**
+   * Initialize old mode (classic calendar)
+   */
+  private initializeOldMode = (): void => {
+    // Hide zoom mode, show old mode
+    if (this.zoomMode) {
+      this.zoomMode.destroy();
+      this.zoomMode = null;
+    }
+    
+    // Hide zoom container
+    const zoomContainer = document.getElementById('zoomContainer');
+    if (zoomContainer) {
+      zoomContainer.style.display = 'none';
+    }
+    
+    // Show shape container
+    this.shapeContainer.style.display = 'block';
+    
+    // Initialize renderer if not already initialized
+    if (!this.renderer) {
+      this.renderer = new CalendarRenderer(
+        this.shapeContainer,
+        this.settings.cornerRadius / 50,
+        this.settings.direction,
+        this.settings.rotationOffset
+      );
+      
+      // Attach week click handler
+      this.renderer.onWeekClick(this.handleWeekClick);
+    }
+    
+    // Update year display
+    this.updateYearDisplay();
+    
+    // Layout weeks
+    this.renderer.layoutWeeks();
+    
+    // Update events if available
+    if (Object.keys(this.eventsByWeek).length > 0) {
+      this.renderer.updateEvents(this.eventsByWeek);
+    }
+  };
+  
+  /**
+   * Initialize zoom mode
+   */
+  private initializeZoomMode = (): void => {
+    // Hide old mode, show zoom mode
+    if (this.renderer) {
+      this.renderer.destroy();
+      this.renderer = null;
+    }
+    
+    // Hide shape container
+    this.shapeContainer.style.display = 'none';
+    
+    // Create zoom mode container if it doesn't exist
+    let zoomContainer = document.getElementById('zoomContainer');
+    if (!zoomContainer) {
+      zoomContainer = document.createElement('div');
+      zoomContainer.id = 'zoomContainer';
+      zoomContainer.style.cssText = `
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 600px;
+      `;
+      this.shapeContainer.parentElement?.appendChild(zoomContainer);
+    }
+    
+    // Show zoom container
+    zoomContainer.style.display = 'block';
+    
+    // Initialize zoom mode
+    if (!this.zoomMode) {
+      this.zoomMode = new ZoomMode(zoomContainer, this.currentYear);
+    }
+    
+    // Update events if available
+    if (Object.keys(this.eventsByWeek).length > 0) {
+      this.zoomMode.updateEvents(this.eventsByWeek);
+    }
+  };
+  
+  /**
+   * Switch between modes
+   */
+  private switchMode = (mode: CalendarMode): void => {
+    if (this.currentMode === mode) return;
+    
+    this.currentMode = mode;
+    this.settings.mode = mode;
+    saveSettings(this.settings);
+    
+    // Update UI controls
+    if (this.modeSelector) {
+      this.modeSelector.value = mode;
+    }
+    // Header radio buttons
+    this.headerModeOldRadio.checked = mode === 'old';
+    this.headerModeRingsRadio.checked = mode === 'rings';
+    this.headerModeZoomRadio.checked = mode === 'zoom';
+    // Settings radio buttons
+    if (this.modeOldRadio) {
+      this.modeOldRadio.checked = mode === 'old';
+    }
+    if (this.modeRingsRadio) {
+      this.modeRingsRadio.checked = mode === 'rings';
+    }
+    if (this.modeZoomRadio) {
+      this.modeZoomRadio.checked = mode === 'zoom';
+    }
+    
+    // Initialize mode
+    this.initializeMode();
+    
+    // Update URL and navigate using shared utilities
+    if (mode === 'zoom') {
+      router.navigate(`zoom/year/${this.currentYear}`);
+    } else if (mode === 'rings') {
+      // Navigate to rings.html using shared utility
+      navigateToMode('rings');
+    } else {
+      // Stay on index.html for old mode
+      router.navigate('old');
+    }
+  };
+  
+  /**
+   * Handle mode change
+   */
+  private handleModeChange = (event: Event): void => {
+    const target = event.target as HTMLInputElement | HTMLSelectElement;
+    const mode = target.value as CalendarMode;
+    this.switchMode(mode);
   };
 
   /**
@@ -479,8 +754,10 @@ export class CalendarApp {
       wrapElement.style.borderRadius = `${value}%`;
     }
     
-    // Update week positions to follow the shape
-    this.renderer.setCornerRadius(parseFloat(value));
+    // Update week positions to follow the shape (only in old mode)
+    if (this.renderer) {
+      this.renderer.setCornerRadius(parseFloat(value));
+    }
     
     // Save to settings
     this.settings.cornerRadius = parseFloat(value);
@@ -497,6 +774,8 @@ export class CalendarApp {
    * @returns {void}
    */
   private handleDirectionToggle = (): void => {
+    if (!this.renderer) return;
+    
     const newDirection = this.renderer.toggleDirection();
     const directionText = newDirection === 1 ? 'CW' : 'CCW';
     const directionIcon = newDirection === 1 ? '↻' : '↺';
@@ -515,6 +794,8 @@ export class CalendarApp {
    * Handle shift seasons (rotate clockwise)
    */
   private handleShiftSeasons = (): void => {
+    if (!this.renderer) return;
+    
     const newOffset = this.renderer.shiftSeasons();
     
     // Save to settings
@@ -540,7 +821,14 @@ export class CalendarApp {
 
         const events = await googleCalendarService.fetchEvents(this.currentYear);
         this.eventsByWeek = events;
-        this.renderer.updateEvents(this.eventsByWeek);
+        
+        // Update events based on current mode
+        if (this.renderer) {
+          this.renderer.updateEvents(this.eventsByWeek);
+        }
+        if (this.zoomMode) {
+          this.zoomMode.updateEvents(this.eventsByWeek);
+        }
 
         this.refreshEventsBtn.textContent = 'Refresh Events';
         toast.success(`Loaded events for ${this.currentYear}`);
@@ -598,7 +886,15 @@ export class CalendarApp {
     googleCalendarService.signOut();
     this.updateLoginStatus(false);
     this.eventsByWeek = {};
-    this.renderer.updateEvents(this.eventsByWeek);
+    
+    // Update events based on current mode
+    if (this.renderer) {
+      this.renderer.updateEvents(this.eventsByWeek);
+    }
+    if (this.zoomMode) {
+      this.zoomMode.updateEvents(this.eventsByWeek);
+    }
+    
     toast.info('Signed out successfully');
   };
 
@@ -606,6 +902,8 @@ export class CalendarApp {
    * Handle week click
    */
   private handleWeekClick = (weekIndex: number, event?: MouseEvent): void => {
+    if (!this.renderer) return;
+    
     const week = this.renderer.getWeek(weekIndex);
     if (!week) return;
 
@@ -626,7 +924,10 @@ export class CalendarApp {
    * Handle window resize
    */
   private handleResize = (): void => {
-    this.renderer.layoutWeeks();
+    if (this.renderer) {
+      this.renderer.layoutWeeks();
+    }
+    // Zoom mode handles its own resize
   };
 
   /**
@@ -666,7 +967,14 @@ export class CalendarApp {
   private handlePrevYear = (): void => {
     this.currentYear--;
     this.updateYearDisplay();
-    this.renderer.layoutWeeks();
+    
+    // Update based on current mode
+    if (this.renderer) {
+      this.renderer.layoutWeeks();
+    }
+    if (this.zoomMode) {
+      this.zoomMode.setYear(this.currentYear);
+    }
     
     // Re-fetch events if logged in
     if (googleCalendarService.getAuthStatus()) {
@@ -680,7 +988,14 @@ export class CalendarApp {
   private handleNextYear = (): void => {
     this.currentYear++;
     this.updateYearDisplay();
-    this.renderer.layoutWeeks();
+    
+    // Update based on current mode
+    if (this.renderer) {
+      this.renderer.layoutWeeks();
+    }
+    if (this.zoomMode) {
+      this.zoomMode.setYear(this.currentYear);
+    }
     
     // Re-fetch events if logged in
     if (googleCalendarService.getAuthStatus()) {
@@ -788,7 +1103,13 @@ export class CalendarApp {
       });
     }
     
-    this.renderer.updateEvents(this.eventsByWeek);
+    // Update events based on current mode
+    if (this.renderer) {
+      this.renderer.updateEvents(this.eventsByWeek);
+    }
+    if (this.zoomMode) {
+      this.zoomMode.updateEvents(this.eventsByWeek);
+    }
   };
 
   /**
@@ -1020,12 +1341,34 @@ export class CalendarApp {
     this.themeDarkRadio.removeEventListener('change', this.handleThemeChange);
     
     this.languageSelect.removeEventListener('change', this.handleLanguageChange);
+    if (this.modeSelector) {
+      this.modeSelector.removeEventListener('change', this.handleModeChange);
+    }
+    this.headerModeOldRadio.removeEventListener('change', this.handleModeChange);
+    this.headerModeRingsRadio.removeEventListener('change', this.handleModeChange);
+    this.headerModeZoomRadio.removeEventListener('change', this.handleModeChange);
+    if (this.modeOldRadio) {
+      this.modeOldRadio.removeEventListener('change', this.handleModeChange);
+    }
+    if (this.modeRingsRadio) {
+      this.modeRingsRadio.removeEventListener('change', this.handleModeChange);
+    }
+    if (this.modeZoomRadio) {
+      this.modeZoomRadio.removeEventListener('change', this.handleModeChange);
+    }
     this.prevYearBtn.removeEventListener('click', this.handlePrevYear);
     this.nextYearBtn.removeEventListener('click', this.handleNextYear);
     window.removeEventListener('resize', this.handleResize);
 
     // Cleanup renderer (stops timers)
-    this.renderer.destroy();
+    if (this.renderer) {
+      this.renderer.destroy();
+    }
+    
+    // Cleanup zoom mode
+    if (this.zoomMode) {
+      this.zoomMode.destroy();
+    }
     
     // Cleanup keyboard shortcuts
     keyboardManager.destroy();

@@ -254,3 +254,12 @@
   }
 }
 
+/* Zoom mode transitions */
+.month-sector {
+  transition: d 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              fill 0.3s ease,
+              stroke-width 0.3s ease !important;
+  cursor: pointer;
+  pointer-events: all;
+}
+

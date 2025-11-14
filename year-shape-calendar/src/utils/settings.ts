@@ -5,6 +5,8 @@
 
 import type { Direction, Season } from '../types';
 
+export type CalendarMode = 'old' | 'rings' | 'zoom';
+
 export interface AppSettings {
   // Display settings
   showMoonPhase: boolean;
@@ -16,6 +18,7 @@ export interface AppSettings {
   direction: Direction;           // -1 (CCW) or 1 (CW)
   seasons: Season[];              // Order of seasons
   rotationOffset: number;         // 0, 90, 180, or 270
+  mode: CalendarMode;             // 'old' | 'rings' | 'zoom'
   
   // UI preferences
   theme?: 'light' | 'dark' | 'auto';
@@ -35,6 +38,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   direction: -1,
   seasons: ['winter', 'spring', 'summer', 'autumn'],
   rotationOffset: 0,
+  mode: 'old',
   
   // UI preferences
   theme: 'auto',
