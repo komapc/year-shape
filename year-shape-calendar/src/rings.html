@@ -244,26 +244,128 @@
         pointer-events: none;
       }
 
-      .info-panel {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        background: rgba(0, 0, 0, 0.8);
-        padding: 15px;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        max-width: 250px;
-        line-height: 1.6;
+      /* Mobile optimizations */
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        h1 {
+          font-size: 1.5rem;
+          margin-bottom: 8px;
+        }
+
+        .subtitle {
+          font-size: 0.8rem;
+          margin-bottom: 15px;
+        }
+
+        .controls {
+          padding: 15px;
+          width: 100%;
+          max-width: 100%;
+          margin-bottom: 15px;
+        }
+
+        .control-group {
+          margin-bottom: 12px;
+        }
+
+        label {
+          font-size: 0.85rem;
+        }
+
+        .value-display {
+          font-size: 0.8rem;
+          padding: 2px 8px;
+        }
+
+        .main-content {
+          flex-direction: column;
+          align-items: center;
+          gap: 15px;
+          width: 100%;
+        }
+
+        #canvas-container {
+          width: min(90vw, 90vh);
+          height: min(90vw, 90vh);
+          max-width: 500px;
+          max-height: 500px;
+        }
+
+        .layer-controls {
+          width: 90%;
+          max-width: 100%;
+          min-width: auto;
+        }
+
+        .layer-controls h3 {
+          font-size: 1rem;
+        }
+
+        .layer-item {
+          padding: 10px;
+          font-size: 0.85rem;
+        }
+
+        .ring-label {
+          font-size: 11px;
+          stroke-width: 2.5px;
+        }
+
+        .center-text {
+          font-size: 24px;
+        }
+
+        button {
+          font-size: 0.85rem !important;
+        }
       }
 
-      .info-panel h3 {
-        margin-bottom: 8px;
-        font-size: 1rem;
-      }
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 1.3rem;
+        }
 
-      .info-panel p {
-        margin: 4px 0;
-        opacity: 0.9;
+        .subtitle {
+          font-size: 0.75rem;
+        }
+
+        .controls {
+          padding: 12px;
+        }
+
+        label {
+          font-size: 0.8rem;
+          margin-bottom: 6px;
+        }
+
+        .layer-controls {
+          width: 95%;
+        }
+
+        .layer-item {
+          padding: 8px;
+          gap: 8px;
+        }
+
+        .layer-name {
+          font-size: 0.8rem;
+        }
+
+        .drag-handle {
+          font-size: 1rem;
+        }
+
+        .ring-label {
+          font-size: 10px;
+          stroke-width: 2px;
+        }
+
+        .center-text {
+          font-size: 20px;
+        }
       }
     </style>
   </head>
@@ -469,17 +571,47 @@
       </div>
     </div>
 
-    <div class="info-panel">
-      <h3>📊 Current State</h3>
-      <p><strong>Perimeter:</strong> <span id="perimeterInfo">—</span></p>
-      <p><strong>Base Radius:</strong> <span id="radiusInfo">—</span></p>
-      <p><strong>Corner Radius:</strong> <span id="cornerInfo">—</span></p>
-      <p style="margin-top: 10px; opacity: 0.7; font-size: 0.75rem">
-        💡 Perimeter stays constant as shape morphs
-      </p>
-    </div>
-
     <script>
+      // ============================================
+      // CONSTANTS
+      // ============================================
+
+      const CALENDAR_CONSTANTS = {
+        DAYS_IN_YEAR: 365,
+        BASE_OFFSET: -Math.PI / 2, // Start at top (12 o'clock, Jan 1)
+        FULL_CIRCLE: Math.PI * 2,
+        PERIMETER_TOLERANCE: 0.1,
+        MAX_PERIMETER_ITERATIONS: 50,
+        MIN_RADIUS: 10,
+        MAX_RADIUS: 500,
+      };
+
+      /**
+       * Meteorological season dates (3 months each)
+       * Each season covers exactly 3 months for clean alignment:
+       * - Winter: Dec, Jan, Feb (centered on top)
+       * - Spring: Mar, Apr, May (centered on right)
+       * - Summer: Jun, Jul, Aug (centered on bottom)
+       * - Autumn: Sep, Oct, Nov (centered on left)
+       *
+       * Day numbers are 0-indexed from Jan 1.
+       */
+      const SEASON_DATES = {
+        WINTER_START: 334, // Dec 1 (day 334)
+        SPRING_START: 59, // Mar 1 (day 59)
+        SUMMER_START: 151, // Jun 1 (day 151)
+        AUTUMN_START: 243, // Sep 1 (day 243)
+        WINTER_END: 59, // Mar 1 (next year)
+      };
+
+      const SVG_CONFIG = {
+        PATH_SEGMENTS: 360,
+        LABEL_FONT_SIZE: 13,
+        CENTER_TEXT_SIZE: 32,
+        SEPARATOR_STROKE_WIDTH: 3,
+        SECTOR_STROKE_WIDTH: 1.5,
+      };
+
       // ============================================
       // ABSTRACT BASE CLASS
       // ============================================
@@ -541,9 +673,11 @@
           this.svgGroup.innerHTML = "";
 
           // Draw all sectors
-          const anglePerSector = (Math.PI * 2) / this.sectorCount;
+          const anglePerSector =
+            CALENDAR_CONSTANTS.FULL_CIRCLE / this.sectorCount;
           // Offset so first sector is centered at top (12 o'clock)
-          const baseOffset = -Math.PI / 2 - anglePerSector / 2;
+          const baseOffset =
+            CALENDAR_CONSTANTS.BASE_OFFSET - anglePerSector / 2;
           const rotationRad = (rotationOffset * Math.PI) / 180;
           const startOffset = baseOffset + rotationRad;
 
@@ -701,10 +835,12 @@
 
         createShapePath(radius) {
           const points = [];
-          const segments = 360;
+          const segments = SVG_CONFIG.PATH_SEGMENTS;
 
           for (let i = 0; i <= segments; i++) {
-            const angle = (i / segments) * Math.PI * 2 - Math.PI / 2;
+            const angle =
+              (i / segments) * CALENDAR_CONSTANTS.FULL_CIRCLE +
+              CALENDAR_CONSTANTS.BASE_OFFSET;
             const point = this.getPointOnShape(angle, radius);
             points.push(point);
           }
@@ -720,12 +856,12 @@
 
         // Calculate actual perimeter of the shape
         calculatePerimeter(radius) {
-          const segments = 360;
+          const segments = SVG_CONFIG.PATH_SEGMENTS;
           let perimeter = 0;
           let prevPoint = null;
 
           for (let i = 0; i <= segments; i++) {
-            const angle = (i / segments) * Math.PI * 2;
+            const angle = (i / segments) * CALENDAR_CONSTANTS.FULL_CIRCLE;
             const point = this.getPointOnShape(angle, radius);
 
             if (prevPoint) {
@@ -748,9 +884,9 @@
           centerY
         ) {
           // Use binary search to find the radius that gives us the target perimeter
-          let minRadius = 10;
-          let maxRadius = 500;
-          const tolerance = 0.1;
+          let minRadius = CALENDAR_CONSTANTS.MIN_RADIUS;
+          let maxRadius = CALENDAR_CONSTANTS.MAX_RADIUS;
+          const tolerance = CALENDAR_CONSTANTS.PERIMETER_TOLERANCE;
 
           // Create a temporary ring for calculation
           const tempRing = new Ring("temp", "");
@@ -759,7 +895,11 @@
           tempRing.cornerRadius = cornerRadius;
           tempRing.innerRadius = 0;
 
-          for (let i = 0; i < 50; i++) {
+          for (
+            let i = 0;
+            i < CALENDAR_CONSTANTS.MAX_PERIMETER_ITERATIONS;
+            i++
+          ) {
             const testRadius = (minRadius + maxRadius) / 2;
             tempRing.outerRadius = testRadius;
             const perimeter = tempRing.calculatePerimeter(testRadius);
@@ -786,14 +926,120 @@
       class SeasonsRing extends Ring {
         constructor() {
           super("seasons", "gradient-seasons");
+          // Meteorological seasons: 3 months each, positioned clearly
+          // Winter on top, Spring on right, Summer on bottom, Autumn on left
+          this.seasons = [
+            {
+              name: "Winter",
+              startDay: SEASON_DATES.WINTER_START, // Dec 1 (day 334)
+              endDay: CALENDAR_CONSTANTS.DAYS_IN_YEAR + SEASON_DATES.WINTER_END, // wraps to Mar 1
+            },
+            {
+              name: "Spring",
+              startDay: SEASON_DATES.SPRING_START, // Mar 1 (day 59)
+              endDay: SEASON_DATES.SUMMER_START, // Jun 1 (day 151)
+            },
+            {
+              name: "Summer",
+              startDay: SEASON_DATES.SUMMER_START, // Jun 1 (day 151)
+              endDay: SEASON_DATES.AUTUMN_START, // Sep 1 (day 243)
+            },
+            {
+              name: "Autumn",
+              startDay: SEASON_DATES.AUTUMN_START, // Sep 1 (day 243)
+              endDay: SEASON_DATES.WINTER_START, // Dec 1 (day 334)
+            },
+          ];
         }
 
         get sectorCount() {
-          return 4;
+          return this.seasons.length;
         }
 
         getSectorLabel(index) {
-          return ["Winter", "Spring", "Summer", "Autumn"][index];
+          return this.seasons[index].name;
+        }
+
+        // Override layout to use actual day-based positioning for seasons
+        layout(
+          centerX,
+          centerY,
+          innerRadius,
+          outerRadius,
+          cornerRadius,
+          direction = 1,
+          rotationOffset = 0
+        ) {
+          this.centerX = centerX;
+          this.centerY = centerY;
+          this.innerRadius = innerRadius;
+          this.outerRadius = outerRadius;
+          this.cornerRadius = cornerRadius;
+          this.direction = direction;
+
+          // Clear previous content
+          this.svgGroup.innerHTML = "";
+
+          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
+          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
+          const rotationRad = (rotationOffset * Math.PI) / 180;
+          const angleOffset = baseOffset + rotationRad;
+
+          for (let i = 0; i < this.seasons.length; i++) {
+            const season = this.seasons[i];
+            let startDay = season.startDay;
+            let endDay = season.endDay;
+
+            // Handle winter wrap-around (crosses year boundary)
+            if (startDay > endDay && i === 0) {
+              // Winter: Split into two segments
+              // Segment 1: Dec 21 (354) - Dec 31 (365)
+              const seg1Start = (startDay / daysInYear) * Math.PI * 2;
+              const seg1End = (daysInYear / daysInYear) * Math.PI * 2;
+
+              const startAngle1 = angleOffset + seg1Start;
+              const endAngle1 = angleOffset + seg1End;
+
+              const mirroredStart1 =
+                this.direction === -1 ? Math.PI - endAngle1 : startAngle1;
+              const mirroredEnd1 =
+                this.direction === -1 ? Math.PI - startAngle1 : endAngle1;
+
+              this.drawSector(i, mirroredStart1, mirroredEnd1);
+
+              // Segment 2: Jan 1 (0) - Mar 20 (78)
+              const seg2Start = 0;
+              const seg2End =
+                ((endDay - daysInYear) / daysInYear) * Math.PI * 2;
+
+              const startAngle2 = angleOffset + seg2Start;
+              const endAngle2 = angleOffset + seg2End;
+
+              const mirroredStart2 =
+                this.direction === -1 ? Math.PI - endAngle2 : startAngle2;
+              const mirroredEnd2 =
+                this.direction === -1 ? Math.PI - startAngle2 : endAngle2;
+
+              this.drawSector(i, mirroredStart2, mirroredEnd2);
+            } else {
+              // Regular season (doesn't wrap)
+              const progress = (startDay / daysInYear) * Math.PI * 2;
+              const endProgress = (endDay / daysInYear) * Math.PI * 2;
+
+              const startAngle = angleOffset + progress;
+              const endAngle = angleOffset + endProgress;
+
+              const mirroredStart =
+                this.direction === -1 ? Math.PI - endAngle : startAngle;
+              const mirroredEnd =
+                this.direction === -1 ? Math.PI - startAngle : endAngle;
+
+              this.drawSector(i, mirroredStart, mirroredEnd);
+            }
+          }
+
+          // Draw separator line
+          this.drawSeparator();
         }
       }
 
@@ -846,16 +1092,18 @@
           this.svgGroup.innerHTML = "";
 
           // Draw sectors based on actual days in year
-          const daysInYear = 365;
+          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
           // Start at top (12 o'clock) - Jan 1 at the top
-          const baseOffset = -Math.PI / 2;
+          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
           const rotationRad = (rotationOffset * Math.PI) / 180;
           const angleOffset = baseOffset + rotationRad;
 
           for (let i = 0; i < this.gregorianMonths.length; i++) {
             const month = this.gregorianMonths[i];
-            const progress = (month.startDay / daysInYear) * Math.PI * 2;
-            const endProgress = (month.endDay / daysInYear) * Math.PI * 2;
+            const progress =
+              (month.startDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
+            const endProgress =
+              (month.endDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
 
             const startAngle = angleOffset + progress;
             const endAngle = angleOffset + endProgress;
@@ -926,16 +1174,18 @@
           this.svgGroup.innerHTML = "";
 
           // Draw sectors based on actual days in year
-          const daysInYear = 365;
+          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
           // Start at top (12 o'clock) - Jan 1 at the top
-          const baseOffset = -Math.PI / 2;
+          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
           const rotationRad = (rotationOffset * Math.PI) / 180;
           const angleOffset = baseOffset + rotationRad;
 
           for (let i = 0; i < this.hebrewMonths.length; i++) {
             const month = this.hebrewMonths[i];
-            const progress = (month.startDay / daysInYear) * Math.PI * 2;
-            const endProgress = (month.endDay / daysInYear) * Math.PI * 2;
+            const progress =
+              (month.startDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
+            const endProgress =
+              (month.endDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
 
             const startAngle = angleOffset + progress;
             const endAngle = angleOffset + endProgress;
@@ -1026,19 +1276,21 @@
           // Clear previous content
           this.svgGroup.innerHTML = "";
 
-          const daysInYear = 365;
-          const baseOffset = -Math.PI / 2;
+          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
+          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
           const rotationRad = (rotationOffset * Math.PI) / 180;
           const angleOffset = baseOffset + rotationRad;
 
           // Draw holiday markers (small sectors, ±1 day)
           for (let i = 0; i < this.holidays.length; i++) {
             const holiday = this.holidays[i];
-            const dayProgress = (holiday.day / daysInYear) * Math.PI * 2;
+            const dayProgress =
+              (holiday.day / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
             const dayAngle = angleOffset + dayProgress;
 
             // Make a small sector (±2 days width for visibility)
-            const sectorWidth = (3 / daysInYear) * Math.PI * 2;
+            const sectorWidth =
+              (3 / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
             const startAngle = dayAngle - sectorWidth / 2;
             const endAngle = dayAngle + sectorWidth / 2;
 
@@ -1127,17 +1379,6 @@
             this.centerY
           );
 
-          // Update info panel
-          document.getElementById(
-            "perimeterInfo"
-          ).textContent = `${this.targetPerimeter.toFixed(1)}px`;
-          document.getElementById(
-            "radiusInfo"
-          ).textContent = `${adjustedRadius.toFixed(1)}px`;
-          document.getElementById("cornerInfo").textContent = `${(
-            this.cornerRadius * 100
-          ).toFixed(0)}%`;
-
           // Layout each ring from outermost to innermost (only visible rings)
           let currentOuterRadius = adjustedRadius;
 
@@ -1217,10 +1458,11 @@
           const dayOfYear = Math.floor(diff / oneDay) - 1; // 0-indexed
 
           // Calculate angle for today
-          const daysInYear = 365;
-          const baseOffset = -Math.PI / 2; // Start at top
+          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
+          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET; // Start at top
           const rotationRad = (this.rotationOffset * Math.PI) / 180;
-          const progress = (dayOfYear / daysInYear) * Math.PI * 2;
+          const progress =
+            (dayOfYear / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
           const angle = baseOffset + rotationRad + progress;
 
           // For CCW, mirror angle around vertical axis: θ → π - θ
