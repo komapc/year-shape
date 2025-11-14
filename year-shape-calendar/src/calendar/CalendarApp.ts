@@ -25,6 +25,7 @@ import { router } from '../utils/router';
 import { resolveTheme, applyTheme, watchSystemTheme } from '../utils/theme';
 import type { ThemePreference } from '../utils/theme';
 import { t, setLocale, initializeLocale, type Locale } from '../i18n';
+import { getModeFromHash, navigateToMode } from '../utils/modeNavigation';
 
 /**
  * Main application controller class for YearWheel.
@@ -111,8 +112,13 @@ export class CalendarApp {
   /** Language select dropdown */
   private languageSelect: HTMLSelectElement;
   
-  /** Mode selector dropdown (header) */
-  private modeSelector: HTMLSelectElement;
+  /** Mode selector dropdown (header) - replaced with radio buttons */
+  private modeSelector: HTMLSelectElement | null = null;
+  
+  /** Mode radio buttons (header) */
+  private headerModeOldRadio: HTMLInputElement;
+  private headerModeRingsRadio: HTMLInputElement;
+  private headerModeZoomRadio: HTMLInputElement;
   
   /** Mode radio buttons (settings) */
   private modeOldRadio: HTMLInputElement;
@@ -179,7 +185,15 @@ export class CalendarApp {
     this.themeLightRadio = getElement<HTMLInputElement>('themeLight');
     this.themeDarkRadio = getElement<HTMLInputElement>('themeDark');
     this.languageSelect = getElement<HTMLSelectElement>('languageSelect');
-    this.modeSelector = getElement<HTMLSelectElement>('modeSelector');
+    // Try to get mode selector (may not exist if replaced with radio buttons)
+    try {
+      this.modeSelector = getElement<HTMLSelectElement>('modeSelector');
+    } catch {
+      this.modeSelector = null;
+    }
+    this.headerModeOldRadio = getElement<HTMLInputElement>('headerModeOld');
+    this.headerModeRingsRadio = getElement<HTMLInputElement>('headerModeRings');
+    this.headerModeZoomRadio = getElement<HTMLInputElement>('headerModeZoom');
     this.modeOldRadio = getElement<HTMLInputElement>('modeOld');
     this.modeRingsRadio = getElement<HTMLInputElement>('modeRings');
     this.modeZoomRadio = getElement<HTMLInputElement>('modeZoom');
@@ -216,8 +230,8 @@ export class CalendarApp {
     
     this.languageSelect.value = this.settings.locale || 'en';
     
-    // Set mode from settings or URL
-    this.currentMode = this.settings.mode || 'old';
+    // Set mode from settings or URL (default to 'zoom' instead of 'old')
+    this.currentMode = this.settings.mode || 'zoom';
     const urlMode = this.getModeFromURL();
     if (urlMode) {
       this.currentMode = urlMode;
@@ -229,6 +243,11 @@ export class CalendarApp {
     if (this.modeSelector) {
       this.modeSelector.value = this.currentMode;
     }
+    // Header radio buttons
+    this.headerModeOldRadio.checked = this.currentMode === 'old';
+    this.headerModeRingsRadio.checked = this.currentMode === 'rings';
+    this.headerModeZoomRadio.checked = this.currentMode === 'zoom';
+    // Settings radio buttons
     if (this.modeOldRadio) {
       this.modeOldRadio.checked = this.currentMode === 'old';
     }
@@ -404,10 +423,15 @@ export class CalendarApp {
     this.prevYearBtn.addEventListener('click', this.handlePrevYear);
     this.nextYearBtn.addEventListener('click', this.handleNextYear);
     
-    // Mode selector (header)
+    // Mode selector (header) - may be select or radio buttons
     if (this.modeSelector) {
       this.modeSelector.addEventListener('change', this.handleModeChange);
     }
+    
+    // Mode radio buttons (header)
+    this.headerModeOldRadio.addEventListener('change', this.handleModeChange);
+    this.headerModeRingsRadio.addEventListener('change', this.handleModeChange);
+    this.headerModeZoomRadio.addEventListener('change', this.handleModeChange);
     
     // Mode radio buttons (settings)
     if (this.modeOldRadio) {
@@ -530,18 +554,6 @@ export class CalendarApp {
     });
     
     router.register('rings', () => {
-      // Determine base path
-      let basePath = '';
-      const currentPath = window.location.pathname;
-      if (currentPath.includes('/year-shape/')) {
-        basePath = '/year-shape';
-      } else if (currentPath !== '/' && currentPath !== '/index.html' && currentPath !== '/rings.html') {
-        const pathParts = currentPath.split('/');
-        if (pathParts.length > 2) {
-          basePath = '/' + pathParts[1];
-        }
-      }
-
       // Check if we're already on rings.html
       if (window.location.pathname.includes('rings.html')) {
         // Already on rings page, just update the mode selector if it exists
@@ -550,8 +562,8 @@ export class CalendarApp {
           (modeSelector as HTMLSelectElement).value = 'rings';
         }
       } else {
-        // Navigate to rings.html
-        window.location.href = `${basePath}/rings.html`;
+        // Navigate to rings.html using shared utility
+        navigateToMode('rings');
       }
     });
     
@@ -574,11 +586,7 @@ export class CalendarApp {
    * Get mode from URL hash
    */
   private getModeFromURL = (): CalendarMode | null => {
-    const hash = window.location.hash.slice(1);
-    if (hash.startsWith('zoom')) return 'zoom';
-    if (hash.startsWith('rings')) return 'rings';
-    if (hash.startsWith('old')) return 'old';
-    return null;
+    return getModeFromHash();
   };
   
   /**
@@ -695,6 +703,11 @@ export class CalendarApp {
     if (this.modeSelector) {
       this.modeSelector.value = mode;
     }
+    // Header radio buttons
+    this.headerModeOldRadio.checked = mode === 'old';
+    this.headerModeRingsRadio.checked = mode === 'rings';
+    this.headerModeZoomRadio.checked = mode === 'zoom';
+    // Settings radio buttons
     if (this.modeOldRadio) {
       this.modeOldRadio.checked = mode === 'old';
     }
@@ -708,25 +721,12 @@ export class CalendarApp {
     // Initialize mode
     this.initializeMode();
     
-    // Update URL and navigate
-    // Determine base path based on current location
-    let basePath = '';
-    const currentPath = window.location.pathname;
-    if (currentPath.includes('/year-shape/')) {
-      basePath = '/year-shape';
-    } else if (currentPath !== '/' && currentPath !== '/index.html' && currentPath !== '/rings.html') {
-      // Extract base path from current path
-      const pathParts = currentPath.split('/');
-      if (pathParts.length > 2) {
-        basePath = '/' + pathParts[1];
-      }
-    }
-
+    // Update URL and navigate using shared utilities
     if (mode === 'zoom') {
       router.navigate(`zoom/year/${this.currentYear}`);
     } else if (mode === 'rings') {
-      // Navigate to rings.html with proper base path
-      window.location.href = `${basePath}/rings.html`;
+      // Navigate to rings.html using shared utility
+      navigateToMode('rings');
     } else {
       // Stay on index.html for old mode
       router.navigate('old');
@@ -1344,6 +1344,9 @@ export class CalendarApp {
     if (this.modeSelector) {
       this.modeSelector.removeEventListener('change', this.handleModeChange);
     }
+    this.headerModeOldRadio.removeEventListener('change', this.handleModeChange);
+    this.headerModeRingsRadio.removeEventListener('change', this.handleModeChange);
+    this.headerModeZoomRadio.removeEventListener('change', this.handleModeChange);
     if (this.modeOldRadio) {
       this.modeOldRadio.removeEventListener('change', this.handleModeChange);
     }
