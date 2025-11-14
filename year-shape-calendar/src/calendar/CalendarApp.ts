@@ -334,7 +334,7 @@ export class CalendarApp {
       
       if (sessionRestored) {
         console.log('✅ Session restored - user is logged in');
-        this.updateLoginStatus(true);
+        await this.updateLoginStatus(true);
         // Automatically fetch events if session was restored
         await this.handleRefreshEvents();
       } else {
@@ -862,7 +862,7 @@ export class CalendarApp {
       await googleCalendarService.signIn();
 
       // User info is already fetched by signIn, update UI immediately
-      this.updateLoginStatus(true);
+      await this.updateLoginStatus(true);
       this.refreshEventsBtn.disabled = false;
 
       // Auto-fetch events after sign-in
@@ -1161,13 +1161,21 @@ export class CalendarApp {
    * @param {boolean} isLoggedIn - Whether user is currently logged in
    * @returns {void}
    */
-  private updateLoginStatus = (isLoggedIn: boolean): void => {
+  private updateLoginStatus = async (isLoggedIn: boolean): Promise<void> => {
     const statusDot = this.loginStatus.querySelector('.status-dot') as HTMLElement;
     const statusText = this.loginStatus.querySelector('.status-text') as HTMLElement;
     
     if (isLoggedIn) {
-      // Get user info from Google
-      const userInfo = googleCalendarService.getUserInfo();
+      // Get user info from Google (try fetching if not available)
+      let userInfo = googleCalendarService.getUserInfo();
+      
+      // If user info is not available, try to fetch it
+      if (!userInfo || !userInfo.name) {
+        // Fetch user info asynchronously
+        await googleCalendarService.fetchUserInfo();
+        userInfo = googleCalendarService.getUserInfo();
+      }
+      
       const displayName = userInfo?.name || 'User';
       
       // Show personalized "Logged in" status, hide sign-in button
