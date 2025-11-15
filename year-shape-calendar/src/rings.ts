@@ -1,6 +1,6 @@
 /**
  * @fileoverview Rings Mode Entry Point
- * 
+ *
  * This is the entry point for the rings calendar mode.
  * It initializes the RingsMode renderer and sets up UI controls.
  */
@@ -57,11 +57,39 @@ const setupUIControls = (ringsMode: RingsMode): void => {
   const widthValue = document.getElementById('widthValue') as HTMLElement;
 
   if (widthInput && widthValue) {
+    // Update max value based on current visible rings
+    const updateMaxWidth = (): void => {
+      const maxWidth = Math.floor(ringsMode.getMaxRingWidth());
+      const currentValue = parseInt(widthInput.value);
+      widthInput.max = maxWidth.toString();
+      // Clamp current value if it exceeds new max
+      if (currentValue > maxWidth) {
+        widthInput.value = maxWidth.toString();
+        widthValue.textContent = `${maxWidth}px`;
+        ringsMode.setRingWidth(maxWidth);
+      }
+    };
+
+    // Initial max width update
+    updateMaxWidth();
+
     widthInput.addEventListener('input', (e) => {
       const value = parseInt((e.target as HTMLInputElement).value);
-      widthValue.textContent = `${value}px`;
-      ringsMode.setRingWidth(value);
+      const maxWidth = Math.floor(ringsMode.getMaxRingWidth());
+      const clampedValue = Math.min(value, maxWidth);
+      widthValue.textContent = `${clampedValue}px`;
+      ringsMode.setRingWidth(clampedValue);
+      // Update max in case visibility changed
+      updateMaxWidth();
     });
+
+    // Update max width when ring visibility changes
+    const originalInitializeLayerControls = ringsMode.initializeLayerControls.bind(ringsMode);
+    ringsMode.initializeLayerControls = () => {
+      originalInitializeLayerControls();
+      // After visibility changes, update max width
+      setTimeout(updateMaxWidth, 100);
+    };
   }
 
   // Direction toggle

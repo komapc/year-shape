@@ -135,6 +135,13 @@ export class RingsMode {
   }
 
   /**
+   * Get maximum allowed ring width
+   */
+  getMaxRingWidth(): number {
+    return this.ringSystem.getMaxRingWidth();
+  }
+
+  /**
    * Toggle rotation direction (CW/CCW)
    */
   toggleDirection(): 1 | -1 {
