@@ -9,6 +9,12 @@ import { initializeSwipeNavigation } from './utils/swipeNavigation';
 
 // Initialize app when DOM is ready
 const initApp = (): void => {
+  // Skip CalendarApp initialization on rings.html (it has its own initialization)
+  if (window.location.pathname.includes('rings.html')) {
+    console.log('Rings page detected - skipping CalendarApp initialization');
+    return;
+  }
+
   try {
     new CalendarApp();
     

@@ -22,6 +22,9 @@
   <!-- Preconnect to Google APIs -->
   <link rel="preconnect" href="https://accounts.google.com" />
   
+  <!-- Zoom Mode Styles -->
+  <link rel="stylesheet" href="/calendar/zoom-mode.css" />
+  
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Google API Client -->
@@ -129,8 +132,8 @@
               <!-- Week elements will be inserted here by JavaScript -->
             </div>
 
-            <!-- Year Navigation (Top of Circle) -->
-            <div class="absolute top-[12%] left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-auto z-20">
+            <!-- Year Navigation (Above Circle) -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-auto z-20 pb-2">
               <button 
                 id="prevYear" 
                 class="btn text-sm p-1.5 w-7 h-7 flex items-center justify-center opacity-70 hover:opacity-100"
@@ -178,47 +181,6 @@
             </div>
             
             <div class="space-y-6">
-                <!-- Calendar Mode Selector -->
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    <span class="inline-block">📅</span>
-                    Calendar Mode
-                  </label>
-                  <div class="flex gap-4">
-                    <label class="flex items-center gap-2 cursor-pointer group">
-                      <input 
-                        type="radio" 
-                        name="calendarMode" 
-                        value="old"
-                        id="modeOld" 
-                        class="w-4 h-4 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
-                        checked
-                      />
-                      <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">Classic</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer group">
-                      <input 
-                        type="radio" 
-                        name="calendarMode" 
-                        value="rings"
-                        id="modeRings" 
-                        class="w-4 h-4 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
-                      />
-                      <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">Rings</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer group">
-                      <input 
-                        type="radio" 
-                        name="calendarMode" 
-                        value="zoom"
-                        id="modeZoom" 
-                        class="w-4 h-4 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
-                      />
-                      <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors">Zoom</span>
-                    </label>
-                  </div>
-                </div>
-                
                 <!-- Moon Phase Toggle -->
                 <label class="flex items-center justify-between cursor-pointer group">
                   <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors" data-i18n-label="showMoonPhase">

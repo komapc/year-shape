@@ -10,6 +10,7 @@ import { loadSettings, updateSetting, type CalendarMode } from './utils/settings
 import { navigateToMode } from './utils/modeNavigation';
 import { initializeSwipeNavigation } from './utils/swipeNavigation';
 import { googleCalendarService } from './services/googleCalendar';
+import { resolveTheme, applyTheme, watchSystemTheme } from './utils/theme';
 
 /**
  * Initialize rings mode when DOM is ready
@@ -306,9 +307,30 @@ const setupLoginStatus = (): void => {
   initLoginStatus();
 };
 
+/**
+ * Initialize theme for rings mode
+ */
+const initTheme = (): void => {
+  const settings = loadSettings();
+  const themePreference = settings.theme || 'auto';
+  const resolvedTheme = resolveTheme(themePreference);
+  applyTheme(resolvedTheme);
+
+  // Watch for system theme changes if 'auto' is selected
+  if (themePreference === 'auto') {
+    watchSystemTheme((newSystemTheme) => {
+      applyTheme(newSystemTheme);
+    });
+  }
+};
+
 // Wait for DOM to be ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initRingsMode);
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    initRingsMode();
+  });
 } else {
+  initTheme();
   initRingsMode();
 }

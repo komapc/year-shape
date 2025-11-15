@@ -194,14 +194,48 @@ export class CalendarApp {
     this.headerModeOldRadio = getElement<HTMLInputElement>('headerModeOld');
     this.headerModeRingsRadio = getElement<HTMLInputElement>('headerModeRings');
     this.headerModeZoomRadio = getElement<HTMLInputElement>('headerModeZoom');
-    this.modeOldRadio = getElement<HTMLInputElement>('modeOld');
-    this.modeRingsRadio = getElement<HTMLInputElement>('modeRings');
-    this.modeZoomRadio = getElement<HTMLInputElement>('modeZoom');
-    this.loginStatus = getElement('loginStatus');
-    this.headerSignInBtn = getElement<HTMLButtonElement>('headerSignInBtn');
-    this.prevYearBtn = getElement<HTMLButtonElement>('prevYear');
-    this.nextYearBtn = getElement<HTMLButtonElement>('nextYear');
-    this.yearDisplay = getElement('currentYearText');
+    // These elements only exist on index.html, not rings.html - make them optional
+    try {
+      this.modeOldRadio = getElement<HTMLInputElement>('modeOld');
+    } catch {
+      this.modeOldRadio = null as any;
+    }
+    try {
+      this.modeRingsRadio = getElement<HTMLInputElement>('modeRings');
+    } catch {
+      this.modeRingsRadio = null as any;
+    }
+    try {
+      this.modeZoomRadio = getElement<HTMLInputElement>('modeZoom');
+    } catch {
+      this.modeZoomRadio = null as any;
+    }
+    // These elements might not exist on rings.html - make them optional
+    try {
+      this.loginStatus = getElement('loginStatus');
+    } catch {
+      this.loginStatus = null as any;
+    }
+    try {
+      this.headerSignInBtn = getElement<HTMLButtonElement>('headerSignInBtn');
+    } catch {
+      this.headerSignInBtn = null as any;
+    }
+    try {
+      this.prevYearBtn = getElement<HTMLButtonElement>('prevYear');
+    } catch {
+      this.prevYearBtn = null as any;
+    }
+    try {
+      this.nextYearBtn = getElement<HTMLButtonElement>('nextYear');
+    } catch {
+      this.nextYearBtn = null as any;
+    }
+    try {
+      this.yearDisplay = getElement('currentYearText');
+    } catch {
+      this.yearDisplay = null as any;
+    }
 
     // ========================================
     // 2. Load Persisted Settings and Initialize Year
