@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="description" content="YearWheel - Interactive calendar visualization that morphs between circle and square to see your year at a glance" />
   <meta name="theme-color" content="#0a0e1a" />
   
@@ -22,6 +22,9 @@
   <!-- Preconnect to Google APIs -->
   <link rel="preconnect" href="https://accounts.google.com" />
   
+  <!-- Zoom Mode Styles -->
+  <link rel="stylesheet" href="/calendar/zoom-mode.css" />
+  
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Google API Client -->
@@ -30,12 +33,46 @@
 <body>
   <div class="min-h-screen flex flex-col">
     <!-- Header -->
-    <header class="w-full max-w-7xl mx-auto px-6 py-6">
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <div class="flex items-center gap-3">
+    <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6" style="overflow-x: hidden">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
             YearWheel
           </h1>
+          <!-- Mode Selector (Radio Buttons) -->
+          <div class="flex items-center gap-3" role="radiogroup" aria-label="Select calendar mode">
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="headerMode" 
+                value="old"
+                id="headerModeOld" 
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+              />
+              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Classic</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="headerMode" 
+                value="rings"
+                id="headerModeRings" 
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+              />
+              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Rings</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="headerMode" 
+                value="zoom"
+                id="headerModeZoom" 
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                checked
+              />
+              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Zoom</span>
+            </label>
+          </div>
           <button 
             id="toggleSettings" 
             class="btn text-xs"
@@ -95,8 +132,8 @@
               <!-- Week elements will be inserted here by JavaScript -->
             </div>
 
-            <!-- Year Navigation (Top of Circle) -->
-            <div class="absolute top-[12%] left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-auto z-20">
+            <!-- Year Navigation (Above Circle) -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-auto z-20 pb-2">
               <button 
                 id="prevYear" 
                 class="btn text-sm p-1.5 w-7 h-7 flex items-center justify-center opacity-70 hover:opacity-100"
@@ -144,7 +181,6 @@
             </div>
             
             <div class="space-y-6">
-                
                 <!-- Moon Phase Toggle -->
                 <label class="flex items-center justify-between cursor-pointer group">
                   <span class="text-sm text-dark-muted group-hover:text-gray-300 transition-colors" data-i18n-label="showMoonPhase">
@@ -403,18 +439,22 @@
     </main>
 
     <!-- Footer -->
-    <footer class="w-full max-w-7xl mx-auto px-6 py-6 text-center text-sm text-dark-muted no-print">
-      <p class="mb-2">YearWheel © 2025 - Your year in a circle (or square)</p>
-      <div class="flex items-center justify-center gap-4 text-xs">
-        <a href="privacy.html" class="hover:text-primary-400 transition-colors">Privacy Policy</a>
-        <span>•</span>
-        <a href="terms.html" class="hover:text-primary-400 transition-colors">Terms of Service</a>
-        <span>•</span>
-        <a href="agreement.html" class="hover:text-primary-400 transition-colors">User Agreement</a>
-        <span>•</span>
-        <a href="https://github.com/komapc/year-shape" target="_blank" rel="noopener" class="hover:text-primary-400 transition-colors">GitHub</a>
-        <span>•</span>
-        <span id="appVersion" class="text-primary-400/60">v0.10.0</span>
+    <footer class="w-full max-w-7xl mx-auto px-6 py-4 mt-auto border-t border-dark-border no-print">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-dark-muted">
+        <div class="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
+          <span>YearWheel v0.11.0</span>
+          <span>•</span>
+          <a href="privacy.html" class="hover:text-gray-300 transition-colors">Privacy Policy</a>
+          <span>•</span>
+          <a href="terms.html" class="hover:text-gray-300 transition-colors">Terms of Service</a>
+          <span>•</span>
+          <a href="agreement.html" class="hover:text-gray-300 transition-colors">User Agreement</a>
+          <span>•</span>
+          <a href="https://github.com/komapc/year-shape" target="_blank" rel="noopener" class="hover:text-gray-300 transition-colors">GitHub</a>
+        </div>
+        <div class="text-xs">
+          © 2025 YearWheel. All rights reserved.
+        </div>
       </div>
     </footer>
   </div>
@@ -465,6 +505,24 @@
   </div>
 
   <script type="module" src="/main.ts"></script>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-7xl mx-auto px-6 py-4 mt-auto border-t border-dark-border">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-dark-muted">
+      <div class="flex items-center gap-4">
+        <span>YearWheel v0.11.0</span>
+        <span>•</span>
+        <a href="privacy.html" class="hover:text-gray-300 transition-colors">Privacy Policy</a>
+        <span>•</span>
+        <a href="terms.html" class="hover:text-gray-300 transition-colors">Terms of Service</a>
+        <span>•</span>
+        <a href="agreement.html" class="hover:text-gray-300 transition-colors">User Agreement</a>
+      </div>
+      <div class="text-xs">
+        © 2025 YearWheel. All rights reserved.
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
 

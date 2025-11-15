@@ -5,11 +5,21 @@
 import './style.css';
 import { CalendarApp } from './calendar/CalendarApp';
 import { pwaInstallManager } from './utils/pwaInstall';
+import { initializeSwipeNavigation } from './utils/swipeNavigation';
 
 // Initialize app when DOM is ready
 const initApp = (): void => {
+  // Skip CalendarApp initialization on rings.html (it has its own initialization)
+  if (window.location.pathname.includes('rings.html')) {
+    console.log('Rings page detected - skipping CalendarApp initialization');
+    return;
+  }
+
   try {
     new CalendarApp();
+    
+    // Initialize swipe navigation for mode switching
+    initializeSwipeNavigation();
     
     // Initialize PWA install manager
     console.log('PWA Install Manager initialized:', pwaInstallManager);

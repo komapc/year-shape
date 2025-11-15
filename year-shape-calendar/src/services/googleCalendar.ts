@@ -262,7 +262,7 @@ class GoogleCalendarService {
   /**
    * Fetch user info from Google
    */
-  private fetchUserInfo = async (): Promise<void> => {
+  fetchUserInfo = async (): Promise<void> => {
     try {
       const response = await gapi.client.request({
         path: 'https://www.googleapis.com/oauth2/v2/userinfo'

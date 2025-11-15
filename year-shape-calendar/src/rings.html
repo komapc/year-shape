@@ -2,8 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Multi-Ring Calendar - YearWheel</title>
+    <!-- Tailwind CSS for header styling -->
+    <link rel="stylesheet" href="/style.css" />
     <style>
       * {
         margin: 0;
@@ -13,13 +18,24 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(
+          to bottom,
+          #07101a,
+          #0b1220
+        ); /* Dark theme default */
         min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
+        margin: 0;
+        padding: 0;
         color: white;
+        overflow-x: hidden;
+        max-width: 100vw;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      /* Light theme support */
+      .light-theme body {
+        background: linear-gradient(to bottom, #e0e7ff, #ffffff);
+        color: #1f2937;
       }
 
       h1 {
@@ -43,6 +59,12 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         width: 600px;
         max-width: 90vw;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .light-theme .controls {
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       }
 
       .control-group {
@@ -104,7 +126,11 @@
         display: flex;
         gap: 20px;
         align-items: flex-start;
+        justify-content: center;
         max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 20px;
       }
 
       #canvas-container {
@@ -118,6 +144,13 @@
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         overflow: hidden;
         flex-shrink: 0;
+        box-sizing: border-box;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .light-theme #canvas-container {
+        background: rgba(255, 255, 255, 1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
       }
 
       .layer-controls {
@@ -128,6 +161,12 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         min-width: 250px;
         max-width: 300px;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .light-theme .layer-controls {
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       }
 
       .layer-controls h3 {
@@ -202,17 +241,56 @@
         height: 100%;
       }
 
+      /* Ensure sector groups have no transforms that could cause displacement */
+      .ring-sector-group {
+        transform: none !important;
+      }
+
       .ring-sector {
         stroke: rgba(255, 255, 255, 0.6);
         stroke-width: 1.5;
         cursor: pointer;
-        transition: opacity 0.2s, stroke-width 0.2s;
+        transition: opacity 0.2s ease, stroke 0.2s ease;
+        pointer-events: all;
+        /* Use vector-effect to prevent stroke from affecting layout */
+        vector-effect: non-scaling-stroke;
+        /* CRITICAL: No transforms, filters, or any effects that could cause position changes */
+        transform: none;
+        filter: none;
       }
 
+      /* Hover on sector path - precise detection using actual path shape */
       .ring-sector:hover {
-        opacity: 0.9;
+        opacity: 1;
         stroke: white;
-        stroke-width: 3;
+        /* CRITICAL: Keep stroke-width exactly the same to prevent layout shift */
+        stroke-width: 1.5;
+        /* NO filters, transforms, or effects that could cause visual displacement */
+        filter: none;
+        transform: none;
+      }
+
+      /* Also support group hover for cases where group has pointer events */
+      .ring-sector-group:hover .ring-sector {
+        opacity: 1;
+        stroke: white;
+        stroke-width: 1.5;
+        /* NO filters, transforms, or effects that could cause visual displacement */
+        filter: none;
+        transform: none;
+      }
+
+      .light-theme .ring-sector-group:hover .ring-sector,
+      .light-theme .ring-sector:hover {
+        stroke: rgba(0, 0, 0, 0.8);
+        filter: none;
+        transform: none;
+      }
+
+      /* Ensure labels stay visible on hover */
+      .ring-sector-group:hover .ring-label {
+        opacity: 1 !important;
+        fill: rgba(0, 0, 0, 0.9) !important;
       }
 
       .ring-separator {
@@ -223,31 +301,100 @@
       }
 
       .ring-label {
-        fill: rgba(0, 0, 0, 0.9);
-        font-size: 13px;
+        fill: rgba(0, 0, 0, 0.95);
+        font-size: 18px; /* Reduced 30% from 26px */
         font-weight: 700;
         pointer-events: none;
         user-select: none;
         paint-order: stroke fill;
-        stroke: rgba(255, 255, 255, 0.8);
-        stroke-width: 3px;
+        stroke: rgba(255, 255, 255, 1);
+        stroke-width: 5px; /* Increased for better contrast on white background */
         stroke-linecap: round;
         stroke-linejoin: round;
+        /* Ensure labels are always visible and on top */
+        opacity: 1 !important;
+        z-index: 10;
+        transition: fill 0.3s ease, stroke 0.3s ease;
+      }
+
+      .light-theme .ring-label {
+        fill: rgba(0, 0, 0, 0.95);
+        stroke: rgba(255, 255, 255, 1);
+        stroke-width: 5px;
       }
 
       .center-text {
         fill: rgba(0, 0, 0, 0.7);
-        font-size: 32px;
+        font-size: 45px; /* Reduced 30% from 64px */
         font-weight: 700;
         text-anchor: middle;
         dominant-baseline: middle;
         pointer-events: none;
+        transition: fill 0.3s ease;
+      }
+
+      .light-theme .center-text {
+        fill: rgba(0, 0, 0, 0.8);
+      }
+
+      /* Mobile: Double font sizes */
+      @media (max-width: 768px) {
+        .ring-label {
+          font-size: 52px;
+          stroke-width: 12px;
+        }
+
+        .center-text {
+          font-size: 128px;
+        }
       }
 
       /* Mobile optimizations */
       @media (max-width: 768px) {
+        /* Prevent horizontal scrolling */
+        html,
         body {
-          padding: 10px;
+          overflow-x: hidden;
+          max-width: 100vw;
+        }
+
+        body {
+          padding: 5px;
+        }
+
+        /* Split header into multiple lines on mobile */
+        header > div {
+          flex-direction: column;
+          align-items: flex-start !important;
+          gap: 12px !important;
+        }
+
+        header > div > div:first-child {
+          flex-wrap: wrap;
+          width: 100%;
+          gap: 8px !important;
+        }
+
+        header > div > div:last-child {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        /* Logo on first line */
+        header h1 {
+          width: 100%;
+          margin-bottom: 8px;
+        }
+
+        /* Mode selector on second line */
+        header [role="radiogroup"] {
+          width: 100%;
+          margin-bottom: 8px;
+        }
+
+        /* Settings buttons on third line */
+        header button[id^="toggle"] {
+          margin-right: 8px;
         }
 
         h1 {
@@ -288,10 +435,11 @@
         }
 
         #canvas-container {
-          width: min(90vw, 90vh);
-          height: min(90vw, 90vh);
-          max-width: 500px;
-          max-height: 500px;
+          width: min(95vw, calc(95vh - 200px));
+          height: min(95vw, calc(95vh - 200px));
+          max-width: none;
+          max-height: none;
+          min-width: 0;
         }
 
         .layer-controls {
@@ -370,69 +518,131 @@
     </style>
   </head>
   <body>
-    <h1>🎯 Multi-Ring Calendar</h1>
-    <p class="subtitle">
-      Perimeter-preserving morphing shape with 5 calendar rings + drag-and-drop
-      reordering
-    </p>
-
-    <div class="controls">
-      <div class="control-group">
-        <label>
-          Shape (Square ↔ Circle)
-          <span class="value-display" id="cornerValue">50%</span>
-        </label>
-        <input type="range" id="cornerRadius" min="0" max="100" value="50" />
-      </div>
-
-      <div class="control-group">
-        <label>
-          Ring Width
-          <span class="value-display" id="widthValue">50px</span>
-        </label>
-        <input type="range" id="ringWidth" min="30" max="80" value="50" />
-      </div>
-
-      <div class="control-group">
-        <label>Direction & Rotation</label>
-        <div style="display: flex; gap: 10px; margin-top: 8px">
-          <button
-            id="directionToggle"
-            style="
-              flex: 1;
-              padding: 8px;
-              background: rgba(255, 255, 255, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              border-radius: 6px;
-              color: white;
-              cursor: pointer;
-              font-weight: 600;
-              transition: all 0.2s;
-            "
+    <div class="min-h-screen flex flex-col w-full">
+      <!-- Header with Mode Selector - matches index.html -->
+      <header
+        class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6"
+        style="
+          overflow-x: hidden;
+          position: relative;
+          z-index: 1000;
+          background: transparent;
+        "
+      >
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4"
+      >
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto"
+        >
+          <h1
+            class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent"
           >
-            ↻ CW
+            YearWheel
+          </h1>
+          <!-- Mode Selector (Radio Buttons) -->
+          <div
+            class="flex items-center gap-3"
+            role="radiogroup"
+            aria-label="Select calendar mode"
+          >
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input
+                type="radio"
+                name="headerMode"
+                value="old"
+                id="headerModeOld"
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+              />
+              <span
+                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                >Classic</span
+              >
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input
+                type="radio"
+                name="headerMode"
+                value="rings"
+                id="headerModeRings"
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                checked
+              />
+              <span
+                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                >Rings</span
+              >
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input
+                type="radio"
+                name="headerMode"
+                value="zoom"
+                id="headerModeZoom"
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+              />
+              <span
+                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                >Zoom</span
+              >
+            </label>
+          </div>
+          <button
+            id="toggleSettingsRings"
+            class="btn text-xs"
+            aria-label="Toggle settings panel"
+            title="Settings & Controls"
+          >
+            ⚙️
           </button>
           <button
-            id="rotateYear"
-            style="
-              flex: 1;
-              padding: 8px;
-              background: rgba(255, 255, 255, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              border-radius: 6px;
-              color: white;
-              cursor: pointer;
-              font-weight: 600;
-              transition: all 0.2s;
-            "
+            id="toggleAboutRings"
+            class="btn text-xs"
+            aria-label="Toggle about panel"
+            title="About"
           >
-            🔄 Rotate 90°
+            ℹ️
+          </button>
+        </div>
+
+        <!-- Login Status / Sign In Button -->
+        <div id="headerAuthRings" class="flex items-center gap-2">
+          <!-- Logged In Status (shown when authenticated) -->
+          <div
+            id="loginStatusRings"
+            class="flex items-center gap-2 glass px-3 py-1.5 rounded-lg border border-dark-border text-sm hidden"
+          >
+            <span class="status-dot w-2 h-2 rounded-full bg-green-500"></span>
+            <span class="status-text">Logged in</span>
+          </div>
+
+          <!-- Sign In Button (shown when NOT authenticated) -->
+          <button
+            id="headerSignInBtnRings"
+            class="btn primary flex items-center gap-2 text-sm hidden"
+            aria-label="Sign in with Google Calendar"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
+            </svg>
+            <span>Sign in with Google</span>
           </button>
         </div>
       </div>
-    </div>
+      </header>
 
-    <div class="main-content">
+      <div class="main-content flex-1">
       <div id="canvas-container">
         <svg id="calendar-svg" viewBox="0 0 700 700">
           <defs>
@@ -559,9 +769,114 @@
           </text>
         </svg>
       </div>
+    </div>
 
-      <div class="layer-controls">
-        <h3>📚 Layer Controls</h3>
+    <!-- Controls at bottom -->
+    <div class="controls" style="margin-top: 20px; margin-bottom: 0">
+      <div class="control-group">
+        <label>
+          Shape (Square ↔ Circle)
+          <span class="value-display" id="cornerValue">50%</span>
+        </label>
+        <input type="range" id="cornerRadius" min="0" max="100" value="50" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          Ring Width
+          <span class="value-display" id="widthValue">50px</span>
+        </label>
+        <input type="range" id="ringWidth" min="30" max="80" value="50" />
+      </div>
+
+      <div class="control-group">
+        <label>Direction & Rotation</label>
+        <div style="display: flex; gap: 10px; margin-top: 8px">
+          <button
+            id="directionToggle"
+            style="
+              flex: 1;
+              padding: 8px;
+              background: rgba(255, 255, 255, 0.2);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              border-radius: 6px;
+              color: white;
+              cursor: pointer;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+          >
+            ↻ CW
+          </button>
+          <button
+            id="rotateYear"
+            style="
+              flex: 1;
+              padding: 8px;
+              background: rgba(255, 255, 255, 0.2);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              border-radius: 6px;
+              color: white;
+              cursor: pointer;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+          >
+            🔄 Rotate 90°
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OLD INLINE SCRIPT - MOVED TO TypeScript MODULES
+    All JavaScript has been extracted to:
+    - src/calendar/rings/constants.ts (constants)
+    - src/calendar/rings/Ring.ts (base class)
+    - src/calendar/rings/ringImplementations.ts (ring implementations)
+    - src/calendar/rings/RingSystem.ts (ring system manager)
+    - src/calendar/RingsMode.ts (main mode class)
+    - src/rings.ts (entry point)
+    -->
+    <!-- Script block removed - all code moved to TypeScript modules -->
+    <!-- All JavaScript code has been moved to TypeScript modules (src/rings.ts and related files) -->
+
+    <!-- Use TypeScript module for rings mode -->
+    <script type="module" src="/rings.ts"></script>
+
+    <!-- Layer Controls at bottom (hideable) -->
+    <div
+      class="layer-controls"
+      id="layerControls"
+      style="margin-top: 20px; margin-bottom: 20px; position: relative; z-index: 10"
+    >
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        "
+      >
+        <h3 style="margin: 0">📚 Layer Controls</h3>
+        <button
+          id="toggleLayerControls"
+          style="
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+          "
+          title="Toggle Layer Controls"
+        >
+          <span id="layerControlsToggleText">▶ Show</span>
+        </button>
+      </div>
+      <div id="layerControlsContent" style="display: none">
         <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px">
           Drag to reorder • Click checkbox to show/hide
         </p>
@@ -569,1198 +884,52 @@
           <!-- Populated by JavaScript -->
         </ul>
       </div>
+      </div>
+
+      <!-- Footer -->
+      <footer
+        class="w-full max-w-7xl mx-auto px-6 py-4 mt-auto border-t border-dark-border"
+        style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: auto"
+      >
+      <div
+        class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm"
+        style="color: rgba(255, 255, 255, 0.7)"
+      >
+        <div
+          class="flex items-center gap-4 flex-wrap justify-center sm:justify-start"
+        >
+          <span>YearWheel v0.11.0</span>
+          <span>•</span>
+          <a
+            href="privacy.html"
+            style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
+            onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
+            onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
+            >Privacy Policy</a
+          >
+          <span>•</span>
+          <a
+            href="terms.html"
+            style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
+            onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
+            onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
+            >Terms of Service</a
+          >
+          <span>•</span>
+          <a
+            href="agreement.html"
+            style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
+            onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
+            onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
+            >User Agreement</a
+          >
+        </div>
+        <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.6)">
+          © 2025 YearWheel. All rights reserved.
+        </div>
+      </div>
+      </footer>
     </div>
-
-    <script>
-      // ============================================
-      // CONSTANTS
-      // ============================================
-
-      const CALENDAR_CONSTANTS = {
-        DAYS_IN_YEAR: 365,
-        BASE_OFFSET: -Math.PI / 2, // Start at top (12 o'clock, Jan 1)
-        FULL_CIRCLE: Math.PI * 2,
-        PERIMETER_TOLERANCE: 0.1,
-        MAX_PERIMETER_ITERATIONS: 50,
-        MIN_RADIUS: 10,
-        MAX_RADIUS: 500,
-      };
-
-      /**
-       * Meteorological season dates (3 months each)
-       * Each season covers exactly 3 months for clean alignment:
-       * - Winter: Dec, Jan, Feb (centered on top)
-       * - Spring: Mar, Apr, May (centered on right)
-       * - Summer: Jun, Jul, Aug (centered on bottom)
-       * - Autumn: Sep, Oct, Nov (centered on left)
-       *
-       * Day numbers are 0-indexed from Jan 1.
-       */
-      const SEASON_DATES = {
-        WINTER_START: 334, // Dec 1 (day 334)
-        SPRING_START: 59, // Mar 1 (day 59)
-        SUMMER_START: 151, // Jun 1 (day 151)
-        AUTUMN_START: 243, // Sep 1 (day 243)
-        WINTER_END: 59, // Mar 1 (next year)
-      };
-
-      const SVG_CONFIG = {
-        PATH_SEGMENTS: 360,
-        LABEL_FONT_SIZE: 13,
-        CENTER_TEXT_SIZE: 32,
-        SEPARATOR_STROKE_WIDTH: 3,
-        SECTOR_STROKE_WIDTH: 1.5,
-      };
-
-      // ============================================
-      // ABSTRACT BASE CLASS
-      // ============================================
-
-      class Ring {
-        constructor(name, gradientId) {
-          this.name = name;
-          this.gradientId = gradientId;
-          this.innerRadius = 0;
-          this.outerRadius = 0;
-          this.cornerRadius = 0;
-          this.centerX = 0;
-          this.centerY = 0;
-          this.svgGroup = null;
-        }
-
-        // Abstract methods (to be implemented by subclasses)
-        get sectorCount() {
-          throw new Error("Must implement sectorCount getter");
-        }
-
-        getSectorLabel(index) {
-          throw new Error("Must implement getSectorLabel");
-        }
-
-        getSectorColor(index) {
-          return `url(#${this.gradientId})`;
-        }
-
-        // Concrete methods (shared implementation)
-
-        render(container) {
-          // Create SVG group for this ring
-          this.svgGroup = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "g"
-          );
-          this.svgGroup.setAttribute("class", `ring ring-${this.name}`);
-          container.appendChild(this.svgGroup);
-        }
-
-        layout(
-          centerX,
-          centerY,
-          innerRadius,
-          outerRadius,
-          cornerRadius,
-          direction = 1,
-          rotationOffset = 0
-        ) {
-          this.centerX = centerX;
-          this.centerY = centerY;
-          this.innerRadius = innerRadius;
-          this.outerRadius = outerRadius;
-          this.cornerRadius = cornerRadius;
-          this.direction = direction; // Store for label drawing
-
-          // Clear previous content
-          this.svgGroup.innerHTML = "";
-
-          // Draw all sectors
-          const anglePerSector =
-            CALENDAR_CONSTANTS.FULL_CIRCLE / this.sectorCount;
-          // Offset so first sector is centered at top (12 o'clock)
-          const baseOffset =
-            CALENDAR_CONSTANTS.BASE_OFFSET - anglePerSector / 2;
-          const rotationRad = (rotationOffset * Math.PI) / 180;
-          const startOffset = baseOffset + rotationRad;
-
-          for (let i = 0; i < this.sectorCount; i++) {
-            const startAngle = startOffset + i * anglePerSector;
-            const endAngle = startAngle + anglePerSector;
-
-            // For CCW, mirror angles around vertical axis: θ → π - θ
-            // IMPORTANT: Must swap start and end to maintain correct arc direction
-            const mirroredStart =
-              this.direction === -1 ? Math.PI - endAngle : startAngle;
-            const mirroredEnd =
-              this.direction === -1 ? Math.PI - startAngle : endAngle;
-
-            this.drawSector(i, mirroredStart, mirroredEnd);
-          }
-
-          // Draw separator line (outer edge of ring)
-          this.drawSeparator();
-        }
-
-        drawSector(index, startAngle, endAngle) {
-          const path = this.createSectorPath(startAngle, endAngle);
-          const pathElement = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "path"
-          );
-          pathElement.setAttribute("d", path);
-          pathElement.setAttribute("fill", this.getSectorColor(index));
-          pathElement.setAttribute("class", "ring-sector");
-          pathElement.setAttribute("data-sector", index);
-
-          // Add click handler
-          pathElement.addEventListener("click", () => {
-            console.log(
-              `${this.name} - Sector ${index}: ${this.getSectorLabel(index)}`
-            );
-            alert(`${this.name}\nSector: ${this.getSectorLabel(index)}`);
-          });
-
-          this.svgGroup.appendChild(pathElement);
-
-          // Draw label
-          this.drawLabel(index, (startAngle + endAngle) / 2);
-        }
-
-        createSectorPath(startAngle, endAngle) {
-          // Create path for a sector (wedge) with rounded corners
-          const outerStart = this.getPointOnShape(startAngle, this.outerRadius);
-          const outerEnd = this.getPointOnShape(endAngle, this.outerRadius);
-          const innerStart = this.getPointOnShape(startAngle, this.innerRadius);
-          const innerEnd = this.getPointOnShape(endAngle, this.innerRadius);
-
-          // Build SVG path
-          const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
-
-          return `
-          M ${outerStart.x} ${outerStart.y}
-          A ${this.outerRadius} ${this.outerRadius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}
-          L ${innerEnd.x} ${innerEnd.y}
-          A ${this.innerRadius} ${this.innerRadius} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y}
-          Z
-        `.trim();
-        }
-
-        getPointOnShape(angle, radius) {
-          // Calculate point on shape (interpolated between circle and square)
-          const t = this.cornerRadius;
-
-          // Pure circle coordinates
-          const circleX = this.centerX + radius * Math.cos(angle);
-          const circleY = this.centerY + radius * Math.sin(angle);
-
-          // Pure square coordinates (inscribed in circle)
-          const absAngle = Math.abs(angle % (Math.PI * 2));
-          const normalizedAngle = angle % (Math.PI * 2);
-
-          // Determine which side of the square we're on
-          let squareX, squareY;
-          const tan = Math.tan(normalizedAngle);
-          const squareRadius = radius / Math.sqrt(2); // Half diagonal
-
-          if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-            // Closer to left or right side
-            squareX = this.centerX + Math.sign(Math.cos(angle)) * squareRadius;
-            squareY =
-              this.centerY + Math.sign(Math.cos(angle)) * squareRadius * tan;
-          } else {
-            // Closer to top or bottom side
-            squareX =
-              this.centerX + (Math.sign(Math.sin(angle)) * squareRadius) / tan;
-            squareY = this.centerY + Math.sign(Math.sin(angle)) * squareRadius;
-          }
-
-          // Linear interpolation between circle and square
-          const x = circleX * t + squareX * (1 - t);
-          const y = circleY * t + squareY * (1 - t);
-
-          return { x, y };
-        }
-
-        drawLabel(index, angle) {
-          const label = this.getSectorLabel(index);
-          if (!label) return;
-
-          const midRadius = (this.innerRadius + this.outerRadius) / 2;
-          const point = this.getPointOnShape(angle, midRadius);
-
-          const text = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "text"
-          );
-          text.setAttribute("x", point.x);
-          text.setAttribute("y", point.y);
-          text.setAttribute("class", "ring-label");
-          text.setAttribute("text-anchor", "middle");
-          text.setAttribute("dominant-baseline", "middle");
-
-          // Angle is already in the correct coordinate system (mirrored if CCW)
-          // No need to mirror again - that would be double-mirroring!
-
-          // Rotate text to follow curve - always keep readable
-          // Normalize angle to 0-360 range
-          let normalizedAngle = ((angle * 180) / Math.PI) % 360;
-          if (normalizedAngle < 0) normalizedAngle += 360;
-
-          // Base rotation perpendicular to radius
-          let rotation = normalizedAngle + 90;
-
-          // Flip text if it would be upside down (reading from outside)
-          if (rotation > 90 && rotation < 270) {
-            rotation += 180;
-          }
-
-          text.setAttribute(
-            "transform",
-            `rotate(${rotation}, ${point.x}, ${point.y})`
-          );
-          text.textContent = label;
-
-          this.svgGroup.appendChild(text);
-        }
-
-        drawSeparator() {
-          // Draw a circular/square line at the outer edge
-          const path = this.createShapePath(this.outerRadius);
-          const pathElement = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "path"
-          );
-          pathElement.setAttribute("d", path);
-          pathElement.setAttribute("class", "ring-separator");
-          this.svgGroup.appendChild(pathElement);
-        }
-
-        createShapePath(radius) {
-          const points = [];
-          const segments = SVG_CONFIG.PATH_SEGMENTS;
-
-          for (let i = 0; i <= segments; i++) {
-            const angle =
-              (i / segments) * CALENDAR_CONSTANTS.FULL_CIRCLE +
-              CALENDAR_CONSTANTS.BASE_OFFSET;
-            const point = this.getPointOnShape(angle, radius);
-            points.push(point);
-          }
-
-          let path = `M ${points[0].x} ${points[0].y}`;
-          for (let i = 1; i < points.length; i++) {
-            path += ` L ${points[i].x} ${points[i].y}`;
-          }
-          path += " Z";
-
-          return path;
-        }
-
-        // Calculate actual perimeter of the shape
-        calculatePerimeter(radius) {
-          const segments = SVG_CONFIG.PATH_SEGMENTS;
-          let perimeter = 0;
-          let prevPoint = null;
-
-          for (let i = 0; i <= segments; i++) {
-            const angle = (i / segments) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-            const point = this.getPointOnShape(angle, radius);
-
-            if (prevPoint) {
-              const dx = point.x - prevPoint.x;
-              const dy = point.y - prevPoint.y;
-              perimeter += Math.sqrt(dx * dx + dy * dy);
-            }
-
-            prevPoint = point;
-          }
-
-          return perimeter;
-        }
-
-        // Calculate radius needed to maintain target perimeter
-        static calculatePerimeterConstantRadius(
-          cornerRadius,
-          targetPerimeter,
-          centerX,
-          centerY
-        ) {
-          // Use binary search to find the radius that gives us the target perimeter
-          let minRadius = CALENDAR_CONSTANTS.MIN_RADIUS;
-          let maxRadius = CALENDAR_CONSTANTS.MAX_RADIUS;
-          const tolerance = CALENDAR_CONSTANTS.PERIMETER_TOLERANCE;
-
-          // Create a temporary ring for calculation
-          const tempRing = new Ring("temp", "");
-          tempRing.centerX = centerX;
-          tempRing.centerY = centerY;
-          tempRing.cornerRadius = cornerRadius;
-          tempRing.innerRadius = 0;
-
-          for (
-            let i = 0;
-            i < CALENDAR_CONSTANTS.MAX_PERIMETER_ITERATIONS;
-            i++
-          ) {
-            const testRadius = (minRadius + maxRadius) / 2;
-            tempRing.outerRadius = testRadius;
-            const perimeter = tempRing.calculatePerimeter(testRadius);
-
-            if (Math.abs(perimeter - targetPerimeter) < tolerance) {
-              return testRadius;
-            }
-
-            if (perimeter < targetPerimeter) {
-              minRadius = testRadius;
-            } else {
-              maxRadius = testRadius;
-            }
-          }
-
-          return (minRadius + maxRadius) / 2;
-        }
-      }
-
-      // ============================================
-      // CONCRETE RING IMPLEMENTATIONS
-      // ============================================
-
-      class SeasonsRing extends Ring {
-        constructor() {
-          super("seasons", "gradient-seasons");
-          // Meteorological seasons: 3 months each, positioned clearly
-          // Winter on top, Spring on right, Summer on bottom, Autumn on left
-          this.seasons = [
-            {
-              name: "Winter",
-              startDay: SEASON_DATES.WINTER_START, // Dec 1 (day 334)
-              endDay: CALENDAR_CONSTANTS.DAYS_IN_YEAR + SEASON_DATES.WINTER_END, // wraps to Mar 1
-            },
-            {
-              name: "Spring",
-              startDay: SEASON_DATES.SPRING_START, // Mar 1 (day 59)
-              endDay: SEASON_DATES.SUMMER_START, // Jun 1 (day 151)
-            },
-            {
-              name: "Summer",
-              startDay: SEASON_DATES.SUMMER_START, // Jun 1 (day 151)
-              endDay: SEASON_DATES.AUTUMN_START, // Sep 1 (day 243)
-            },
-            {
-              name: "Autumn",
-              startDay: SEASON_DATES.AUTUMN_START, // Sep 1 (day 243)
-              endDay: SEASON_DATES.WINTER_START, // Dec 1 (day 334)
-            },
-          ];
-        }
-
-        get sectorCount() {
-          return this.seasons.length;
-        }
-
-        getSectorLabel(index) {
-          return this.seasons[index].name;
-        }
-
-        // Override layout to use actual day-based positioning for seasons
-        layout(
-          centerX,
-          centerY,
-          innerRadius,
-          outerRadius,
-          cornerRadius,
-          direction = 1,
-          rotationOffset = 0
-        ) {
-          this.centerX = centerX;
-          this.centerY = centerY;
-          this.innerRadius = innerRadius;
-          this.outerRadius = outerRadius;
-          this.cornerRadius = cornerRadius;
-          this.direction = direction;
-
-          // Clear previous content
-          this.svgGroup.innerHTML = "";
-
-          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
-          const rotationRad = (rotationOffset * Math.PI) / 180;
-          const angleOffset = baseOffset + rotationRad;
-
-          for (let i = 0; i < this.seasons.length; i++) {
-            const season = this.seasons[i];
-            let startDay = season.startDay;
-            let endDay = season.endDay;
-
-            // Handle winter wrap-around (crosses year boundary)
-            if (startDay > endDay && i === 0) {
-              // Winter: Split into two segments
-              // Segment 1: Dec 21 (354) - Dec 31 (365)
-              const seg1Start = (startDay / daysInYear) * Math.PI * 2;
-              const seg1End = (daysInYear / daysInYear) * Math.PI * 2;
-
-              const startAngle1 = angleOffset + seg1Start;
-              const endAngle1 = angleOffset + seg1End;
-
-              const mirroredStart1 =
-                this.direction === -1 ? Math.PI - endAngle1 : startAngle1;
-              const mirroredEnd1 =
-                this.direction === -1 ? Math.PI - startAngle1 : endAngle1;
-
-              this.drawSector(i, mirroredStart1, mirroredEnd1);
-
-              // Segment 2: Jan 1 (0) - Mar 20 (78)
-              const seg2Start = 0;
-              const seg2End =
-                ((endDay - daysInYear) / daysInYear) * Math.PI * 2;
-
-              const startAngle2 = angleOffset + seg2Start;
-              const endAngle2 = angleOffset + seg2End;
-
-              const mirroredStart2 =
-                this.direction === -1 ? Math.PI - endAngle2 : startAngle2;
-              const mirroredEnd2 =
-                this.direction === -1 ? Math.PI - startAngle2 : endAngle2;
-
-              this.drawSector(i, mirroredStart2, mirroredEnd2);
-            } else {
-              // Regular season (doesn't wrap)
-              const progress = (startDay / daysInYear) * Math.PI * 2;
-              const endProgress = (endDay / daysInYear) * Math.PI * 2;
-
-              const startAngle = angleOffset + progress;
-              const endAngle = angleOffset + endProgress;
-
-              const mirroredStart =
-                this.direction === -1 ? Math.PI - endAngle : startAngle;
-              const mirroredEnd =
-                this.direction === -1 ? Math.PI - startAngle : endAngle;
-
-              this.drawSector(i, mirroredStart, mirroredEnd);
-            }
-          }
-
-          // Draw separator line
-          this.drawSeparator();
-        }
-      }
-
-      class MonthsRing extends Ring {
-        constructor() {
-          super("months", "gradient-months");
-          // Gregorian months with actual day counts for 2025 (non-leap year)
-          this.gregorianMonths = [
-            { name: "Jan", startDay: 0, endDay: 31 }, // 31 days
-            { name: "Feb", startDay: 31, endDay: 59 }, // 28 days (2025 is not a leap year)
-            { name: "Mar", startDay: 59, endDay: 90 }, // 31 days
-            { name: "Apr", startDay: 90, endDay: 120 }, // 30 days
-            { name: "May", startDay: 120, endDay: 151 }, // 31 days
-            { name: "Jun", startDay: 151, endDay: 181 }, // 30 days
-            { name: "Jul", startDay: 181, endDay: 212 }, // 31 days
-            { name: "Aug", startDay: 212, endDay: 243 }, // 31 days
-            { name: "Sep", startDay: 243, endDay: 273 }, // 30 days
-            { name: "Oct", startDay: 273, endDay: 304 }, // 31 days
-            { name: "Nov", startDay: 304, endDay: 334 }, // 30 days
-            { name: "Dec", startDay: 334, endDay: 365 }, // 31 days
-          ];
-        }
-
-        get sectorCount() {
-          return this.gregorianMonths.length;
-        }
-
-        getSectorLabel(index) {
-          return this.gregorianMonths[index].name;
-        }
-
-        // Override layout to use actual day-based positioning
-        layout(
-          centerX,
-          centerY,
-          innerRadius,
-          outerRadius,
-          cornerRadius,
-          direction = 1,
-          rotationOffset = 0
-        ) {
-          this.centerX = centerX;
-          this.centerY = centerY;
-          this.innerRadius = innerRadius;
-          this.outerRadius = outerRadius;
-          this.cornerRadius = cornerRadius;
-          this.direction = direction; // Store for label drawing
-
-          // Clear previous content
-          this.svgGroup.innerHTML = "";
-
-          // Draw sectors based on actual days in year
-          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-          // Start at top (12 o'clock) - Jan 1 at the top
-          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
-          const rotationRad = (rotationOffset * Math.PI) / 180;
-          const angleOffset = baseOffset + rotationRad;
-
-          for (let i = 0; i < this.gregorianMonths.length; i++) {
-            const month = this.gregorianMonths[i];
-            const progress =
-              (month.startDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-            const endProgress =
-              (month.endDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-
-            const startAngle = angleOffset + progress;
-            const endAngle = angleOffset + endProgress;
-
-            // For CCW, mirror angles around vertical axis: θ → π - θ
-            // IMPORTANT: Must swap start and end to maintain correct arc direction
-            const mirroredStart =
-              this.direction === -1 ? Math.PI - endAngle : startAngle;
-            const mirroredEnd =
-              this.direction === -1 ? Math.PI - startAngle : endAngle;
-
-            this.drawSector(i, mirroredStart, mirroredEnd);
-          }
-
-          // Draw separator line
-          this.drawSeparator();
-        }
-      }
-
-      class HebrewMonthsRing extends Ring {
-        constructor() {
-          super("hebrew", "gradient-hebrew");
-          // Hebrew months that occur during Gregorian year 2025
-          // Calculated using actual Hebrew calendar dates
-          this.hebrewMonths = [
-            { name: "Tevet", startDay: 0, endDay: 29 }, // Jan 1 - Jan 29 (5785)
-            { name: "Shevat", startDay: 29, endDay: 58 }, // Jan 30 - Feb 27 (5785)
-            { name: "Adar", startDay: 58, endDay: 88 }, // Feb 28 - Mar 29 (5785)
-            { name: "Nisan", startDay: 88, endDay: 117 }, // Mar 30 - Apr 27 (5785)
-            { name: "Iyar", startDay: 117, endDay: 147 }, // Apr 28 - May 27 (5785)
-            { name: "Sivan", startDay: 147, endDay: 176 }, // May 28 - Jun 25 (5785)
-            { name: "Tammuz", startDay: 176, endDay: 206 }, // Jun 26 - Jul 25 (5785)
-            { name: "Av", startDay: 206, endDay: 235 }, // Jul 26 - Aug 23 (5785)
-            { name: "Elul", startDay: 235, endDay: 265 }, // Aug 24 - Sep 22 (5785)
-            { name: "Tishrei", startDay: 265, endDay: 295 }, // Sep 23 - Oct 22 (5786)
-            { name: "Cheshvan", startDay: 295, endDay: 324 }, // Oct 23 - Nov 20 (5786)
-            { name: "Kislev", startDay: 324, endDay: 354 }, // Nov 21 - Dec 20 (5786)
-            { name: "Tevet", startDay: 354, endDay: 365 }, // Dec 21 - Dec 31 (5786)
-          ];
-        }
-
-        get sectorCount() {
-          return this.hebrewMonths.length;
-        }
-
-        getSectorLabel(index) {
-          return this.hebrewMonths[index].name;
-        }
-
-        // Override layout to use actual day-based positioning
-        layout(
-          centerX,
-          centerY,
-          innerRadius,
-          outerRadius,
-          cornerRadius,
-          direction = 1,
-          rotationOffset = 0
-        ) {
-          this.centerX = centerX;
-          this.centerY = centerY;
-          this.innerRadius = innerRadius;
-          this.outerRadius = outerRadius;
-          this.cornerRadius = cornerRadius;
-          this.direction = direction; // Store for label drawing
-
-          // Clear previous content
-          this.svgGroup.innerHTML = "";
-
-          // Draw sectors based on actual days in year
-          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-          // Start at top (12 o'clock) - Jan 1 at the top
-          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
-          const rotationRad = (rotationOffset * Math.PI) / 180;
-          const angleOffset = baseOffset + rotationRad;
-
-          for (let i = 0; i < this.hebrewMonths.length; i++) {
-            const month = this.hebrewMonths[i];
-            const progress =
-              (month.startDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-            const endProgress =
-              (month.endDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-
-            const startAngle = angleOffset + progress;
-            const endAngle = angleOffset + endProgress;
-
-            // For CCW, mirror angles around vertical axis: θ → π - θ
-            // IMPORTANT: Must swap start and end to maintain correct arc direction
-            const mirroredStart =
-              this.direction === -1 ? Math.PI - endAngle : startAngle;
-            const mirroredEnd =
-              this.direction === -1 ? Math.PI - startAngle : endAngle;
-
-            this.drawSector(i, mirroredStart, mirroredEnd);
-          }
-
-          // Draw separator line
-          this.drawSeparator();
-        }
-      }
-
-      class WeeksRing extends Ring {
-        constructor() {
-          super("weeks", "gradient-weeks");
-        }
-
-        get sectorCount() {
-          return 52;
-        }
-
-        getSectorLabel(index) {
-          // Only label every 4th week to avoid clutter
-          return (index + 1) % 4 === 0 ? `W${index + 1}` : "";
-        }
-      }
-
-      class HolidaysRing extends Ring {
-        constructor() {
-          super("holidays", "gradient-holidays");
-          // Major holidays for 2025 (Hebrew, Christian, European)
-          this.holidays = [
-            { name: "🎆 New Year", day: 0 }, // Jan 1
-            { name: "🕯️ Tu BiShvat", day: 43 }, // Feb 13
-            { name: "💝 Valentine", day: 44 }, // Feb 14
-            { name: "🎭 Purim", day: 73 }, // Mar 14
-            { name: "✝️ Palm Sun", day: 103 }, // Apr 13
-            { name: "🍷 Passover", day: 111 }, // Apr 22
-            { name: "✝️ Easter", day: 109 }, // Apr 20
-            { name: "🕊️ Yom HaShoah", day: 122 }, // May 2
-            { name: "🇮🇱 Yom HaAtzmaut", day: 129 }, // May 9
-            { name: "👨 Father Day", day: 165 }, // Jun 15
-            { name: "🇺🇸 July 4th", day: 184 }, // Jul 4
-            { name: "🕊️ Tisha B'Av", day: 216 }, // Aug 5
-            { name: "🍎 Rosh Hashanah", day: 266 }, // Sep 23-24
-            { name: "☪️ Yom Kippur", day: 275 }, // Oct 2
-            { name: "🕋 Sukkot", day: 280 }, // Oct 7
-            { name: "🎃 Halloween", day: 303 }, // Oct 31
-            { name: "🦃 Thanksgiving", day: 330 }, // Nov 27
-            { name: "🕎 Hanukkah", day: 338 }, // Dec 5
-            { name: "🎄 Christmas", day: 358 }, // Dec 25
-            { name: "🎊 New Year Eve", day: 364 }, // Dec 31
-          ];
-        }
-
-        get sectorCount() {
-          return this.holidays.length;
-        }
-
-        getSectorLabel(index) {
-          return this.holidays[index].name;
-        }
-
-        // Override layout - draw holiday markers at specific days
-        layout(
-          centerX,
-          centerY,
-          innerRadius,
-          outerRadius,
-          cornerRadius,
-          direction = 1,
-          rotationOffset = 0
-        ) {
-          this.centerX = centerX;
-          this.centerY = centerY;
-          this.innerRadius = innerRadius;
-          this.outerRadius = outerRadius;
-          this.cornerRadius = cornerRadius;
-          this.direction = direction; // Store for label drawing
-
-          // Clear previous content
-          this.svgGroup.innerHTML = "";
-
-          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
-          const rotationRad = (rotationOffset * Math.PI) / 180;
-          const angleOffset = baseOffset + rotationRad;
-
-          // Draw holiday markers (small sectors, ±1 day)
-          for (let i = 0; i < this.holidays.length; i++) {
-            const holiday = this.holidays[i];
-            const dayProgress =
-              (holiday.day / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-            const dayAngle = angleOffset + dayProgress;
-
-            // Make a small sector (±2 days width for visibility)
-            const sectorWidth =
-              (3 / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-            const startAngle = dayAngle - sectorWidth / 2;
-            const endAngle = dayAngle + sectorWidth / 2;
-
-            // For CCW, mirror angles around vertical axis: θ → π - θ
-            // IMPORTANT: Must swap start and end to maintain correct arc direction
-            const mirroredStart =
-              this.direction === -1 ? Math.PI - endAngle : startAngle;
-            const mirroredEnd =
-              this.direction === -1 ? Math.PI - startAngle : endAngle;
-
-            this.drawSector(i, mirroredStart, mirroredEnd);
-          }
-
-          // Draw separator line
-          this.drawSeparator();
-        }
-      }
-
-      // ============================================
-      // RING SYSTEM MANAGER
-      // ============================================
-
-      class RingSystem {
-        constructor(svgContainer, centerX, centerY) {
-          this.svgContainer = svgContainer;
-          this.centerX = centerX;
-          this.centerY = centerY;
-          this.rings = [];
-          this.ringVisibility = {}; // Track visibility per ring
-          this.baseRadius = 250; // Will be adjusted for perimeter preservation
-          this.ringWidth = 50; // Increased from 40 for better spacing
-          this.ringGap = 5; // Gap between rings
-          this.cornerRadius = 0.5;
-          this.targetPerimeter = null;
-          this.direction = 1; // 1 = CW (clockwise), -1 = CCW (counter-clockwise)
-          this.rotationOffset = 0; // Rotation offset in degrees (0, 90, 180, 270)
-        }
-
-        addRing(ring, visible = true) {
-          ring.render(this.svgContainer);
-          this.rings.push(ring);
-          this.ringVisibility[ring.name] = visible; // Visible by default unless specified
-        }
-
-        setRingVisibility(ringName, visible) {
-          this.ringVisibility[ringName] = visible;
-          const ring = this.rings.find((r) => r.name === ringName);
-          if (ring) {
-            ring.svgGroup.style.display = visible ? "block" : "none";
-          }
-          this.layout();
-          this.saveSettings();
-        }
-
-        reorderRings(newOrder) {
-          // newOrder is array of ring names from outermost to innermost
-          const reorderedRings = [];
-          for (const name of newOrder) {
-            const ring = this.rings.find((r) => r.name === name);
-            if (ring) {
-              reorderedRings.push(ring);
-            }
-          }
-          this.rings = reorderedRings;
-          this.layout();
-          this.saveSettings();
-        }
-
-        layout() {
-          // Calculate base radius to maintain constant perimeter
-          if (this.targetPerimeter === null) {
-            // First layout - establish target perimeter at cornerRadius = 1 (circle)
-            const tempRing = new Ring("temp", "");
-            tempRing.centerX = this.centerX;
-            tempRing.centerY = this.centerY;
-            tempRing.cornerRadius = 1;
-            tempRing.outerRadius = this.baseRadius;
-            this.targetPerimeter = tempRing.calculatePerimeter(this.baseRadius);
-          }
-
-          // Calculate adjusted radius for current corner radius
-          const adjustedRadius = Ring.calculatePerimeterConstantRadius(
-            this.cornerRadius,
-            this.targetPerimeter,
-            this.centerX,
-            this.centerY
-          );
-
-          // Layout each ring from outermost to innermost (only visible rings)
-          let currentOuterRadius = adjustedRadius;
-
-          for (let i = 0; i < this.rings.length; i++) {
-            const ring = this.rings[i];
-
-            if (!this.ringVisibility[ring.name]) {
-              continue; // Skip hidden rings
-            }
-
-            const innerRadius = currentOuterRadius - this.ringWidth;
-
-            ring.layout(
-              this.centerX,
-              this.centerY,
-              innerRadius,
-              currentOuterRadius,
-              this.cornerRadius,
-              this.direction,
-              this.rotationOffset
-            );
-
-            // Add gap before next ring
-            currentOuterRadius = innerRadius - this.ringGap;
-          }
-
-          // Update today indicator
-          this.updateTodayIndicator(adjustedRadius);
-
-          // No CSS mirroring needed - mirroring is done mathematically in getPointOnShape
-        }
-
-        setRingWidth(width) {
-          this.ringWidth = width;
-          this.layout();
-          this.saveSettings();
-        }
-
-        setCornerRadius(radius) {
-          this.cornerRadius = radius;
-          this.layout();
-          this.saveSettings();
-        }
-
-        toggleDirection() {
-          this.direction = this.direction === 1 ? -1 : 1;
-          this.layout();
-          this.saveSettings();
-          return this.direction;
-        }
-
-        rotateYear() {
-          this.rotationOffset = (this.rotationOffset + 90) % 360;
-          this.layout();
-          this.saveSettings();
-          return this.rotationOffset;
-        }
-
-        getRingOrder() {
-          return this.rings.map((r) => r.name);
-        }
-
-        getDirection() {
-          return this.direction;
-        }
-
-        getRotationOffset() {
-          return this.rotationOffset;
-        }
-
-        updateTodayIndicator(adjustedRadius) {
-          // Calculate today's day of year (0-364)
-          const now = new Date();
-          const startOfYear = new Date(now.getFullYear(), 0, 0);
-          const diff = now - startOfYear;
-          const oneDay = 1000 * 60 * 60 * 24;
-          const dayOfYear = Math.floor(diff / oneDay) - 1; // 0-indexed
-
-          // Calculate angle for today
-          const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-          const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET; // Start at top
-          const rotationRad = (this.rotationOffset * Math.PI) / 180;
-          const progress =
-            (dayOfYear / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-          const angle = baseOffset + rotationRad + progress;
-
-          // For CCW, mirror angle around vertical axis: θ → π - θ
-          const mirroredAngle = this.direction === -1 ? Math.PI - angle : angle;
-
-          // Calculate line end point (just beyond outermost ring)
-          const lineLength = adjustedRadius + 15; // Extend 15px beyond
-          const endX = this.centerX + lineLength * Math.cos(mirroredAngle);
-          const endY = this.centerY + lineLength * Math.sin(mirroredAngle);
-
-          // Update line
-          const todayLine = document.getElementById("todayLine");
-          if (todayLine) {
-            todayLine.setAttribute("x1", this.centerX);
-            todayLine.setAttribute("y1", this.centerY);
-            todayLine.setAttribute("x2", endX);
-            todayLine.setAttribute("y2", endY);
-          }
-
-          // Update dot
-          const todayDot = document.getElementById("todayDot");
-          if (todayDot) {
-            todayDot.setAttribute("cx", endX);
-            todayDot.setAttribute("cy", endY);
-          }
-        }
-
-        saveSettings() {
-          const settings = {
-            cornerRadius: this.cornerRadius,
-            ringWidth: this.ringWidth,
-            direction: this.direction,
-            rotationOffset: this.rotationOffset,
-            ringOrder: this.getRingOrder(),
-            ringVisibility: this.ringVisibility,
-          };
-          localStorage.setItem(
-            "multiRingCalendarSettings",
-            JSON.stringify(settings)
-          );
-        }
-
-        loadSettings() {
-          const saved = localStorage.getItem("multiRingCalendarSettings");
-          if (!saved) return false;
-
-          try {
-            const settings = JSON.parse(saved);
-            this.cornerRadius = settings.cornerRadius || 0.5;
-            this.ringWidth = settings.ringWidth || 50;
-            this.direction = settings.direction || 1;
-            this.rotationOffset = settings.rotationOffset || 0;
-            if (settings.ringVisibility) {
-              this.ringVisibility = settings.ringVisibility;
-            }
-            return settings;
-          } catch (e) {
-            console.error("Failed to load settings:", e);
-            return false;
-          }
-        }
-      }
-
-      // ============================================
-      // INITIALIZATION
-      // ============================================
-
-      const svg = document.getElementById("calendar-svg");
-      const container = document.getElementById("rings-container");
-      const centerX = 350;
-      const centerY = 350;
-
-      // Create ring system
-      const ringSystem = new RingSystem(container, centerX, centerY);
-
-      // Ring metadata for layer controls
-      const ringMetadata = {
-        seasons: { label: "Seasons", color: "#667eea", icon: "🌸" },
-        holidays: { label: "Holidays", color: "#fdcb6e", icon: "🎊" },
-        months: { label: "Gregorian Months", color: "#f093fb", icon: "📅" },
-        hebrew: { label: "Hebrew Months", color: "#4facfe", icon: "✡️" },
-        weeks: { label: "Weeks", color: "#43e97b", icon: "📆" },
-      };
-
-      // Load saved settings
-      const savedSettings = ringSystem.loadSettings();
-
-      // Add rings (from outermost to innermost)
-      const defaultOrder = ["holidays", "weeks", "hebrew", "months", "seasons"];
-      const ringOrder =
-        savedSettings && savedSettings.ringOrder
-          ? savedSettings.ringOrder
-          : defaultOrder;
-
-      // Create ring instances
-      const ringInstances = {
-        holidays: new HolidaysRing(),
-        weeks: new WeeksRing(),
-        hebrew: new HebrewMonthsRing(),
-        months: new MonthsRing(),
-        seasons: new SeasonsRing(),
-      };
-
-      // Add rings in saved order
-      ringOrder.forEach((ringName) => {
-        const ring = ringInstances[ringName];
-        if (ring) {
-          // Get saved visibility or use default
-          const defaultVisible = ringName !== "holidays"; // Holidays hidden by default
-          const visible =
-            savedSettings && savedSettings.ringVisibility
-              ? savedSettings.ringVisibility[ringName]
-              : defaultVisible;
-          ringSystem.addRing(ring, visible);
-        }
-      });
-
-      // Apply saved settings to UI controls
-      if (savedSettings) {
-        document.getElementById("cornerRadius").value = Math.round(
-          savedSettings.cornerRadius * 100
-        );
-        document.getElementById("cornerValue").textContent = `${Math.round(
-          savedSettings.cornerRadius * 100
-        )}%`;
-        document.getElementById("ringWidth").value = savedSettings.ringWidth;
-        document.getElementById(
-          "widthValue"
-        ).textContent = `${savedSettings.ringWidth}px`;
-
-        const directionText = savedSettings.direction === 1 ? "CW" : "CCW";
-        const directionIcon = savedSettings.direction === 1 ? "↻" : "↺";
-        document.getElementById(
-          "directionToggle"
-        ).innerHTML = `${directionIcon} ${directionText}`;
-        if (savedSettings.direction === -1) {
-          document.getElementById("directionToggle").style.background =
-            "rgba(100,200,255,0.3)";
-        }
-      }
-
-      // Initial layout
-      ringSystem.layout();
-
-      // ============================================
-      // LAYER CONTROLS
-      // ============================================
-
-      const layerList = document.getElementById("layerList");
-
-      const initializeLayerControls = () => {
-        const renderLayerControls = () => {
-          layerList.innerHTML = "";
-          const ringOrder = ringSystem.getRingOrder();
-
-          ringOrder.forEach((ringName, index) => {
-            const metadata = ringMetadata[ringName];
-            const isVisible = ringSystem.ringVisibility[ringName];
-
-            const li = document.createElement("li");
-            li.className = "layer-item";
-            li.setAttribute("draggable", "true");
-            li.setAttribute("data-ring", ringName);
-
-            li.innerHTML = `
-            <span class="drag-handle">⋮⋮</span>
-            <input 
-              type="checkbox" 
-              class="layer-checkbox" 
-              ${isVisible ? "checked" : ""} 
-              data-ring="${ringName}"
-            />
-            <span class="layer-name">${metadata.icon} ${metadata.label}</span>
-            <div class="layer-color" style="background: ${
-              metadata.color
-            };"></div>
-          `;
-
-            layerList.appendChild(li);
-          });
-
-          // Add event listeners
-          attachLayerEventListeners();
-        };
-
-        const attachLayerEventListeners = () => {
-          // Checkbox toggles
-          document.querySelectorAll(".layer-checkbox").forEach((checkbox) => {
-            checkbox.addEventListener("change", (e) => {
-              const ringName = e.target.getAttribute("data-ring");
-              ringSystem.setRingVisibility(ringName, e.target.checked);
-            });
-          });
-
-          // Drag and drop
-          const items = document.querySelectorAll(".layer-item");
-          let draggedItem = null;
-
-          items.forEach((item) => {
-            item.addEventListener("dragstart", (e) => {
-              draggedItem = item;
-              item.classList.add("dragging");
-              e.dataTransfer.effectAllowed = "move";
-            });
-
-            item.addEventListener("dragend", () => {
-              item.classList.remove("dragging");
-              draggedItem = null;
-            });
-
-            item.addEventListener("dragover", (e) => {
-              e.preventDefault();
-              if (draggedItem && draggedItem !== item) {
-                const rect = item.getBoundingClientRect();
-                const midpoint = rect.top + rect.height / 2;
-                if (e.clientY < midpoint) {
-                  item.classList.add("drag-over");
-                } else {
-                  item.classList.remove("drag-over");
-                }
-              }
-            });
-
-            item.addEventListener("dragleave", () => {
-              item.classList.remove("drag-over");
-            });
-
-            item.addEventListener("drop", (e) => {
-              e.preventDefault();
-              item.classList.remove("drag-over");
-
-              if (draggedItem && draggedItem !== item) {
-                const allItems = [...layerList.children];
-                const draggedIndex = allItems.indexOf(draggedItem);
-                const targetIndex = allItems.indexOf(item);
-
-                if (draggedIndex < targetIndex) {
-                  item.after(draggedItem);
-                } else {
-                  item.before(draggedItem);
-                }
-
-                // Update ring system order
-                const newOrder = [...layerList.children].map((li) =>
-                  li.getAttribute("data-ring")
-                );
-                ringSystem.reorderRings(newOrder);
-              }
-            });
-          });
-        };
-
-        renderLayerControls();
-      };
-
-      initializeLayerControls();
-
-      // ============================================
-      // CONTROLS
-      // ============================================
-
-      const cornerInput = document.getElementById("cornerRadius");
-      const widthInput = document.getElementById("ringWidth");
-      const cornerValue = document.getElementById("cornerValue");
-      const widthValue = document.getElementById("widthValue");
-      const directionToggle = document.getElementById("directionToggle");
-      const rotateYearBtn = document.getElementById("rotateYear");
-
-      cornerInput.addEventListener("input", (e) => {
-        const value = parseInt(e.target.value);
-        cornerValue.textContent = `${value}%`;
-        ringSystem.setCornerRadius(value / 100);
-      });
-
-      widthInput.addEventListener("input", (e) => {
-        const value = parseInt(e.target.value);
-        widthValue.textContent = `${value}px`;
-        ringSystem.setRingWidth(value);
-      });
-
-      directionToggle.addEventListener("click", () => {
-        const newDirection = ringSystem.toggleDirection();
-        const directionText = newDirection === 1 ? "CW" : "CCW";
-        const directionIcon = newDirection === 1 ? "↻" : "↺";
-        directionToggle.innerHTML = `${directionIcon} ${directionText}`;
-        directionToggle.style.background =
-          newDirection === 1
-            ? "rgba(255,255,255,0.2)"
-            : "rgba(100,200,255,0.3)";
-      });
-
-      rotateYearBtn.addEventListener("click", () => {
-        const newOffset = ringSystem.rotateYear();
-        rotateYearBtn.style.transform = "rotate(90deg)";
-        setTimeout(() => {
-          rotateYearBtn.style.transform = "";
-        }, 200);
-      });
-    </script>
   </body>
 </html>
+x`x

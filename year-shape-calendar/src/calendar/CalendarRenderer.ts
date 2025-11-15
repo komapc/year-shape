@@ -184,10 +184,14 @@ export class CalendarRenderer {
       'duration-300',
     ]);
     
-    // Long arrow pointing TOWARD the week (outward from center)
+    // Shorter arrow pointing TOWARD the week (outward from center)
+    // Even shorter on mobile
+    const isMobile = window.innerWidth <= 768;
+    const arrowHeight = isMobile ? 80 : 120;
+    const arrowPath = isMobile ? 'M30 70 L30 15 L22 23 M30 15 L38 23' : 'M30 110 L30 20 L22 28 M30 20 L38 28';
     indicator.innerHTML = `
-      <svg width="60" height="180" viewBox="0 0 60 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M30 170 L30 10 L22 18 M30 10 L38 18" 
+      <svg width="60" height="${arrowHeight}" viewBox="0 0 60 ${arrowHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="${arrowPath}" 
               stroke="#60a5fa" 
               stroke-width="3.5" 
               stroke-linecap="round" 
