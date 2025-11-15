@@ -71,7 +71,7 @@ export class ZoomMode {
       width: 100%;
       height: 100%;
       pointer-events: auto;
-      touch-action: manipulation;
+      touch-action: pan-x pan-y pinch-zoom;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
@@ -104,13 +104,8 @@ export class ZoomMode {
     };
 
     this.svg.addEventListener('click', handleClick, true); // Use capture phase to catch events early
-    // Also prevent touch gestures that cause zoom
-    this.svg.addEventListener('touchstart', (e: TouchEvent) => {
-      // Prevent pinch zoom (2+ fingers)
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
+    // Allow pinch zoom for calendar content, but prevent page zoom
+    // Don't prevent touch events - let them work for navigation
 
     this.container.appendChild(this.svg);
 
@@ -838,9 +833,8 @@ export class ZoomMode {
         this.navigateToLevel('week', { week });
       });
 
-      group.appendChild(sector);
-
-      // Draw day label with background circle for maximum visibility
+      // Draw day label with background circle for maximum visibility FIRST
+      // This ensures labels are always visible even if sectors are re-rendered
       const labelRadius = radius * 0.88; // Slightly further out for better visibility
       const labelX = centerX + Math.cos(dayAngle) * labelRadius;
       const labelY = centerY + Math.sin(dayAngle) * labelRadius;
@@ -855,6 +849,8 @@ export class ZoomMode {
       bgCircle.setAttribute('stroke', isCurrent ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.5)');
       bgCircle.setAttribute('stroke-width', isCurrent ? '2' : '1');
       bgCircle.style.pointerEvents = 'none';
+      bgCircle.setAttribute('opacity', '1');
+      bgCircle.setAttribute('visibility', 'visible');
       group.appendChild(bgCircle);
 
       // Draw the number text
@@ -864,17 +860,27 @@ export class ZoomMode {
       label.setAttribute('text-anchor', 'middle');
       label.setAttribute('dominant-baseline', 'middle');
       label.setAttribute('class', 'day-label');
+      label.setAttribute('fill', '#ffffff'); // Set fill as attribute as well
+      label.setAttribute('stroke', '#000000'); // Black stroke for contrast
+      label.setAttribute('stroke-width', '1.5'); // Slightly thicker stroke for visibility
+      label.setAttribute('stroke-linejoin', 'round'); // Smooth stroke
+      label.setAttribute('paint-order', 'stroke fill'); // Stroke first, then fill (SVG attribute)
       label.textContent = String(day);
       label.style.fontSize = isCurrent ? '28px' : '24px'; // Much larger font for readability
       label.style.fontWeight = 'bold'; // Always bold
       label.style.fill = '#ffffff'; // Always white
-      // Strong text shadow for maximum visibility
-      label.style.textShadow = isCurrent
-        ? '3px 3px 6px rgba(0, 0, 0, 1), -3px -3px 6px rgba(0, 0, 0, 1), 3px -3px 6px rgba(0, 0, 0, 1), -3px 3px 6px rgba(0, 0, 0, 1)'
-        : '2px 2px 4px rgba(0, 0, 0, 1), -2px -2px 4px rgba(0, 0, 0, 1), 2px -2px 4px rgba(0, 0, 0, 1), -2px 2px 4px rgba(0, 0, 0, 1)';
+      label.style.stroke = '#000000'; // Black stroke
+      label.style.strokeWidth = '2px'; // Slightly thicker stroke for visibility
+      label.style.paintOrder = 'stroke fill'; // Stroke first, then fill (CSS property)
+      // SVG doesn't support CSS text-shadow, use stroke instead
       label.style.pointerEvents = 'none';
+      label.setAttribute('opacity', '1'); // Ensure opacity is 1
+      label.setAttribute('visibility', 'visible'); // Ensure visibility
 
       group.appendChild(label);
+
+      // Append sector AFTER labels so it's behind (SVG renders in order)
+      group.appendChild(sector);
     }
 
     // Draw events in center
