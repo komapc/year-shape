@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Multi-Ring Calendar - YearWheel</title>
+    <!-- Tailwind CSS for header styling -->
+    <link rel="stylesheet" href="/style.css" />
     <style>
       * {
         margin: 0;
@@ -372,96 +374,82 @@
   </head>
   <body>
     <!-- Header with Mode Selector - matches index.html -->
-    <header
-      style="
-        width: 100%;
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-      "
-    >
-      <div style="display: flex; align-items: center; gap: 12px">
-        <h1
-          style="
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(to right, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-          "
-        >
-          YearWheel
-        </h1>
-        <!-- Mode Selector -->
-        <select
-          id="modeSelector"
-          style="
-            padding: 6px 12px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(100, 116, 139, 0.3);
-            border-radius: 6px;
-            color: #f1f5f9;
-            font-weight: 500;
-            cursor: pointer;
-            font-size: 0.75rem;
-            outline: none;
-          "
-          aria-label="Select calendar mode"
-          title="Calendar Mode"
-        >
-          <option value="old">Classic</option>
-          <option value="rings" selected>Rings</option>
-          <option value="zoom">Zoom</option>
-        </select>
-        <button
-          id="toggleSettingsRings"
-          style="
-            padding: 6px 12px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(100, 116, 139, 0.3);
-            border-radius: 6px;
-            color: #f1f5f9;
-            cursor: pointer;
-            font-size: 0.75rem;
-            outline: none;
-          "
-          aria-label="Toggle settings panel"
-          title="Settings & Controls"
-        >
-          ⚙️
-        </button>
-        <button
-          id="toggleAboutRings"
-          style="
-            padding: 6px 12px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(100, 116, 139, 0.3);
-            border-radius: 6px;
-            color: #f1f5f9;
-            cursor: pointer;
-            font-size: 0.75rem;
-            outline: none;
-          "
-          aria-label="Toggle about panel"
-          title="About"
-        >
-          ℹ️
-        </button>
-      </div>
-
-      <!-- Login Status / Sign In Button - placeholder for consistency -->
-      <div
-        id="headerAuthRings"
-        style="display: flex; align-items: center; gap: 8px"
-      >
-        <!-- Placeholder - could add Google sign-in here if needed -->
+    <header class="w-full max-w-7xl mx-auto px-6 py-6" style="position: relative; z-index: 10;">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+            YearWheel
+          </h1>
+          <!-- Mode Selector (Radio Buttons) -->
+          <div class="flex items-center gap-3" role="radiogroup" aria-label="Select calendar mode">
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="headerMode" 
+                value="old"
+                id="headerModeOld" 
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+              />
+              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Classic</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="headerMode" 
+                value="rings"
+                id="headerModeRings" 
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                checked
+              />
+              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Rings</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="headerMode" 
+                value="zoom"
+                id="headerModeZoom" 
+                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+              />
+              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Zoom</span>
+            </label>
+          </div>
+          <button 
+            id="toggleSettingsRings" 
+            class="btn text-xs"
+            aria-label="Toggle settings panel"
+            title="Settings & Controls"
+          >
+            ⚙️
+          </button>
+          <button 
+            id="toggleAboutRings" 
+            class="btn text-xs"
+            aria-label="Toggle about panel"
+            title="About"
+          >
+            ℹ️
+          </button>
+        </div>
+        
+        <!-- Login Status / Sign In Button -->
+        <div id="headerAuthRings" class="flex items-center gap-2">
+          <!-- Logged In Status (shown when authenticated) -->
+          <div id="loginStatusRings" class="flex items-center gap-2 glass px-3 py-1.5 rounded-lg border border-dark-border text-sm hidden">
+            <span class="status-dot w-2 h-2 rounded-full bg-green-500"></span>
+            <span class="status-text">Logged in</span>
+          </div>
+          
+          <!-- Sign In Button (shown when not authenticated) -->
+          <button 
+            id="headerSignInBtnRings" 
+            class="btn text-xs"
+            aria-label="Sign in with Google"
+            title="Sign in with Google Calendar"
+          >
+            Sign in with Google
+          </button>
+        </div>
       </div>
     </header>
 
