@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Multi-Ring Calendar - YearWheel</title>
     <!-- Tailwind CSS for header styling -->
     <link rel="stylesheet" href="/style.css" />
@@ -22,6 +25,8 @@
         align-items: center;
         padding: 20px;
         color: white;
+        overflow-x: hidden;
+        max-width: 100vw;
       }
 
       h1 {
@@ -120,6 +125,7 @@
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         overflow: hidden;
         flex-shrink: 0;
+        box-sizing: border-box;
       }
 
       .layer-controls {
@@ -249,8 +255,50 @@
 
       /* Mobile optimizations */
       @media (max-width: 768px) {
+        /* Prevent horizontal scrolling */
+        html,
         body {
-          padding: 10px;
+          overflow-x: hidden;
+          max-width: 100vw;
+        }
+
+        body {
+          padding: 5px;
+        }
+
+        /* Split header into multiple lines on mobile */
+        header > div {
+          flex-direction: column;
+          align-items: flex-start !important;
+          gap: 12px !important;
+        }
+
+        header > div > div:first-child {
+          flex-wrap: wrap;
+          width: 100%;
+          gap: 8px !important;
+        }
+
+        header > div > div:last-child {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        /* Logo on first line */
+        header h1 {
+          width: 100%;
+          margin-bottom: 8px;
+        }
+
+        /* Mode selector on second line */
+        header [role="radiogroup"] {
+          width: 100%;
+          margin-bottom: 8px;
+        }
+
+        /* Settings buttons on third line */
+        header button[id^="toggle"] {
+          margin-right: 8px;
         }
 
         h1 {
@@ -291,10 +339,11 @@
         }
 
         #canvas-container {
-          width: min(90vw, 90vh);
-          height: min(90vw, 90vh);
-          max-width: 500px;
-          max-height: 500px;
+          width: min(95vw, calc(95vh - 200px));
+          height: min(95vw, calc(95vh - 200px));
+          max-width: none;
+          max-height: none;
+          min-width: 0;
         }
 
         .layer-controls {
@@ -374,56 +423,78 @@
   </head>
   <body>
     <!-- Header with Mode Selector - matches index.html -->
-    <header class="w-full max-w-7xl mx-auto px-6 py-6" style="position: relative; z-index: 10;">
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+    <header
+      class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6"
+      style="position: relative; z-index: 10; overflow-x: hidden"
+    >
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4"
+      >
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto"
+        >
+          <h1
+            class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent"
+          >
             YearWheel
           </h1>
           <!-- Mode Selector (Radio Buttons) -->
-          <div class="flex items-center gap-3" role="radiogroup" aria-label="Select calendar mode">
+          <div
+            class="flex items-center gap-3"
+            role="radiogroup"
+            aria-label="Select calendar mode"
+          >
             <label class="flex items-center gap-1.5 cursor-pointer group">
-              <input 
-                type="radio" 
-                name="headerMode" 
+              <input
+                type="radio"
+                name="headerMode"
                 value="old"
-                id="headerModeOld" 
+                id="headerModeOld"
                 class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
               />
-              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Classic</span>
+              <span
+                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                >Classic</span
+              >
             </label>
             <label class="flex items-center gap-1.5 cursor-pointer group">
-              <input 
-                type="radio" 
-                name="headerMode" 
+              <input
+                type="radio"
+                name="headerMode"
                 value="rings"
-                id="headerModeRings" 
+                id="headerModeRings"
                 class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
                 checked
               />
-              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Rings</span>
+              <span
+                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                >Rings</span
+              >
             </label>
             <label class="flex items-center gap-1.5 cursor-pointer group">
-              <input 
-                type="radio" 
-                name="headerMode" 
+              <input
+                type="radio"
+                name="headerMode"
                 value="zoom"
-                id="headerModeZoom" 
+                id="headerModeZoom"
                 class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
               />
-              <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Zoom</span>
+              <span
+                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                >Zoom</span
+              >
             </label>
           </div>
-          <button 
-            id="toggleSettingsRings" 
+          <button
+            id="toggleSettingsRings"
             class="btn text-xs"
             aria-label="Toggle settings panel"
             title="Settings & Controls"
           >
             ⚙️
           </button>
-          <button 
-            id="toggleAboutRings" 
+          <button
+            id="toggleAboutRings"
             class="btn text-xs"
             aria-label="Toggle about panel"
             title="About"
@@ -431,18 +502,21 @@
             ℹ️
           </button>
         </div>
-        
+
         <!-- Login Status / Sign In Button -->
         <div id="headerAuthRings" class="flex items-center gap-2">
           <!-- Logged In Status (shown when authenticated) -->
-          <div id="loginStatusRings" class="flex items-center gap-2 glass px-3 py-1.5 rounded-lg border border-dark-border text-sm hidden">
+          <div
+            id="loginStatusRings"
+            class="flex items-center gap-2 glass px-3 py-1.5 rounded-lg border border-dark-border text-sm hidden"
+          >
             <span class="status-dot w-2 h-2 rounded-full bg-green-500"></span>
             <span class="status-text">Logged in</span>
           </div>
-          
+
           <!-- Sign In Button (shown when not authenticated) -->
-          <button 
-            id="headerSignInBtnRings" 
+          <button
+            id="headerSignInBtnRings"
             class="btn text-xs"
             aria-label="Sign in with Google"
             title="Sign in with Google Calendar"

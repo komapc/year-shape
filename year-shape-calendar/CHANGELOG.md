@@ -16,6 +16,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `rings.ts` to handle header radio buttons (`headerModeOld`, `headerModeRings`, `headerModeZoom`)
   - Consistent with `index.html` and `CalendarApp.ts` implementation
   - Properly loads and saves mode preferences
+- **Rings Mode Ring Width**: Limited ring width to ensure inner space never disappears
+  - Added minimum inner radius (50px) to always preserve center space
+  - Dynamic max width calculation based on visible rings
+  - Prevents rings from filling entire circle
+- **Mobile Page Zoom**: Prevented browser zoom when tapping on month sectors in zoom mode
+  - Added `touch-action: manipulation` to prevent double-tap zoom
+  - Added touch event handlers for proper mobile interaction
+  - Updated viewport meta tag to disable zooming
+- **Dates Visibility in Month Circle**: Fixed dates not being visible initially in zoom mode
+  - Fixed SVG defs element preservation when clearing SVG
+  - Fixed filter creation to use correct SVG querying
+  - Dates now visible immediately on initial load
+
+### Changed
+- **Mobile Layout**: Improved mobile responsiveness across all modes
+  - Made rings larger on mobile (95vw/95vh, removed 500px max constraint)
+  - Split header into multiple lines on mobile (logo, mode selector, settings on separate lines)
+  - Prevented horizontal scrolling globally
+  - Reduced body padding on mobile (5px instead of 10px)
+- **Header Layout**: Responsive header that adapts to mobile screens
+  - Logo on first line, mode selector on second, settings buttons on third
+  - Applied consistently across all calendar modes
 
 ### Technical
 - Build passes successfully

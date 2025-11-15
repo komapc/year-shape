@@ -30,6 +30,7 @@ export class RingSystem {
   private targetPerimeter: number | null = null;
   private direction: number = 1; // 1 = CW (clockwise), -1 = CCW (counter-clockwise)
   private rotationOffset: number = 0; // Rotation offset in degrees (0, 90, 180, 270)
+  private minInnerRadius: number = 50; // Minimum free space in center (never let rings fill completely)
 
   constructor(svgContainer: SVGElement, centerX: number, centerY: number) {
     this.svgContainer = svgContainer;
@@ -97,6 +98,33 @@ export class RingSystem {
       this.centerY
     );
 
+    // Count visible rings
+    const visibleRingCount = this.rings.filter(
+      (ring) => this.ringVisibility[ring.name]
+    ).length;
+
+    // Calculate maximum allowed ring width to preserve minimum inner space
+    // Available space = adjustedRadius - minInnerRadius
+    // Space needed for rings = visibleRingCount * ringWidth + (visibleRingCount - 1) * ringGap
+    // So: visibleRingCount * ringWidth + (visibleRingCount - 1) * ringGap <= adjustedRadius - minInnerRadius
+    // Solving for ringWidth: ringWidth <= (adjustedRadius - minInnerRadius - (visibleRingCount - 1) * ringGap) / visibleRingCount
+    let maxRingWidth = this.ringWidth;
+    if (visibleRingCount > 0) {
+      const totalSpaceNeeded = visibleRingCount * this.ringWidth + (visibleRingCount - 1) * this.ringGap;
+      const availableSpace = adjustedRadius - this.minInnerRadius;
+
+      if (totalSpaceNeeded > availableSpace) {
+        // Clamp ring width to ensure minimum inner space
+        maxRingWidth = Math.max(
+          10, // Minimum ring width
+          (availableSpace - (visibleRingCount - 1) * this.ringGap) / visibleRingCount
+        );
+      }
+    }
+
+    // Use clamped ring width
+    const effectiveRingWidth = Math.min(this.ringWidth, maxRingWidth);
+
     // Layout each ring from outermost to innermost (only visible rings)
     let currentOuterRadius = adjustedRadius;
 
@@ -106,7 +134,12 @@ export class RingSystem {
         continue; // Skip hidden rings
       }
 
-      const innerRadius = currentOuterRadius - this.ringWidth;
+      const innerRadius = currentOuterRadius - effectiveRingWidth;
+
+      // Safety check: ensure we never go below minimum inner radius
+      if (innerRadius < this.minInnerRadius) {
+        break; // Stop if we've reached the minimum inner space
+      }
 
       ring.layout(
         this.centerX,
@@ -127,9 +160,43 @@ export class RingSystem {
   }
 
   setRingWidth(width: number): void {
-    this.ringWidth = width;
+    // Clamp width to a reasonable range
+    this.ringWidth = Math.max(10, Math.min(width, 150));
     this.layout();
     this.saveSettings();
+  }
+
+  /**
+   * Get maximum allowed ring width based on current visible rings
+   */
+  getMaxRingWidth(): number {
+    if (this.targetPerimeter === null) {
+      // Not initialized yet, return default max
+      return 150;
+    }
+
+    const adjustedRadius = Ring.calculatePerimeterConstantRadius(
+      this.cornerRadius,
+      this.targetPerimeter,
+      this.centerX,
+      this.centerY
+    );
+
+    const visibleRingCount = this.rings.filter(
+      (ring) => this.ringVisibility[ring.name]
+    ).length;
+
+    if (visibleRingCount === 0) {
+      return 150;
+    }
+
+    const availableSpace = adjustedRadius - this.minInnerRadius;
+    const maxRingWidth = Math.max(
+      10,
+      (availableSpace - (visibleRingCount - 1) * this.ringGap) / visibleRingCount
+    );
+
+    return maxRingWidth;
   }
 
   setCornerRadius(radius: number): void {
