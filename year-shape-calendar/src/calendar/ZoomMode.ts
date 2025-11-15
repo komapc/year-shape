@@ -60,7 +60,7 @@ export class ZoomMode {
 
     // Create SVG
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.setAttribute('viewBox', '0 0 700 700');
+    this.svg.setAttribute('viewBox', '0 0 800 800');
     this.svg.setAttribute('width', '100%');
     this.svg.setAttribute('height', '100%');
     this.svg.setAttribute('shape-rendering', 'geometricPrecision'); // Smooth rendering
@@ -589,7 +589,7 @@ export class ZoomMode {
   private renderYearCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 250;
+    const radius = 300;
 
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -806,7 +806,7 @@ export class ZoomMode {
       label.setAttribute('dominant-baseline', 'middle');
       label.setAttribute('class', 'month-label');
       label.textContent = monthName;
-      label.style.fontSize = isCurrent ? '18px' : '16px';
+      label.style.fontSize = isCurrent ? '32px' : '28px';
       label.style.fontWeight = isCurrent ? 'bold' : 'bold';
       label.style.fill = isCurrent ? '#fff' : '#fff';
       label.style.textShadow = isCurrent ? '0 0 8px rgba(255, 255, 255, 0.8)' : 'none';
@@ -823,7 +823,7 @@ export class ZoomMode {
     periodText.setAttribute('dominant-baseline', 'middle');
     periodText.setAttribute('class', 'period-text');
     periodText.textContent = String(state.year);
-    periodText.style.fontSize = '48px';
+    periodText.style.fontSize = '72px';
     periodText.style.fontWeight = 'bold';
     periodText.style.fill = '#fff';
 
@@ -838,7 +838,7 @@ export class ZoomMode {
   private renderMonthCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 250;
+    const radius = 300;
 
     const month = state.month;
     const year = state.year;
@@ -989,7 +989,7 @@ export class ZoomMode {
       const labelY = centerY + Math.sin(dayAngle) * labelRadius;
 
       // Draw background circle behind the number for visibility
-      const bgRadius = isCurrent ? 18 : 15; // Larger background for current day
+      const bgRadius = isCurrent ? 28 : 24; // Larger background for current day
       const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       bgCircle.setAttribute('cx', String(labelX));
       bgCircle.setAttribute('cy', String(labelY));
@@ -1015,7 +1015,7 @@ export class ZoomMode {
       label.setAttribute('stroke-linejoin', 'round'); // Smooth stroke
       label.setAttribute('paint-order', 'stroke fill'); // Stroke first, then fill (SVG attribute)
       label.textContent = String(day);
-      label.style.fontSize = isCurrent ? '28px' : '24px'; // Much larger font for readability
+      label.style.fontSize = isCurrent ? '48px' : '40px'; // Much larger font for readability
       label.style.fontWeight = 'bold'; // Always bold
       label.style.fill = '#ffffff'; // Always white
       label.style.stroke = '#000000'; // Black stroke
@@ -1043,7 +1043,7 @@ export class ZoomMode {
         eventText.setAttribute('dominant-baseline', 'middle');
         eventText.setAttribute('class', 'event-text');
         eventText.textContent = event.summary.substring(0, 30);
-        eventText.style.fontSize = '14px';
+        eventText.style.fontSize = '20px';
         eventText.style.fill = '#fff';
         eventText.style.pointerEvents = 'none';
 
@@ -1065,7 +1065,7 @@ export class ZoomMode {
     periodText.setAttribute('dominant-baseline', 'middle');
     periodText.setAttribute('class', 'period-text');
     periodText.textContent = `${monthNames[month]} 1-${totalDaysInMonth}`;
-    periodText.style.fontSize = '24px';
+    periodText.style.fontSize = '36px';
     periodText.style.fontWeight = 'bold';
     periodText.style.fill = '#fff';
 
@@ -1080,7 +1080,7 @@ export class ZoomMode {
   private renderWeekCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 250;
+    const radius = 300;
 
     const week = state.week;
     const year = state.year;
@@ -1161,7 +1161,7 @@ export class ZoomMode {
       label.setAttribute('dominant-baseline', 'middle');
       label.setAttribute('class', 'day-label');
       label.textContent = `${dayNames[i]}\n${day}`;
-      label.style.fontSize = isCurrent ? '16px' : '14px';
+      label.style.fontSize = isCurrent ? '28px' : '24px';
       label.style.fontWeight = 'bold';
       label.style.fill = isCurrent ? '#fff' : '#fff';
       label.style.textShadow = isCurrent ? '0 0 8px rgba(255, 255, 255, 0.8)' : 'none';
@@ -1182,7 +1182,7 @@ export class ZoomMode {
         eventText.setAttribute('dominant-baseline', 'middle');
         eventText.setAttribute('class', 'event-text');
         eventText.textContent = event.summary.substring(0, 30);
-        eventText.style.fontSize = '14px';
+        eventText.style.fontSize = '20px';
         eventText.style.fill = '#fff';
         eventText.style.pointerEvents = 'none';
 
@@ -1214,7 +1214,7 @@ export class ZoomMode {
     } else {
       periodText.textContent = `Week ${week + 1}, dates ${startDay} ${startMonthName} - ${endDay} ${endMonthName}`;
     }
-    periodText.style.fontSize = '20px';
+    periodText.style.fontSize = '32px';
     periodText.style.fontWeight = 'bold';
     periodText.style.fill = '#fff';
 
@@ -1229,7 +1229,7 @@ export class ZoomMode {
   private renderDayCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 250;
+    const radius = 300;
 
     const year = state.year;
     const month = state.month;
@@ -1292,7 +1292,7 @@ export class ZoomMode {
       label.setAttribute('dominant-baseline', 'middle');
       label.setAttribute('class', 'hour-label');
       label.textContent = String(hour);
-      label.style.fontSize = isCurrent ? '18px' : '16px';
+      label.style.fontSize = isCurrent ? '32px' : '28px';
       label.style.fontWeight = 'bold';
       label.style.fill = isCurrent ? '#64c8ff' : '#fff';
       label.style.textShadow = isCurrent ? '0 0 6px rgba(100, 200, 255, 0.8)' : 'none';
@@ -1354,7 +1354,7 @@ export class ZoomMode {
         eventText.setAttribute('dominant-baseline', 'middle');
         eventText.setAttribute('class', 'event-text');
         eventText.textContent = event.summary.substring(0, 30);
-        eventText.style.fontSize = '14px';
+        eventText.style.fontSize = '20px';
         eventText.style.fill = '#fff';
         eventText.style.pointerEvents = 'none';
 
@@ -1375,7 +1375,7 @@ export class ZoomMode {
     periodText.setAttribute('dominant-baseline', 'middle');
     periodText.setAttribute('class', 'period-text');
     periodText.textContent = `${monthNamesShort[month]} ${day}, ${year}`;
-    periodText.style.fontSize = '20px';
+    periodText.style.fontSize = '32px';
     periodText.style.fontWeight = 'bold';
     periodText.style.fill = '#fff';
 
