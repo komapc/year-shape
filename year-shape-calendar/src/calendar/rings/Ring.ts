@@ -110,11 +110,6 @@ export abstract class Ring {
     (sectorGroup as any).style.pointerEvents = 'none';
     // CRITICAL: Ensure no transform is applied to the group
     (sectorGroup as any).style.transform = 'none';
-    
-    // Calculate center point (for label positioning only, not for transforms)
-    const midAngle = (startAngle + endAngle) / 2;
-    const midRadius = (this.innerRadius + this.outerRadius) / 2;
-    const centerPoint = this.getPointOnShape(midAngle, midRadius);
 
     const path = this.createSectorPath(startAngle, endAngle);
     const pathElement = document.createElementNS(

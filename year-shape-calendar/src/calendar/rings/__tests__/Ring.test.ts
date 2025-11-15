@@ -2,7 +2,7 @@
  * Tests for Ring base class
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { Ring } from '../Ring';
 
 // Mock ring implementation for testing

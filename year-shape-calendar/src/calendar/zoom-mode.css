@@ -1,0 +1,182 @@
+/* Zoom Mode Styles - Extracted from inline styles */
+
+/* SVG container */
+.zoom-mode-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+  touch-action: pan-x pan-y pinch-zoom;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Sector groups - common hover transition */
+.sector-group {
+  transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Sectors */
+.sector {
+  cursor: pointer;
+  pointer-events: all;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.sector.month-sector,
+.sector.day-sector,
+.sector.hour-sector {
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1;
+  shape-rendering: geometricPrecision;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Labels layer - always on top */
+.labels-layer {
+  pointer-events: none;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Labels - common styles */
+.label,
+.month-label,
+.day-label,
+.hour-label {
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-weight: bold;
+  fill: #fff;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.label-scalable {
+  transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Month labels */
+.month-label {
+  font-size: 24px;
+}
+
+.month-label.current {
+  font-size: 28px;
+}
+
+/* Day labels in month circle */
+.day-label {
+  font-size: 32px;
+  fill: #ffffff;
+  stroke: #000000;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+
+.day-label.current {
+  font-size: 40px;
+}
+
+/* Day background circles */
+.label-bg-circle {
+  pointer-events: none;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.label-bg-circle.day-bg {
+  fill: rgba(0, 0, 0, 0.75);
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1;
+}
+
+.label-bg-circle.day-bg.current {
+  fill: rgba(100, 200, 255, 0.9);
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2;
+}
+
+/* Week day labels */
+.week-day-label {
+  font-size: 20px;
+  fill: #fff;
+}
+
+.week-day-label.current {
+  font-size: 24px;
+}
+
+/* Hour labels */
+.hour-label {
+  font-size: 24px;
+  fill: #fff;
+}
+
+.hour-label.current {
+  font-size: 28px;
+  fill: #64c8ff;
+}
+
+/* Period text (center) - responsive sizes */
+.period-text {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-weight: bold;
+  fill: #fff;
+  pointer-events: none;
+}
+
+.period-text.year {
+  font-size: 48px;
+}
+
+.period-text.month {
+  font-size: 24px;
+}
+
+.period-text.week {
+  font-size: 22px;
+}
+
+.period-text.day {
+  font-size: 22px;
+}
+
+/* Event text */
+.event-text {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-size: 20px;
+  fill: #fff;
+  pointer-events: none;
+}
+
+/* Responsive font sizes */
+@media (max-width: 768px) {
+  .period-text.year {
+    font-size: 72px;
+  }
+  
+  .period-text.month {
+    font-size: 36px;
+  }
+  
+  .period-text.week {
+    font-size: 32px;
+  }
+  
+  .period-text.day {
+    font-size: 32px;
+  }
+}
+

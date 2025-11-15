@@ -31,6 +31,9 @@ export class ZoomMode {
 
   // Hover state
   private hoveredMonth: number | null = null;
+  private hoveredDay: number | null = null; // For month circle
+  private hoveredWeekDay: number | null = null; // For week circle (0-6)
+  private hoveredHour: number | null = null; // For day circle (1-12)
 
   // Back button
   private backButton: HTMLButtonElement | null = null;
@@ -63,19 +66,8 @@ export class ZoomMode {
     this.svg.setAttribute('viewBox', '0 0 800 800');
     this.svg.setAttribute('width', '100%');
     this.svg.setAttribute('height', '100%');
-    this.svg.setAttribute('shape-rendering', 'geometricPrecision'); // Smooth rendering
-    this.svg.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: auto;
-      touch-action: pan-x pan-y pinch-zoom;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-    `;
+    this.svg.setAttribute('shape-rendering', 'geometricPrecision');
+    this.svg.classList.add('zoom-mode-svg');
 
     // Use event delegation on SVG for clicks (works even when elements are recreated)
     // This is critical for zoom mode since hover re-renders can remove direct handlers
@@ -466,14 +458,32 @@ export class ZoomMode {
       newCenterTarget = newCenterStart;
     }
 
+    // Determine if we're zooming in (to a deeper level) or zooming out (to a shallower level)
+    const isZoomingIn = this.getZoomLevelDepth(newState.level) > this.getZoomLevelDepth(oldState.level);
+    
+    // For zoom in: first move to center (0-0.5), then scale (0.5-1.0)
+    // For zoom out: first scale (0-0.5), then move to position (0.5-1.0)
+    let positionProgress: number;
+    let scaleProgress: number;
+    
+    if (isZoomingIn) {
+      // Zoom in: move first, then scale
+      positionProgress = Math.min(progress * 2, 1); // 0-0.5 maps to 0-1
+      scaleProgress = Math.max((progress - 0.5) * 2, 0); // 0.5-1 maps to 0-1
+    } else {
+      // Zoom out: scale first, then move
+      scaleProgress = Math.min(progress * 2, 1); // 0-0.5 maps to 0-1
+      positionProgress = Math.max((progress - 0.5) * 2, 0); // 0.5-1 maps to 0-1
+    }
+
     // Interpolate center position from old center to new target center
-    const currentCenterX = oldCenter.x + (newCenterTarget.x - oldCenter.x) * progress;
-    const currentCenterY = oldCenter.y + (newCenterTarget.y - oldCenter.y) * progress;
+    const currentCenterX = oldCenter.x + (newCenterTarget.x - oldCenter.x) * positionProgress;
+    const currentCenterY = oldCenter.y + (newCenterTarget.y - oldCenter.y) * positionProgress;
 
     // Interpolate scale
     const oldScale = this.getCircleScale(oldState);
     const newScale = this.getCircleScale(newState);
-    const currentScale = oldScale + (newScale - oldScale) * progress;
+    const currentScale = oldScale + (newScale - oldScale) * scaleProgress;
 
     // Interpolate opacity
     const oldOpacity = 1 - progress;
@@ -518,26 +528,12 @@ export class ZoomMode {
   /**
    * Get circle center for a state
    */
-  private getCircleCenter = (state: ZoomState): { x: number; y: number } => {
-    const centerX = 350;
-    const centerY = 350;
+  private getCircleCenter = (_state: ZoomState): { x: number; y: number } => {
+    const centerX = 400; // Center of 800x800 viewBox
+    const centerY = 400;
 
-    if (state.level === 'year') {
-      return { x: centerX, y: centerY };
-    } else if (state.level === 'month') {
-      // Month circle starts at the month position on year circle but animates to center
-      // The animation will interpolate from the month position to center in renderTransition
-      // For initial position, return the month position on year circle
-      const angle = (state.month / 12) * Math.PI * 2 - Math.PI / 2;
-      const radius = 150;
-      return {
-        x: centerX + Math.cos(angle) * radius,
-        y: centerY + Math.sin(angle) * radius,
-      };
-    } else {
-      // Week and day are centered
-      return { x: centerX, y: centerY };
-    }
+    // All circles should be centered - always use screen center
+    return { x: centerX, y: centerY };
   };
 
   /**
@@ -545,11 +541,23 @@ export class ZoomMode {
    * For month level, the target is always the screen center
    */
   private getCircleTargetCenter = (_state: ZoomState): { x: number; y: number } => {
-    const centerX = 350;
-    const centerY = 350;
+    const centerX = 400; // Center of 800x800 viewBox
+    const centerY = 400;
 
     // All levels should end up centered
     return { x: centerX, y: centerY };
+  };
+
+  /**
+   * Get zoom level depth (0 = year, 1 = month, 2 = week, 3 = day)
+   */
+  private getZoomLevelDepth = (level: ZoomLevel): number => {
+    switch (level) {
+      case 'year': return 0;
+      case 'month': return 1;
+      case 'week': return 2;
+      case 'day': return 3;
+    }
   };
 
   /**
@@ -611,10 +619,10 @@ export class ZoomMode {
       // Check if this is the current month
       const isCurrent = isCurrentYear && index === currentMonth;
 
-      // Calculate scale based on hover (20% smaller than before: 1.5 -> 1.2)
-      let scale = 1;
+      // Calculate scale based on hover (use CSS transform for smooth transitions)
+      let scaleValue = 1;
       if (this.hoveredMonth === index) {
-        scale = 1.2; // Reduced from 1.5 as requested
+        scaleValue = 1.5; // Larger hovered month
       } else if (this.hoveredMonth !== null) {
         const hoverDist = Math.min(
           Math.abs(index - this.hoveredMonth),
@@ -622,11 +630,25 @@ export class ZoomMode {
           Math.abs(index - this.hoveredMonth - 12)
         );
         if (hoverDist === 1) {
-          scale = 1.1;
+          scaleValue = 1.1; // Slightly enlarged adjacent months
         }
       }
 
-      // Draw sector - highlight current month
+      // Create a group for this sector with transform origin at center
+      const sectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const midAngle = (startAngle + endAngle) / 2;
+      const midRadius = (radius * 0.7 + radius) / 2;
+      const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
+      const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
+      
+      // Use CSS classes instead of inline styles
+      sectorGroup.classList.add('sector-group');
+      sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
+      sectorGroup.style.transform = `scale(${scaleValue})`;
+      sectorGroup.setAttribute('data-month', String(index));
+      sectorGroup.setAttribute('data-hover-type', 'month');
+      
+      // Draw sector at base size (always use radius * 1.0, scale via transform)
       const baseColor = isCurrent
         ? `hsl(${(index * 30) % 360}, 80%, 50%)` // Brighter for current
         : `hsl(${(index * 30) % 360}, 70%, 60%)`;
@@ -634,7 +656,7 @@ export class ZoomMode {
         centerX,
         centerY,
         radius * 0.7,
-        radius * scale,
+        radius, // Always base radius, scale via CSS transform
         startAngle,
         endAngle,
         baseColor
@@ -642,11 +664,10 @@ export class ZoomMode {
 
       sector.setAttribute('class', 'month-sector');
       sector.setAttribute('data-month', String(index));
-      sector.setAttribute('data-test', 'month-' + index); // For debugging
-      sector.setAttribute('data-month-name', monthName); // For easier debugging
+      sector.setAttribute('data-test', 'month-' + index);
+      sector.setAttribute('data-month-name', monthName);
       if (isCurrent) {
         sector.setAttribute('data-current', 'true');
-        // Add glow effect for current month
         sector.setAttribute('stroke', 'rgba(255, 255, 255, 0.6)');
         sector.setAttribute('stroke-width', '2');
       }
@@ -655,10 +676,11 @@ export class ZoomMode {
       sector.style.touchAction = 'manipulation';
       (sector.style as any).webkitTouchCallout = 'none';
       sector.style.userSelect = 'none';
-      // CSS transition for smooth path changes - slower and smoother
-      sector.style.transition = 'd 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), fill 0.6s ease, stroke-width 0.6s ease';
-      // Ensure the path itself can receive clicks - use both style and attribute
+      // Ensure the path itself can receive clicks
       (sector as any).setAttribute('pointer-events', 'all');
+      
+      // Add sector to group
+      sectorGroup.appendChild(sector);
 
       // Store month index for event handlers
       const monthIndex = index;
@@ -675,7 +697,6 @@ export class ZoomMode {
         }
 
         // Cancel hover state
-        isHovering = false;
         this.hoveredMonth = null;
 
         e.stopPropagation();
@@ -701,7 +722,6 @@ export class ZoomMode {
             cancelAnimationFrame(hoverTimeout);
           }
         }
-        isHovering = false;
 
         // Store touch start info
         if (e.touches.length === 1) {
@@ -745,31 +765,31 @@ export class ZoomMode {
             cancelAnimationFrame(hoverTimeout);
           }
         }
-        isHovering = false;
       });
 
       // Hover handlers with smooth animation
       // Use a longer delay to ensure clicks fire first
       let hoverTimeout: number | ReturnType<typeof setTimeout> | null = null;
-      let isHovering = false;
 
       sector.addEventListener('mouseenter', () => {
         // Cancel any pending hover updates
         if (hoverTimeout) {
-          cancelAnimationFrame(hoverTimeout);
-        }
-        isHovering = true;
-        this.hoveredMonth = monthIndex;
-        // Longer delay to allow clicks to fire first, then smooth slow hover animation
-        hoverTimeout = setTimeout(() => {
-          // Double-check we're still hovering and not clicking
-          if (this.currentState.level === 'year' && !this.animating && isHovering) {
-            // Use requestAnimationFrame for smoother rendering
-            requestAnimationFrame(() => {
-              this.render(); // Re-render with new scale for smooth transition
-            });
+          if (typeof hoverTimeout === 'number') {
+            clearTimeout(hoverTimeout);
+          } else {
+            cancelAnimationFrame(hoverTimeout);
           }
-        }, 150) as any; // 150ms delay to allow clicks to fire, then smooth animation
+        }
+        this.hoveredMonth = monthIndex;
+        // Update all sector group scales for smooth transition
+        if (this.currentState.level === 'year' && !this.animating) {
+          this.updateMonthScales();
+          // Move hovered sector group to end so it renders on top
+          const parent = sectorGroup.parentElement;
+          if (parent) {
+            parent.appendChild(sectorGroup);
+          }
+        }
       });
 
       sector.addEventListener('mouseleave', () => {
@@ -781,38 +801,32 @@ export class ZoomMode {
             cancelAnimationFrame(hoverTimeout);
           }
         }
-        isHovering = false;
         this.hoveredMonth = null;
-        // Shorter delay on leave for faster response
-        hoverTimeout = setTimeout(() => {
-          if (this.currentState.level === 'year' && !this.animating) {
-            this.render();
-          }
-        }, 50) as any;
+        // Update all sector group scales for smooth transition
+        if (this.currentState.level === 'year' && !this.animating) {
+          this.updateMonthScales();
+        }
       });
 
-      group.appendChild(sector);
-
-      // Draw month label
+      // Draw month label (inside the sector group so it scales with the sector)
       const labelAngle = angle;
       const labelRadius = radius * 0.85;
       const labelX = centerX + Math.cos(labelAngle) * labelRadius;
       const labelY = centerY + Math.sin(labelAngle) * labelRadius;
 
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      label.setAttribute('x', String(labelX));
-      label.setAttribute('y', String(labelY));
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('dominant-baseline', 'middle');
-      label.setAttribute('class', 'month-label');
-      label.textContent = monthName;
-      label.style.fontSize = isCurrent ? '32px' : '28px';
-      label.style.fontWeight = isCurrent ? 'bold' : 'bold';
-      label.style.fill = isCurrent ? '#fff' : '#fff';
-      label.style.textShadow = isCurrent ? '0 0 8px rgba(255, 255, 255, 0.8)' : 'none';
-      label.style.pointerEvents = 'none';
+      // Use standardized label creation
+      const { label } = this.createLabel(labelX, labelY, monthName, {
+        fontSize: isCurrent ? '28px' : '24px',
+        fontWeight: 'bold',
+        fill: '#fff',
+        className: 'month-label',
+      });
 
-      group.appendChild(label);
+      // Add label to sector group so it scales with the sector
+      sectorGroup.appendChild(label);
+      
+      // Add sector group to main group (not sector directly)
+      group.appendChild(sectorGroup);
     });
 
     // Draw period text in center (year)
@@ -821,15 +835,250 @@ export class ZoomMode {
     periodText.setAttribute('y', String(centerY));
     periodText.setAttribute('text-anchor', 'middle');
     periodText.setAttribute('dominant-baseline', 'middle');
-    periodText.setAttribute('class', 'period-text');
+    periodText.classList.add('period-text', 'year');
     periodText.textContent = String(state.year);
-    periodText.style.fontSize = '72px';
-    periodText.style.fontWeight = 'bold';
-    periodText.style.fill = '#fff';
 
     group.appendChild(periodText);
 
     return group;
+  };
+
+  /**
+   * SVG STRUCTURE DOCUMENTATION:
+   * 
+   * When a circle is rendered, the SVG structure is:
+   *   <svg>
+   *     <g transform="translate(400,400) scale(1)">  <!-- Wrapper group with transform -->
+   *       <g data-month="0" class="sector-group">     <!-- Sector group -->
+   *         <path class="month-sector">...</path>     <!-- Sector path -->
+   *         <text>...</text>                          <!-- Label (for year/week/day) -->
+   *       </g>
+   *       <g data-day="1" class="sector-group">...</g>
+   *       ...
+   *       <g class="labels-layer">                    <!-- Labels layer (month circle only) -->
+   *         <circle data-day="1">...</circle>         <!-- Background circle -->
+   *         <text class="day-label" data-day="1">...</text>
+   *       </g>
+   *     </g>
+   *   </svg>
+   * 
+   * Key points:
+   * - The wrapper group has transform="translate(...) scale(...)"
+   * - Sector groups have data-month, data-day, data-week-day, or data-hour attributes
+   * - Month circle labels are in a separate .labels-layer group (rendered AFTER sectors)
+   * - Year/Week/Day circles have labels INSIDE sector groups (they scale together)
+   */
+
+  /**
+   * Helper: Find the wrapper group that contains all sectors for the current level
+   * This is the group with transform="translate(...) scale(...)" attribute
+   */
+  private findWrapperGroup = (): SVGGElement | null => {
+    const wrapper = this.svg.querySelector('g[transform*="scale"]') as SVGGElement;
+    return wrapper || null;
+  };
+
+  /**
+   * Helper: Ensure labels layer is visible and on top
+   * Used for month circle where labels are in a separate layer
+   */
+  private ensureLabelsLayerVisible = (wrapperGroup: SVGGElement): void => {
+    const labelsGroup = wrapperGroup.querySelector('.labels-layer') as SVGGElement;
+    if (!labelsGroup) return;
+
+    // Force visibility
+    labelsGroup.style.visibility = 'visible';
+    labelsGroup.style.opacity = '1';
+    labelsGroup.style.display = 'block';
+    labelsGroup.style.pointerEvents = 'none';
+
+    // Move to end to ensure it renders on top
+    wrapperGroup.appendChild(labelsGroup);
+
+    // Ensure all labels are visible
+    const labels = labelsGroup.querySelectorAll('.day-label');
+    labels.forEach((label) => {
+      const textEl = label as SVGTextElement;
+      textEl.style.transform = 'none'; // NEVER use transforms on labels
+      textEl.style.visibility = 'visible';
+      textEl.style.opacity = '1';
+      textEl.style.display = 'block';
+      textEl.style.pointerEvents = 'none';
+    });
+
+    // Ensure all background circles are visible
+    const bgCircles = labelsGroup.querySelectorAll('circle[data-day]');
+    bgCircles.forEach((circle) => {
+      const circleEl = circle as SVGCircleElement;
+      circleEl.style.transform = 'none';
+      circleEl.style.visibility = 'visible';
+      circleEl.style.opacity = '1';
+      circleEl.style.display = 'block';
+      circleEl.style.pointerEvents = 'none';
+    });
+  };
+
+  /**
+   * Update month sector scales based on hover state (for smooth CSS transitions)
+   * 
+   * Structure: yearGroup > sectorGroups[data-month] > sector + label
+   */
+  private updateMonthScales = (): void => {
+    if (this.currentState.level !== 'year') return;
+
+    const yearGroup = this.findWrapperGroup();
+    if (!yearGroup) return;
+
+    const sectorGroups = yearGroup.querySelectorAll('g[data-month]');
+    sectorGroups.forEach((g) => {
+      const monthIndex = parseInt((g as SVGGElement).getAttribute('data-month') || '0', 10);
+      
+      let scaleValue = 1;
+      if (this.hoveredMonth === monthIndex) {
+        scaleValue = 1.5; // Larger hovered month
+      } else if (this.hoveredMonth !== null) {
+        const hoverDist = Math.min(
+          Math.abs(monthIndex - this.hoveredMonth),
+          Math.abs(monthIndex - this.hoveredMonth + 12),
+          Math.abs(monthIndex - this.hoveredMonth - 12)
+        );
+        if (hoverDist === 1) {
+          scaleValue = 1.1; // Slightly enlarged adjacent months
+        }
+      }
+
+      // Update transform for smooth CSS transition
+      const sectorGroup = g as SVGGElement;
+      sectorGroup.style.transform = `scale(${scaleValue})`;
+    });
+  };
+
+  /**
+   * Update day sector scales in month circle based on hover state
+   * 
+   * Structure: monthGroup > sectorGroups[data-day] > sector
+   *            monthGroup > .labels-layer > labels + bgCircles
+   * 
+   * IMPORTANT: Labels are in a SEPARATE layer to prevent occlusion.
+   * They must NEVER use transforms, and must always be visible.
+   */
+  private updateDayScales = (): void => {
+    if (this.currentState.level !== 'month') return;
+
+    const monthGroup = this.findWrapperGroup();
+    if (!monthGroup) return;
+
+    // Update sector scales
+    const sectorGroups = monthGroup.querySelectorAll('g[data-day]');
+    sectorGroups.forEach((g) => {
+      const sectorGroup = g as SVGGElement;
+      const dayIndex = parseInt(sectorGroup.getAttribute('data-day') || '0', 10);
+      const scaleValue = this.hoveredDay === dayIndex ? 1.5 : 1;
+      sectorGroup.style.transform = `scale(${scaleValue})`;
+    });
+
+    // CRITICAL: Ensure labels layer is always visible and on top
+    // This prevents labels from disappearing when sectors scale
+    this.ensureLabelsLayerVisible(monthGroup);
+  };
+
+  /**
+   * Update week day sector scales in week circle based on hover state
+   * 
+   * Structure: weekGroup > sectorGroups[data-week-day] > sector + label
+   * 
+   * NOTE: Labels are INSIDE sector groups, so they scale with sectors.
+   * This is different from month circle where labels are separate.
+   */
+  private updateWeekDayScales = (): void => {
+    if (this.currentState.level !== 'week') return;
+
+    const weekGroup = this.findWrapperGroup();
+    if (!weekGroup) return;
+
+    const sectorGroups = weekGroup.querySelectorAll('g[data-week-day]');
+    sectorGroups.forEach((g) => {
+      const sectorGroup = g as SVGGElement;
+      const dayIndex = parseInt(sectorGroup.getAttribute('data-week-day') || '0', 10);
+      const scaleValue = this.hoveredWeekDay === dayIndex ? 1.5 : 1;
+      sectorGroup.style.transform = `scale(${scaleValue})`;
+    });
+  };
+
+  /**
+   * Update hour sector scales in day circle based on hover state
+   * 
+   * Structure: dayGroup > sectorGroups[data-hour] > sector + label
+   * 
+   * NOTE: Labels are INSIDE sector groups, so they scale with sectors.
+   */
+  private updateHourScales = (): void => {
+    if (this.currentState.level !== 'day') return;
+
+    const dayGroup = this.findWrapperGroup();
+    if (!dayGroup) return;
+
+    const sectorGroups = dayGroup.querySelectorAll('g[data-hour]');
+    sectorGroups.forEach((g) => {
+      const sectorGroup = g as SVGGElement;
+      const hourIndex = parseInt(sectorGroup.getAttribute('data-hour') || '0', 10);
+      const scaleValue = this.hoveredHour === hourIndex ? 1.5 : 1;
+      sectorGroup.style.transform = `scale(${scaleValue})`;
+    });
+  };
+
+  /**
+   * Create a standardized label element with consistent styling
+   */
+  private createLabel = (
+    x: number,
+    y: number,
+    text: string,
+    options: {
+      fontSize?: string;
+      fontWeight?: string;
+      fill?: string;
+      stroke?: string;
+      strokeWidth?: string;
+      className?: string;
+      bgCircle?: { radius: number; fill: string; stroke: string; strokeWidth: string };
+      isCurrent?: boolean;
+    } = {}
+  ): { label: SVGTextElement; bgCircle?: SVGCircleElement } => {
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', String(x));
+    label.setAttribute('y', String(y));
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('dominant-baseline', 'middle');
+    label.setAttribute('class', options.className || 'label');
+    label.textContent = text;
+    label.style.fontSize = options.fontSize || '28px';
+    label.style.fontWeight = options.fontWeight || 'bold';
+    label.style.fill = options.fill || '#fff';
+    if (options.stroke) {
+      label.setAttribute('stroke', options.stroke);
+      label.style.stroke = options.stroke;
+      label.style.strokeWidth = options.strokeWidth || '2px';
+      label.setAttribute('stroke-width', options.strokeWidth || '2');
+      label.setAttribute('stroke-linejoin', 'round');
+      label.setAttribute('paint-order', 'stroke fill');
+      label.style.paintOrder = 'stroke fill';
+    }
+    label.style.pointerEvents = 'none';
+
+    let bgCircle: SVGCircleElement | undefined;
+    if (options.bgCircle) {
+      bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      bgCircle.setAttribute('cx', String(x));
+      bgCircle.setAttribute('cy', String(y));
+      bgCircle.setAttribute('r', String(options.bgCircle.radius));
+      bgCircle.setAttribute('fill', options.bgCircle.fill);
+      bgCircle.setAttribute('stroke', options.bgCircle.stroke);
+      bgCircle.setAttribute('stroke-width', options.bgCircle.strokeWidth);
+      bgCircle.style.pointerEvents = 'none';
+    }
+
+    return { label, bgCircle };
   };
 
   /**
@@ -854,7 +1103,16 @@ export class ZoomMode {
     const currentDay = now.getDate();
     const isCurrentMonth = year === currentYear && month === currentMonth;
 
-    // Draw days
+    // Store label data for rendering in separate layer
+    const labelData: Array<{
+      day: number;
+      x: number;
+      y: number;
+      isCurrent: boolean;
+      scale: number;
+    }> = [];
+
+    // Draw days - first pass: create sectors only
     for (let day = 1; day <= monthDaysCount; day++) {
       const angle = ((day - 1) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
       const dayAngle = (day / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
@@ -867,6 +1125,23 @@ export class ZoomMode {
 
       // Check if current day
       const isCurrent = isCurrentMonth && day === currentDay;
+
+      // Calculate scale based on hover
+      const scaleValue = this.hoveredDay === day ? 1.5 : 1;
+
+      // Create a group for this sector with transform origin at center
+      const sectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const midAngle = (startAngle + endAngle) / 2;
+      const midRadius = (radius * 0.7 + radius) / 2;
+      const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
+      const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
+      
+      // Apply smooth CSS transition for scale transform (faster animation)
+      sectorGroup.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
+      sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
+      sectorGroup.style.transform = `scale(${scaleValue})`;
+      sectorGroup.setAttribute('data-day', String(day));
+      sectorGroup.setAttribute('data-hover-type', 'day');
 
       // Draw day sector - use similar color scheme to year's
       let fillColor: string;
@@ -882,15 +1157,16 @@ export class ZoomMode {
         centerX,
         centerY,
         radius * 0.7,
-        radius,
+        radius, // Always base radius, scale via transform
         startAngle,
         endAngle,
         fillColor
       );
 
-      sector.setAttribute('class', 'day-sector');
+      sector.classList.add('sector', 'day-sector');
       sector.setAttribute('data-day', String(day));
       if (isCurrent) {
+        sector.classList.add('current');
         sector.setAttribute('data-current', 'true');
         // Much more visible stroke for current day
         sector.setAttribute('stroke', 'rgba(100, 200, 255, 1)');
@@ -925,8 +1201,6 @@ export class ZoomMode {
           sector.setAttribute('filter', `url(#${filterId})`);
         }
       }
-      sector.style.cursor = 'pointer';
-
       // Click handler - zoom to week or day based on wheel
       let wheelDelta = 0;
       let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -982,55 +1256,90 @@ export class ZoomMode {
         this.navigateToLevel('week', { week });
       });
 
-      // Draw day label with background circle for maximum visibility FIRST
-      // This ensures labels are always visible even if sectors are re-rendered
-      const labelRadius = radius * 0.88; // Slightly further out for better visibility
+      // Add hover handlers
+      sector.addEventListener('mouseenter', () => {
+        this.hoveredDay = day;
+        if (this.currentState.level === 'month' && !this.animating) {
+          this.updateDayScales();
+          // Move hovered sector group to end so it renders on top
+          const parent = sectorGroup.parentElement;
+          if (parent) {
+            parent.appendChild(sectorGroup);
+          }
+        }
+      });
+
+      sector.addEventListener('mouseleave', () => {
+        this.hoveredDay = null;
+        if (this.currentState.level === 'month' && !this.animating) {
+          this.updateDayScales();
+        }
+      });
+
+      // Add sector to group
+      sectorGroup.appendChild(sector);
+      
+      // Append sector group to main group (labels will be added separately)
+      group.appendChild(sectorGroup);
+
+      // Store label data for rendering in separate layer (after all sectors)
+      const labelRadius = radius * 0.88;
       const labelX = centerX + Math.cos(dayAngle) * labelRadius;
       const labelY = centerY + Math.sin(dayAngle) * labelRadius;
-
-      // Draw background circle behind the number for visibility
-      const bgRadius = isCurrent ? 28 : 24; // Larger background for current day
-      const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      bgCircle.setAttribute('cx', String(labelX));
-      bgCircle.setAttribute('cy', String(labelY));
-      bgCircle.setAttribute('r', String(bgRadius));
-      bgCircle.setAttribute('fill', isCurrent ? 'rgba(100, 200, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)');
-      bgCircle.setAttribute('stroke', isCurrent ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.5)');
-      bgCircle.setAttribute('stroke-width', isCurrent ? '2' : '1');
-      bgCircle.style.pointerEvents = 'none';
-      bgCircle.setAttribute('opacity', '1');
-      bgCircle.setAttribute('visibility', 'visible');
-      group.appendChild(bgCircle);
-
-      // Draw the number text
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      label.setAttribute('x', String(labelX));
-      label.setAttribute('y', String(labelY));
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('dominant-baseline', 'middle');
-      label.setAttribute('class', 'day-label');
-      label.setAttribute('fill', '#ffffff'); // Set fill as attribute as well
-      label.setAttribute('stroke', '#000000'); // Black stroke for contrast
-      label.setAttribute('stroke-width', '1.5'); // Slightly thicker stroke for visibility
-      label.setAttribute('stroke-linejoin', 'round'); // Smooth stroke
-      label.setAttribute('paint-order', 'stroke fill'); // Stroke first, then fill (SVG attribute)
-      label.textContent = String(day);
-      label.style.fontSize = isCurrent ? '48px' : '40px'; // Much larger font for readability
-      label.style.fontWeight = 'bold'; // Always bold
-      label.style.fill = '#ffffff'; // Always white
-      label.style.stroke = '#000000'; // Black stroke
-      label.style.strokeWidth = '2px'; // Slightly thicker stroke for visibility
-      label.style.paintOrder = 'stroke fill'; // Stroke first, then fill (CSS property)
-      // SVG doesn't support CSS text-shadow, use stroke instead
-      label.style.pointerEvents = 'none';
-      label.setAttribute('opacity', '1'); // Ensure opacity is 1
-      label.setAttribute('visibility', 'visible'); // Ensure visibility
-
-      group.appendChild(label);
-
-      // Append sector AFTER labels so it's behind (SVG renders in order)
-      group.appendChild(sector);
+      labelData.push({
+        day,
+        x: labelX,
+        y: labelY,
+        isCurrent,
+        scale: scaleValue,
+      });
     }
+
+    // Second pass: render all labels in a separate layer (always on top, no occlusion)
+    const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    labelsGroup.classList.add('labels-layer');
+    
+    labelData.forEach(({ day, x, y, isCurrent }) => {
+      // Create label with consistent styling (using CSS classes)
+      const { label, bgCircle } = this.createLabel(x, y, String(day), {
+        fontSize: isCurrent ? '40px' : '32px',
+        fill: '#ffffff',
+        stroke: '#000000',
+        strokeWidth: '2',
+        className: 'day-label',
+        isCurrent,
+        bgCircle: {
+          radius: isCurrent ? 24 : 20,
+          fill: isCurrent ? 'rgba(100, 200, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
+          stroke: isCurrent ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.5)',
+          strokeWidth: isCurrent ? '2' : '1',
+        },
+      });
+
+      // Use CSS classes for styling - labels stay fixed size (no scaling) to avoid occlusion
+      label.classList.add('label-scalable', 'day-label');
+      label.setAttribute('data-day', String(day));
+      // CRITICAL: Set explicit position and ensure label is always visible
+      // Don't use transforms on labels - they cause issues with visibility
+      label.style.transform = 'none';
+      label.style.visibility = 'visible';
+      label.style.opacity = '1';
+      label.style.display = 'block';
+      
+      if (bgCircle) {
+        bgCircle.classList.add('label-scalable');
+        bgCircle.setAttribute('data-day', String(day));
+        bgCircle.style.transform = 'none';
+        bgCircle.style.visibility = 'visible';
+        bgCircle.style.opacity = '1';
+        bgCircle.style.display = 'block';
+        labelsGroup.appendChild(bgCircle);
+      }
+      labelsGroup.appendChild(label);
+    });
+    
+    // Add labels group AFTER all sectors so labels are always on top
+    group.appendChild(labelsGroup);
 
     // Draw events in center
     if (monthEvents.length > 0) {
@@ -1041,11 +1350,8 @@ export class ZoomMode {
         eventText.setAttribute('y', String(centerY - 60 + index * 20));
         eventText.setAttribute('text-anchor', 'middle');
         eventText.setAttribute('dominant-baseline', 'middle');
-        eventText.setAttribute('class', 'event-text');
+        eventText.classList.add('event-text');
         eventText.textContent = event.summary.substring(0, 30);
-        eventText.style.fontSize = '20px';
-        eventText.style.fill = '#fff';
-        eventText.style.pointerEvents = 'none';
 
         eventsGroup.appendChild(eventText);
       });
@@ -1063,11 +1369,8 @@ export class ZoomMode {
     periodText.setAttribute('y', String(centerY + 80));
     periodText.setAttribute('text-anchor', 'middle');
     periodText.setAttribute('dominant-baseline', 'middle');
-    periodText.setAttribute('class', 'period-text');
+    periodText.classList.add('period-text', 'month');
     periodText.textContent = `${monthNames[month]} 1-${totalDaysInMonth}`;
-    periodText.style.fontSize = '36px';
-    periodText.style.fontWeight = 'bold';
-    periodText.style.fill = '#fff';
 
     group.appendChild(periodText);
 
@@ -1114,6 +1417,24 @@ export class ZoomMode {
       // Check if current day
       const isCurrent = dayYear === currentYear && dayMonth === currentMonth && day === currentDay;
 
+      // Calculate scale based on hover
+      const scaleValue = this.hoveredWeekDay === i ? 1.5 : 1;
+
+      // Create a group for this sector with transform origin at center
+      const sectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const midAngle = (startAngle + endAngle) / 2;
+      const midRadius = (radius * 0.7 + radius) / 2;
+      const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
+      const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
+      
+      // Use CSS classes
+      sectorGroup.classList.add('sector-group');
+      // Use pixel values for transform origin (same as month circles) - this ensures correct scaling
+      sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
+      sectorGroup.style.transform = `scale(${scaleValue})`;
+      sectorGroup.setAttribute('data-week-day', String(i));
+      sectorGroup.setAttribute('data-hover-type', 'week-day');
+
       // Draw day sector - use similar color scheme to year's
       // Color based on day index (i) to match year's pattern
       const fillColor = isCurrent
@@ -1123,15 +1444,16 @@ export class ZoomMode {
         centerX,
         centerY,
         radius * 0.7,
-        radius,
+        radius, // Always base radius, scale via transform
         startAngle,
         endAngle,
         fillColor
       );
 
-      sector.setAttribute('class', 'day-sector');
+      sector.classList.add('sector', 'day-sector');
       sector.setAttribute('data-day', String(i));
       if (isCurrent) {
+        sector.classList.add('current');
         sector.setAttribute('data-current', 'true');
         sector.setAttribute('stroke', 'rgba(100, 200, 255, 0.8)');
         sector.setAttribute('stroke-width', '2');
@@ -1146,29 +1468,48 @@ export class ZoomMode {
         });
       });
 
-      group.appendChild(sector);
+      // Add hover handlers
+      sector.addEventListener('mouseenter', () => {
+        this.hoveredWeekDay = i;
+        if (this.currentState.level === 'week' && !this.animating) {
+          this.updateWeekDayScales();
+          // Move hovered sector group to end so it renders on top
+          const parent = sectorGroup.parentElement;
+          if (parent) {
+            parent.appendChild(sectorGroup);
+          }
+        }
+      });
 
-      // Draw day label
+      sector.addEventListener('mouseleave', () => {
+        this.hoveredWeekDay = null;
+        if (this.currentState.level === 'week' && !this.animating) {
+          this.updateWeekDayScales();
+        }
+      });
+
+      // Add sector to group
+      sectorGroup.appendChild(sector);
+
+      // Draw day label (inside the sector group so it scales with the sector)
       const labelRadius = radius * 0.85;
       const labelX = centerX + Math.cos(angle) * labelRadius;
       const labelY = centerY + Math.sin(angle) * labelRadius;
 
-      // Draw day name and number
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      label.setAttribute('x', String(labelX));
-      label.setAttribute('y', String(labelY));
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('dominant-baseline', 'middle');
-      label.setAttribute('class', 'day-label');
-      label.textContent = `${dayNames[i]}\n${day}`;
-      label.style.fontSize = isCurrent ? '28px' : '24px';
-      label.style.fontWeight = 'bold';
-      label.style.fill = isCurrent ? '#fff' : '#fff';
-      label.style.textShadow = isCurrent ? '0 0 8px rgba(255, 255, 255, 0.8)' : 'none';
-      label.style.pointerEvents = 'none';
+      // Use standardized label creation
+      const { label } = this.createLabel(labelX, labelY, `${dayNames[i]}\n${day}`, {
+        fontSize: isCurrent ? '24px' : '20px',
+        fill: '#fff',
+        className: 'day-label',
+        isCurrent,
+      });
       label.style.whiteSpace = 'pre';
 
-      group.appendChild(label);
+      // Add label to sector group so it scales with the sector
+      sectorGroup.appendChild(label);
+      
+      // Append sector group to main group
+      group.appendChild(sectorGroup);
     }
 
     // Draw events in center
@@ -1180,11 +1521,8 @@ export class ZoomMode {
         eventText.setAttribute('y', String(centerY - 60 + index * 20));
         eventText.setAttribute('text-anchor', 'middle');
         eventText.setAttribute('dominant-baseline', 'middle');
-        eventText.setAttribute('class', 'event-text');
+        eventText.classList.add('event-text');
         eventText.textContent = event.summary.substring(0, 30);
-        eventText.style.fontSize = '20px';
-        eventText.style.fill = '#fff';
-        eventText.style.pointerEvents = 'none';
 
         eventsGroup.appendChild(eventText);
       });
@@ -1202,21 +1540,31 @@ export class ZoomMode {
     const startMonthName = monthNamesShort[weekStart.getMonth()];
     const endDay = weekEndDate.getDate();
     const endMonthName = monthNamesShort[weekEndDate.getMonth()];
+    // Create text element with two lines using tspan
     const periodText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     periodText.setAttribute('x', String(centerX));
-    periodText.setAttribute('y', String(centerY + 80));
+    periodText.setAttribute('y', String(centerY + 60));
     periodText.setAttribute('text-anchor', 'middle');
     periodText.setAttribute('dominant-baseline', 'middle');
-    periodText.setAttribute('class', 'period-text');
-    // Format: "Week 12, dates 12-19 March" or "Week 12, dates 28 Mar - 4 Apr"
+    periodText.classList.add('period-text', 'week');
+    
+    // First line: Week number
+    const tspan1 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+    tspan1.setAttribute('x', String(centerX));
+    tspan1.setAttribute('dy', '0');
+    tspan1.textContent = `Week ${week + 1}`;
+    periodText.appendChild(tspan1);
+    
+    // Second line: Date range
+    const tspan2 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+    tspan2.setAttribute('x', String(centerX));
+    tspan2.setAttribute('dy', '1.2em'); // Line spacing
     if (startMonthName === endMonthName) {
-      periodText.textContent = `Week ${week + 1}, dates ${startDay}-${endDay} ${startMonthName}`;
+      tspan2.textContent = `${startDay}-${endDay} ${startMonthName}`;
     } else {
-      periodText.textContent = `Week ${week + 1}, dates ${startDay} ${startMonthName} - ${endDay} ${endMonthName}`;
+      tspan2.textContent = `${startDay} ${startMonthName} - ${endDay} ${endMonthName}`;
     }
-    periodText.style.fontSize = '32px';
-    periodText.style.fontWeight = 'bold';
-    periodText.style.fill = '#fff';
+    periodText.appendChild(tspan2);
 
     group.appendChild(periodText);
 
@@ -1255,6 +1603,24 @@ export class ZoomMode {
       // Check if current hour
       const isCurrent = isCurrentDay && hour === currentHour12;
 
+      // Calculate scale based on hover
+      const scaleValue = this.hoveredHour === hour ? 1.5 : 1;
+
+      // Create a group for this sector with transform origin at center
+      const sectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const midAngle = (startAngle + endAngle) / 2;
+      const midRadius = (radius * 0.7 + radius) / 2;
+      const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
+      const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
+      
+      // Use CSS classes
+      sectorGroup.classList.add('sector-group');
+      // Use pixel values for transform origin (same as month circles) - this ensures correct scaling
+      sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
+      sectorGroup.style.transform = `scale(${scaleValue})`;
+      sectorGroup.setAttribute('data-hour', String(hour));
+      sectorGroup.setAttribute('data-hover-type', 'hour');
+
       // Draw hour sector - use similar color scheme to year's
       const fillColor = isCurrent
         ? `hsl(${(hour * 30) % 360}, 80%, 50%)` // Brighter for current hour
@@ -1263,42 +1629,63 @@ export class ZoomMode {
         centerX,
         centerY,
         radius * 0.7,
-        radius,
+        radius, // Always base radius, scale via transform
         startAngle,
         endAngle,
         fillColor
       );
 
-      sector.setAttribute('class', 'hour-sector');
+      sector.classList.add('sector', 'hour-sector');
       sector.setAttribute('data-hour', String(hour));
       if (isCurrent) {
+        sector.classList.add('current');
         sector.setAttribute('data-current', 'true');
         sector.setAttribute('stroke', 'rgba(100, 200, 255, 0.8)');
         sector.setAttribute('stroke-width', '2');
       }
-      sector.style.pointerEvents = 'none';
+      // Pointer events handled by CSS class
 
-      group.appendChild(sector);
+      // Add hover handlers
+      sector.addEventListener('mouseenter', () => {
+        this.hoveredHour = hour;
+        if (this.currentState.level === 'day' && !this.animating) {
+          this.updateHourScales();
+          // Move hovered sector group to end so it renders on top
+          const parent = sectorGroup.parentElement;
+          if (parent) {
+            parent.appendChild(sectorGroup);
+          }
+        }
+      });
 
-      // Draw hour label
+      sector.addEventListener('mouseleave', () => {
+        this.hoveredHour = null;
+        if (this.currentState.level === 'day' && !this.animating) {
+          this.updateHourScales();
+        }
+      });
+
+      // Add sector to group
+      sectorGroup.appendChild(sector);
+
+      // Draw hour label (inside the sector group so it scales with the sector)
       const labelRadius = radius * 0.85;
       const labelX = centerX + Math.cos(angle) * labelRadius;
       const labelY = centerY + Math.sin(angle) * labelRadius;
 
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      label.setAttribute('x', String(labelX));
-      label.setAttribute('y', String(labelY));
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('dominant-baseline', 'middle');
-      label.setAttribute('class', 'hour-label');
-      label.textContent = String(hour);
-      label.style.fontSize = isCurrent ? '32px' : '28px';
-      label.style.fontWeight = 'bold';
-      label.style.fill = isCurrent ? '#64c8ff' : '#fff';
-      label.style.textShadow = isCurrent ? '0 0 6px rgba(100, 200, 255, 0.8)' : 'none';
-      label.style.pointerEvents = 'none';
+      // Use standardized label creation
+      const { label } = this.createLabel(labelX, labelY, String(hour), {
+        fontSize: isCurrent ? '28px' : '24px',
+        fill: isCurrent ? '#64c8ff' : '#fff',
+        className: 'hour-label',
+        isCurrent,
+      });
 
-      group.appendChild(label);
+      // Add label to sector group so it scales with the sector
+      sectorGroup.appendChild(label);
+      
+      // Append sector group to main group
+      group.appendChild(sectorGroup);
     }
 
     // Draw event dots
@@ -1352,11 +1739,8 @@ export class ZoomMode {
         eventText.setAttribute('y', String(centerY - 60 + index * 20));
         eventText.setAttribute('text-anchor', 'middle');
         eventText.setAttribute('dominant-baseline', 'middle');
-        eventText.setAttribute('class', 'event-text');
+        eventText.classList.add('event-text');
         eventText.textContent = event.summary.substring(0, 30);
-        eventText.style.fontSize = '20px';
-        eventText.style.fill = '#fff';
-        eventText.style.pointerEvents = 'none';
 
         eventsGroup.appendChild(eventText);
       });
@@ -1373,11 +1757,8 @@ export class ZoomMode {
     periodText.setAttribute('y', String(centerY + 80));
     periodText.setAttribute('text-anchor', 'middle');
     periodText.setAttribute('dominant-baseline', 'middle');
-    periodText.setAttribute('class', 'period-text');
+    periodText.classList.add('period-text', 'day');
     periodText.textContent = `${monthNamesShort[month]} ${day}, ${year}`;
-    periodText.style.fontSize = '32px';
-    periodText.style.fontWeight = 'bold';
-    periodText.style.fill = '#fff';
 
     group.appendChild(periodText);
 
@@ -1465,23 +1846,6 @@ export class ZoomMode {
     return oldIndex > newIndex;
   };
 
-  /**
-   * Get level name for display
-   */
-  private getLevelName = (level: ZoomLevel): string => {
-    if (level === 'month') {
-      const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December',
-      ];
-      return monthNames[this.currentState.month];
-    } else if (level === 'week') {
-      return 'month';
-    } else if (level === 'day') {
-      return 'week';
-    }
-    return 'year';
-  };
 
   /**
    * Handle back button
@@ -1513,11 +1877,25 @@ export class ZoomMode {
 
     // Clear SVG but preserve defs element for filters
     const existingDefs = this.svg.querySelector('defs');
-    this.svg.innerHTML = '';
-
-    // Restore defs if it existed (needed for filters)
-    if (existingDefs) {
-      this.svg.appendChild(existingDefs);
+    // Remove all children except defs
+    while (this.svg.firstChild) {
+      if (this.svg.firstChild !== existingDefs) {
+        this.svg.removeChild(this.svg.firstChild);
+      } else {
+        // Skip defs, move to next
+        const next = this.svg.firstChild.nextSibling;
+        if (!next) break;
+        this.svg.removeChild(this.svg.firstChild);
+        if (next === existingDefs) continue;
+        this.svg.removeChild(next);
+      }
+    }
+    // Ensure defs exists
+    if (!existingDefs) {
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      this.svg.insertBefore(defs, this.svg.firstChild);
+    } else if (!this.svg.contains(existingDefs)) {
+      this.svg.insertBefore(existingDefs, this.svg.firstChild);
     }
 
     // Render current circle
@@ -1544,10 +1922,22 @@ export class ZoomMode {
         this.backButton.classList.add('hidden');
       } else {
         this.backButton.classList.remove('hidden');
-        // Update button text based on current level
-        const levelText = this.getLevelName(this.currentState.level);
-        this.backButton.innerHTML = `← Zoom out to ${levelText}`;
-        this.backButton.setAttribute('aria-label', `Zoom out to ${levelText}`);
+        // Format: "← [month number]" or "← [date]" instead of "zoom out to"
+        const state = this.currentState;
+        let buttonText = '←';
+        if (state.level === 'month') {
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          buttonText = `← ${state.month + 1} ${monthNames[state.month]}`;
+        } else if (state.level === 'week') {
+          const weekStart = this.getWeekStartDate(state.year, state.week);
+          const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          buttonText = `← ${weekStart.getDate()} ${monthNamesShort[weekStart.getMonth()]}`;
+        } else if (state.level === 'day') {
+          const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          buttonText = `← ${state.day} ${monthNamesShort[state.month]}`;
+        }
+        this.backButton.innerHTML = buttonText;
+        this.backButton.setAttribute('aria-label', buttonText);
       }
     }
   };

@@ -18,15 +18,24 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(
+          to bottom,
+          #07101a,
+          #0b1220
+        ); /* Dark theme default */
         min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
+        margin: 0;
+        padding: 0;
         color: white;
         overflow-x: hidden;
         max-width: 100vw;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      /* Light theme support */
+      .light-theme body {
+        background: linear-gradient(to bottom, #e0e7ff, #ffffff);
+        color: #1f2937;
       }
 
       h1 {
@@ -50,6 +59,12 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         width: 600px;
         max-width: 90vw;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .light-theme .controls {
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       }
 
       .control-group {
@@ -111,7 +126,11 @@
         display: flex;
         gap: 20px;
         align-items: flex-start;
+        justify-content: center;
         max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 20px;
       }
 
       #canvas-container {
@@ -126,6 +145,12 @@
         overflow: hidden;
         flex-shrink: 0;
         box-sizing: border-box;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .light-theme #canvas-container {
+        background: rgba(255, 255, 255, 1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
       }
 
       .layer-controls {
@@ -136,6 +161,12 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         min-width: 250px;
         max-width: 300px;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .light-theme .layer-controls {
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       }
 
       .layer-controls h3 {
@@ -210,18 +241,56 @@
         height: 100%;
       }
 
+      /* Ensure sector groups have no transforms that could cause displacement */
+      .ring-sector-group {
+        transform: none !important;
+      }
+
       .ring-sector {
         stroke: rgba(255, 255, 255, 0.6);
         stroke-width: 1.5;
         cursor: pointer;
-        transition: opacity 0.3s ease, stroke-width 0.3s ease;
+        transition: opacity 0.2s ease, stroke 0.2s ease;
         pointer-events: all;
+        /* Use vector-effect to prevent stroke from affecting layout */
+        vector-effect: non-scaling-stroke;
+        /* CRITICAL: No transforms, filters, or any effects that could cause position changes */
+        transform: none;
+        filter: none;
       }
 
+      /* Hover on sector path - precise detection using actual path shape */
       .ring-sector:hover {
-        opacity: 0.9;
+        opacity: 1;
         stroke: white;
-        stroke-width: 3;
+        /* CRITICAL: Keep stroke-width exactly the same to prevent layout shift */
+        stroke-width: 1.5;
+        /* NO filters, transforms, or effects that could cause visual displacement */
+        filter: none;
+        transform: none;
+      }
+
+      /* Also support group hover for cases where group has pointer events */
+      .ring-sector-group:hover .ring-sector {
+        opacity: 1;
+        stroke: white;
+        stroke-width: 1.5;
+        /* NO filters, transforms, or effects that could cause visual displacement */
+        filter: none;
+        transform: none;
+      }
+
+      .light-theme .ring-sector-group:hover .ring-sector,
+      .light-theme .ring-sector:hover {
+        stroke: rgba(0, 0, 0, 0.8);
+        filter: none;
+        transform: none;
+      }
+
+      /* Ensure labels stay visible on hover */
+      .ring-sector-group:hover .ring-label {
+        opacity: 1 !important;
+        fill: rgba(0, 0, 0, 0.9) !important;
       }
 
       .ring-separator {
@@ -232,25 +301,52 @@
       }
 
       .ring-label {
-        fill: rgba(0, 0, 0, 0.9);
-        font-size: 52px;
+        fill: rgba(0, 0, 0, 0.95);
+        font-size: 18px; /* Reduced 30% from 26px */
         font-weight: 700;
         pointer-events: none;
         user-select: none;
         paint-order: stroke fill;
-        stroke: rgba(255, 255, 255, 0.8);
-        stroke-width: 12px;
+        stroke: rgba(255, 255, 255, 1);
+        stroke-width: 5px; /* Increased for better contrast on white background */
         stroke-linecap: round;
         stroke-linejoin: round;
+        /* Ensure labels are always visible and on top */
+        opacity: 1 !important;
+        z-index: 10;
+        transition: fill 0.3s ease, stroke 0.3s ease;
+      }
+
+      .light-theme .ring-label {
+        fill: rgba(0, 0, 0, 0.95);
+        stroke: rgba(255, 255, 255, 1);
+        stroke-width: 5px;
       }
 
       .center-text {
         fill: rgba(0, 0, 0, 0.7);
-        font-size: 128px;
+        font-size: 45px; /* Reduced 30% from 64px */
         font-weight: 700;
         text-anchor: middle;
         dominant-baseline: middle;
         pointer-events: none;
+        transition: fill 0.3s ease;
+      }
+
+      .light-theme .center-text {
+        fill: rgba(0, 0, 0, 0.8);
+      }
+
+      /* Mobile: Double font sizes */
+      @media (max-width: 768px) {
+        .ring-label {
+          font-size: 52px;
+          stroke-width: 12px;
+        }
+
+        .center-text {
+          font-size: 128px;
+        }
       }
 
       /* Mobile optimizations */
@@ -422,16 +518,17 @@
     </style>
   </head>
   <body>
-    <!-- Header with Mode Selector - matches index.html -->
-    <header
-      class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6"
-      style="
-        overflow-x: hidden;
-        position: relative;
-        z-index: 100;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      "
-    >
+    <div class="min-h-screen flex flex-col w-full">
+      <!-- Header with Mode Selector - matches index.html -->
+      <header
+        class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6"
+        style="
+          overflow-x: hidden;
+          position: relative;
+          z-index: 1000;
+          background: transparent;
+        "
+      >
       <div
         class="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4"
       >
@@ -543,54 +640,9 @@
           </button>
         </div>
       </div>
-    </header>
+      </header>
 
-    <h1 style="margin-top: 0; margin-bottom: 10px">🎯 Multi-Ring Calendar</h1>
-    <p class="subtitle">
-      Perimeter-preserving morphing shape with 5 calendar rings + drag-and-drop
-      reordering
-    </p>
-
-    <!-- Layer Controls at top (hideable) -->
-    <div class="layer-controls" id="layerControls" style="margin-bottom: 20px">
-      <div
-        style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-        "
-      >
-        <h3 style="margin: 0">📚 Layer Controls</h3>
-        <button
-          id="toggleLayerControls"
-          style="
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-          "
-          title="Toggle Layer Controls"
-        >
-          <span id="layerControlsToggleText">▶ Show</span>
-        </button>
-      </div>
-      <div id="layerControlsContent" style="display: none">
-        <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px">
-          Drag to reorder • Click checkbox to show/hide
-        </p>
-        <ul class="layer-list" id="layerList">
-          <!-- Populated by JavaScript -->
-        </ul>
-      </div>
-    </div>
-
-    <div class="main-content">
+      <div class="main-content flex-1">
       <div id="canvas-container">
         <svg id="calendar-svg" viewBox="0 0 700 700">
           <defs>
@@ -791,11 +843,54 @@
     <!-- Use TypeScript module for rings mode -->
     <script type="module" src="/rings.ts"></script>
 
-    <!-- Footer -->
-    <footer
-      class="w-full max-w-7xl mx-auto px-6 py-4 mt-auto border-t border-dark-border"
-      style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: auto"
+    <!-- Layer Controls at bottom (hideable) -->
+    <div
+      class="layer-controls"
+      id="layerControls"
+      style="margin-top: 20px; margin-bottom: 20px; position: relative; z-index: 10"
     >
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        "
+      >
+        <h3 style="margin: 0">📚 Layer Controls</h3>
+        <button
+          id="toggleLayerControls"
+          style="
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+          "
+          title="Toggle Layer Controls"
+        >
+          <span id="layerControlsToggleText">▶ Show</span>
+        </button>
+      </div>
+      <div id="layerControlsContent" style="display: none">
+        <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px">
+          Drag to reorder • Click checkbox to show/hide
+        </p>
+        <ul class="layer-list" id="layerList">
+          <!-- Populated by JavaScript -->
+        </ul>
+      </div>
+      </div>
+
+      <!-- Footer -->
+      <footer
+        class="w-full max-w-7xl mx-auto px-6 py-4 mt-auto border-t border-dark-border"
+        style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: auto"
+      >
       <div
         class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm"
         style="color: rgba(255, 255, 255, 0.7)"
@@ -833,6 +928,8 @@
           © 2025 YearWheel. All rights reserved.
         </div>
       </div>
-    </footer>
+      </footer>
+    </div>
   </body>
 </html>
+x`x
