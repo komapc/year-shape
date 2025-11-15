@@ -71,7 +71,7 @@ export class ZoomMode {
       width: 100%;
       height: 100%;
       pointer-events: auto;
-      touch-action: manipulation;
+      touch-action: pan-x pan-y pinch-zoom;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
@@ -104,13 +104,8 @@ export class ZoomMode {
     };
 
     this.svg.addEventListener('click', handleClick, true); // Use capture phase to catch events early
-    // Also prevent touch gestures that cause zoom
-    this.svg.addEventListener('touchstart', (e: TouchEvent) => {
-      // Prevent pinch zoom (2+ fingers)
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
+    // Allow pinch zoom for calendar content, but prevent page zoom
+    // Don't prevent touch events - let them work for navigation
 
     this.container.appendChild(this.svg);
 

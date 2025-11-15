@@ -1176,14 +1176,27 @@ export class CalendarApp {
         userInfo = googleCalendarService.getUserInfo();
       }
       
-      const displayName = userInfo?.name || 'User';
-      
       // Show personalized "Logged in" status, hide sign-in button
       this.loginStatus.classList.remove('hidden');
       this.headerSignInBtn.classList.add('hidden');
       statusDot.classList.remove('bg-red-500');
       statusDot.classList.add('bg-green-500');
-      statusText.textContent = `Hello, ${displayName}`;
+
+      // Always show user's name if available, otherwise show "Hello, User"
+      if (userInfo?.name) {
+        statusText.textContent = `Hello, ${userInfo.name}`;
+      } else {
+        statusText.textContent = 'Hello, User';
+        // Try to fetch user info one more time in the background
+        googleCalendarService.fetchUserInfo().then(() => {
+          const updatedInfo = googleCalendarService.getUserInfo();
+          if (updatedInfo?.name && statusText) {
+            statusText.textContent = `Hello, ${updatedInfo.name}`;
+          }
+        }).catch(() => {
+          // Ignore errors, just keep "Hello, User"
+        });
+      }
       
       // Show logout button, hide sign-in from settings
       this.logoutBtn.classList.remove('hidden');
