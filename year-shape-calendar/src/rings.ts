@@ -110,26 +110,53 @@ const setupUIControls = (ringsMode: RingsMode): void => {
     });
   }
 
-  // Mode selector
-  const modeSelector = document.getElementById('modeSelector') as HTMLSelectElement;
+  // Mode selector (radio buttons in header)
+  const headerModeOldRadio = document.getElementById('headerModeOld') as HTMLInputElement;
+  const headerModeRingsRadio = document.getElementById('headerModeRings') as HTMLInputElement;
+  const headerModeZoomRadio = document.getElementById('headerModeZoom') as HTMLInputElement;
 
-  if (modeSelector) {
-    // Load saved mode preference
-    const settings = loadSettings();
-    if (settings.mode && settings.mode !== 'rings') {
-      modeSelector.value = settings.mode;
-    }
+  const handleModeChange = (selectedMode: CalendarMode): void => {
+    // Save mode preference
+    updateSetting('mode', selectedMode);
 
-    // Handle mode change
-    modeSelector.addEventListener('change', (e) => {
-      const selectedMode = (e.target as HTMLSelectElement).value as CalendarMode;
+    // Navigate to selected mode
+    navigateToMode(selectedMode);
+  };
 
-      // Save mode preference
-      updateSetting('mode', selectedMode);
-
-      // Navigate to selected mode
-      navigateToMode(selectedMode);
+  if (headerModeOldRadio) {
+    headerModeOldRadio.addEventListener('change', () => {
+      if (headerModeOldRadio.checked) {
+        handleModeChange('old');
+      }
     });
+  }
+
+  if (headerModeRingsRadio) {
+    headerModeRingsRadio.addEventListener('change', () => {
+      if (headerModeRingsRadio.checked) {
+        handleModeChange('rings');
+      }
+    });
+  }
+
+  if (headerModeZoomRadio) {
+    headerModeZoomRadio.addEventListener('change', () => {
+      if (headerModeZoomRadio.checked) {
+        handleModeChange('zoom');
+      }
+    });
+  }
+
+  // Load saved mode preference
+  const settings = loadSettings();
+  if (settings.mode) {
+    if (settings.mode === 'old' && headerModeOldRadio) {
+      headerModeOldRadio.checked = true;
+    } else if (settings.mode === 'zoom' && headerModeZoomRadio) {
+      headerModeZoomRadio.checked = true;
+    } else if (headerModeRingsRadio) {
+      headerModeRingsRadio.checked = true;
+    }
   }
 
   // Layer controls (drag and drop, visibility toggles)
