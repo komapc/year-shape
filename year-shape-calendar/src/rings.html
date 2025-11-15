@@ -233,20 +233,20 @@
 
       .ring-label {
         fill: rgba(0, 0, 0, 0.9);
-        font-size: 13px;
+        font-size: 52px;
         font-weight: 700;
         pointer-events: none;
         user-select: none;
         paint-order: stroke fill;
         stroke: rgba(255, 255, 255, 0.8);
-        stroke-width: 3px;
+        stroke-width: 12px;
         stroke-linecap: round;
         stroke-linejoin: round;
       }
 
       .center-text {
         fill: rgba(0, 0, 0, 0.7);
-        font-size: 32px;
+        font-size: 128px;
         font-weight: 700;
         text-anchor: middle;
         dominant-baseline: middle;
@@ -425,7 +425,12 @@
     <!-- Header with Mode Selector - matches index.html -->
     <header
       class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6"
-      style="overflow-x: hidden"
+      style="
+        overflow-x: hidden;
+        position: relative;
+        z-index: 100;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      "
     >
       <div
         class="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4"
