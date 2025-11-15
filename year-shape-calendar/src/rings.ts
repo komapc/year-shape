@@ -8,6 +8,7 @@
 import { RingsMode } from './calendar/RingsMode';
 import { loadSettings, updateSetting, type CalendarMode } from './utils/settings';
 import { navigateToMode } from './utils/modeNavigation';
+import { initializeSwipeNavigation } from './utils/swipeNavigation';
 
 /**
  * Initialize rings mode when DOM is ready
@@ -189,6 +190,9 @@ const setupUIControls = (ringsMode: RingsMode): void => {
 
   // Layer controls (drag and drop, visibility toggles)
   ringsMode.initializeLayerControls();
+
+  // Initialize swipe navigation for mode switching
+  initializeSwipeNavigation();
 };
 
 // Wait for DOM to be ready

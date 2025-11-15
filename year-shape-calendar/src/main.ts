@@ -5,11 +5,15 @@
 import './style.css';
 import { CalendarApp } from './calendar/CalendarApp';
 import { pwaInstallManager } from './utils/pwaInstall';
+import { initializeSwipeNavigation } from './utils/swipeNavigation';
 
 // Initialize app when DOM is ready
 const initApp = (): void => {
   try {
     new CalendarApp();
+    
+    // Initialize swipe navigation for mode switching
+    initializeSwipeNavigation();
     
     // Initialize PWA install manager
     console.log('PWA Install Manager initialized:', pwaInstallManager);

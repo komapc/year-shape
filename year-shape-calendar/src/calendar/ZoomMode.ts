@@ -104,8 +104,126 @@ export class ZoomMode {
     };
 
     this.svg.addEventListener('click', handleClick, true); // Use capture phase to catch events early
-    // Allow pinch zoom for calendar content, but prevent page zoom
-    // Don't prevent touch events - let them work for navigation
+    
+    // Handle pinch zoom for zoom in/out
+    let initialDistance = 0;
+    let lastScale = 1;
+    let isPinching = false;
+    
+    this.svg.addEventListener('touchstart', (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        isPinching = true;
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        initialDistance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        lastScale = 1;
+      } else {
+        isPinching = false;
+      }
+    }, { passive: false });
+    
+    this.svg.addEventListener('touchmove', (e: TouchEvent) => {
+      if (e.touches.length === 2 && isPinching) {
+        e.preventDefault();
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        
+        const scale = currentDistance / initialDistance;
+        const scaleChange = scale / lastScale;
+        lastScale = scale;
+        
+        // Zoom in/out based on pinch scale
+        if (scaleChange > 1.2) {
+          // Pinch out (zoom in)
+          const state = this.currentState;
+          if (state.level === 'year') {
+            // Zoom into first month
+            this.navigateToLevel('month', { month: 0 });
+          } else if (state.level === 'month') {
+            // Zoom into first day of month
+            this.navigateToLevel('week', { week: 0 });
+          } else if (state.level === 'week') {
+            // Zoom into first day of week
+            this.navigateToLevel('day', { day: 1 });
+          }
+          isPinching = false;
+        } else if (scaleChange < 0.8) {
+          // Pinch in (zoom out)
+          this.handleBack();
+          isPinching = false;
+        }
+      }
+    }, { passive: false });
+    
+    this.svg.addEventListener('touchend', () => {
+      isPinching = false;
+      initialDistance = 0;
+      lastScale = 1;
+    }, { passive: false });
+    
+    // Global wheel event handler for zoom in/out on entire SVG
+    let globalWheelDelta = 0;
+    let globalWheelTimeout: ReturnType<typeof setTimeout> | null = null;
+    
+    this.svg.addEventListener('wheel', (e: WheelEvent) => {
+      // Only handle if not over a specific sector (to avoid double-handling)
+      const target = e.target as SVGElement;
+      if (target.hasAttribute && (target.hasAttribute('data-day') || target.hasAttribute('data-month'))) {
+        return; // Let sector handlers deal with it
+      }
+      
+      e.preventDefault();
+      
+      // Reset timeout on each wheel event
+      if (globalWheelTimeout) {
+        clearTimeout(globalWheelTimeout);
+      }
+      
+      // Accumulate delta
+      globalWheelDelta += e.deltaY;
+      
+      // Set timeout to reset after wheel stops
+      globalWheelTimeout = setTimeout(() => {
+        globalWheelDelta = 0;
+      }, 200);
+      
+      const state = this.currentState;
+      
+      if (Math.abs(globalWheelDelta) >= 100) {
+        if (globalWheelDelta < 0) {
+          // Scroll up = zoom out
+          this.handleBack();
+        } else {
+          // Scroll down = zoom in
+          if (state.level === 'year') {
+            // Zoom into current month
+            const now = new Date();
+            this.navigateToLevel('month', { month: now.getMonth() });
+          } else if (state.level === 'month') {
+            // Zoom into current day's week
+            const now = new Date();
+            const week = this.getWeekForDay(state.year, state.month, now.getDate());
+            this.navigateToLevel('week', { week });
+          } else if (state.level === 'week') {
+            // Zoom into current day
+            const now = new Date();
+            this.navigateToLevel('day', { day: now.getDate() });
+          }
+        }
+        globalWheelDelta = 0;
+        if (globalWheelTimeout) {
+          clearTimeout(globalWheelTimeout);
+          globalWheelTimeout = null;
+        }
+      }
+    }, { passive: false });
 
     this.container.appendChild(this.svg);
 
@@ -811,19 +929,50 @@ export class ZoomMode {
 
       // Click handler - zoom to week or day based on wheel
       let wheelDelta = 0;
+      let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
       sector.addEventListener('wheel', (e) => {
         e.preventDefault();
-        wheelDelta += Math.abs(e.deltaY);
+        
+        // Reset timeout on each wheel event
+        if (wheelTimeout) {
+          clearTimeout(wheelTimeout);
+        }
+        
+        // Accumulate delta (positive = scroll down = zoom in, negative = scroll up = zoom out)
+        wheelDelta += e.deltaY;
+        
+        // Set timeout to reset wheelDelta after wheel stops
+        wheelTimeout = setTimeout(() => {
+          wheelDelta = 0;
+        }, 200);
 
-        if (wheelDelta >= 3) {
-          // Big zoom - go to day
-          this.navigateToLevel('day', { day });
+        if (Math.abs(wheelDelta) >= 100) {
+          if (wheelDelta < 0) {
+            // Scroll up (negative) = zoom out - go to month
+            this.navigateToLevel('month', { month });
+          } else {
+            // Scroll down (positive) = zoom in - go to day
+            this.navigateToLevel('day', { day });
+          }
           wheelDelta = 0;
-        } else if (wheelDelta >= 1) {
-          // Slight zoom - go to week
-          const week = this.getWeekForDay(year, month, day);
-          this.navigateToLevel('week', { week });
+          if (wheelTimeout) {
+            clearTimeout(wheelTimeout);
+            wheelTimeout = null;
+          }
+        } else if (Math.abs(wheelDelta) >= 30) {
+          if (wheelDelta < 0) {
+            // Scroll up = zoom out - stay at month level
+            wheelDelta = 0; // Reset to prevent further actions
+          } else {
+            // Scroll down = zoom in - go to week
+            const week = this.getWeekForDay(year, month, day);
+            this.navigateToLevel('week', { week });
+          }
           wheelDelta = 0;
+          if (wheelTimeout) {
+            clearTimeout(wheelTimeout);
+            wheelTimeout = null;
+          }
         }
       });
 
