@@ -2,7 +2,7 @@
  * @fileoverview Base Ring class for calendar rings
  */
 
-import { CALENDAR_CONSTANTS, SVG_CONFIG } from './constants';
+import { CALENDAR_CONSTANTS, SVG_CONFIG, PRECISION_CONFIG } from './constants';
 
 export interface Point {
   x: number;
@@ -97,7 +97,7 @@ export abstract class Ring {
   drawSector(index: number, startAngle: number, endAngle: number): void {
     if (!this.svgGroup) return;
 
-    // Create a group for the sector to enable transform
+    // Create a group for the sector
     const sectorGroup = document.createElementNS(
       'http://www.w3.org/2000/svg',
       'g'
@@ -105,15 +105,16 @@ export abstract class Ring {
     sectorGroup.setAttribute('class', 'ring-sector-group');
     sectorGroup.setAttribute('data-sector', index.toString());
     sectorGroup.setAttribute('data-ring-name', this.name);
+    // Disable pointer events on group - let the path handle hover detection
+    // This prevents bounding-box hover issues that cause segments to jump
+    (sectorGroup as any).style.pointerEvents = 'none';
+    // CRITICAL: Ensure no transform is applied to the group
+    (sectorGroup as any).style.transform = 'none';
     
-    // Calculate center point for transform origin
+    // Calculate center point (for label positioning only, not for transforms)
     const midAngle = (startAngle + endAngle) / 2;
     const midRadius = (this.innerRadius + this.outerRadius) / 2;
     const centerPoint = this.getPointOnShape(midAngle, midRadius);
-    
-    // Store center point for hover transform
-    (sectorGroup as any).__centerX = centerPoint.x;
-    (sectorGroup as any).__centerY = centerPoint.y;
 
     const path = this.createSectorPath(startAngle, endAngle);
     const pathElement = document.createElementNS(
@@ -136,13 +137,16 @@ export abstract class Ring {
       // Alert removed per user request - just log to console
     });
 
-    // No hover effects in rings mode yet (removed per user request)
-
+    // Add path first (renders behind)
     sectorGroup.appendChild(pathElement);
+    
+    // Add label AFTER path so it renders on top and is always visible
+    const labelElement = this.createLabelElement(index, (startAngle + endAngle) / 2);
+    if (labelElement) {
+      sectorGroup.appendChild(labelElement);
+    }
+    
     this.svgGroup.appendChild(sectorGroup);
-
-    // Draw label
-    this.drawLabel(index, (startAngle + endAngle) / 2);
   }
 
   createSectorPath(startAngle: number, endAngle: number): string {
@@ -155,11 +159,15 @@ export abstract class Ring {
     // Build SVG path
     const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
 
+    // Use higher precision for sectors with many divisions (like weeks with 52 sectors)
+    // This prevents rounding errors that cause gaps/overlaps and visual displacement
+    const precision = this.getPrecision();
+
     return `
-      M ${outerStart.x.toFixed(2)} ${outerStart.y.toFixed(2)}
-      A ${this.outerRadius.toFixed(2)} ${this.outerRadius.toFixed(2)} 0 ${largeArc} 1 ${outerEnd.x.toFixed(2)} ${outerEnd.y.toFixed(2)}
-      L ${innerEnd.x.toFixed(2)} ${innerEnd.y.toFixed(2)}
-      A ${this.innerRadius.toFixed(2)} ${this.innerRadius.toFixed(2)} 0 ${largeArc} 0 ${innerStart.x.toFixed(2)} ${innerStart.y.toFixed(2)}
+      M ${outerStart.x.toFixed(precision)} ${outerStart.y.toFixed(precision)}
+      A ${this.outerRadius.toFixed(precision)} ${this.outerRadius.toFixed(precision)} 0 ${largeArc} 1 ${outerEnd.x.toFixed(precision)} ${outerEnd.y.toFixed(precision)}
+      L ${innerEnd.x.toFixed(precision)} ${innerEnd.y.toFixed(precision)}
+      A ${this.innerRadius.toFixed(precision)} ${this.innerRadius.toFixed(precision)} 0 ${largeArc} 0 ${innerStart.x.toFixed(precision)} ${innerStart.y.toFixed(precision)}
       Z
     `.trim();
   }
@@ -199,24 +207,37 @@ export abstract class Ring {
     return { x, y };
   }
 
-  drawLabel(index: number, angle: number): void {
-    if (!this.svgGroup) return;
+  /**
+   * Get precision for SVG path generation based on sector count
+   */
+  protected getPrecision(): number {
+    return this.sectorCount > PRECISION_CONFIG.SECTOR_COUNT_THRESHOLD
+      ? PRECISION_CONFIG.HIGH
+      : PRECISION_CONFIG.DEFAULT;
+  }
 
+  createLabelElement(index: number, angle: number): SVGTextElement | null {
     const label = this.getSectorLabel(index);
-    if (!label) return;
+    if (!label) return null;
 
     const midRadius = (this.innerRadius + this.outerRadius) / 2;
     const point = this.getPointOnShape(angle, midRadius);
 
+    // Use higher precision for sectors with many divisions
+    const precision = this.getPrecision();
+
     const text = document.createElementNS(
       'http://www.w3.org/2000/svg',
       'text'
-    );
-    text.setAttribute('x', point.x.toFixed(2));
-    text.setAttribute('y', point.y.toFixed(2));
+    ) as SVGTextElement;
+    text.setAttribute('x', point.x.toFixed(precision));
+    text.setAttribute('y', point.y.toFixed(precision));
     text.setAttribute('class', 'ring-label');
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('dominant-baseline', 'middle');
+    text.style.pointerEvents = 'none'; // Ensure labels don't interfere with hover
+    text.style.opacity = '1'; // Force visibility
+    (text as any).style.zIndex = '10'; // Ensure labels render on top
 
     // Rotate text to follow curve - always keep readable
     // Normalize angle to 0-360 range
@@ -231,13 +252,23 @@ export abstract class Ring {
       rotation += 180;
     }
 
+    // Use the same precision variable declared above
     text.setAttribute(
       'transform',
-      `rotate(${rotation.toFixed(2)}, ${point.x.toFixed(2)}, ${point.y.toFixed(2)})`
+      `rotate(${rotation.toFixed(precision)}, ${point.x.toFixed(precision)}, ${point.y.toFixed(precision)})`
     );
     text.textContent = label;
 
-    this.svgGroup.appendChild(text);
+    return text;
+  }
+
+  drawLabel(index: number, angle: number): void {
+    // Deprecated: Use createLabelElement instead
+    // Kept for backward compatibility
+    const labelElement = this.createLabelElement(index, angle);
+    if (labelElement && this.svgGroup) {
+      this.svgGroup.appendChild(labelElement);
+    }
   }
 
   drawSeparator(): void {
@@ -266,9 +297,12 @@ export abstract class Ring {
       points.push(point);
     }
 
-    let path = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+    // Use higher precision for sectors with many divisions
+    const precision = this.getPrecision();
+
+    let path = `M ${points[0].x.toFixed(precision)} ${points[0].y.toFixed(precision)}`;
     for (let i = 1; i < points.length; i++) {
-      path += ` L ${points[i].x.toFixed(2)} ${points[i].y.toFixed(2)}`;
+      path += ` L ${points[i].x.toFixed(precision)} ${points[i].y.toFixed(precision)}`;
     }
     path += ' Z';
 

@@ -3,6 +3,7 @@
  */
 
 import { Ring } from './Ring';
+import { DayBasedRing, type DayBasedSector } from './DayBasedRing';
 import { CALENDAR_CONSTANTS, SEASON_DATES } from './constants';
 
 /**
@@ -153,7 +154,7 @@ export class SeasonsRing extends Ring {
 /**
  * Gregorian months ring
  */
-export class MonthsRing extends Ring {
+export class MonthsRing extends DayBasedRing {
   private gregorianMonths: Array<{ name: string; startDay: number; endDay: number }>;
 
   constructor() {
@@ -180,67 +181,25 @@ export class MonthsRing extends Ring {
   }
 
   getSectorLabel(index: number): string {
-    return this.gregorianMonths[index].name;
+    // Return month name with number (e.g., "1 Jan", "2 Feb", etc.)
+    return `${index + 1} ${this.gregorianMonths[index].name}`;
   }
 
-  // Override layout to use actual day-based positioning
-  layout(
-    centerX: number,
-    centerY: number,
-    innerRadius: number,
-    outerRadius: number,
-    cornerRadius: number,
-    direction: number = 1,
-    rotationOffset: number = 0
-  ): void {
-    this.centerX = centerX;
-    this.centerY = centerY;
-    this.innerRadius = innerRadius;
-    this.outerRadius = outerRadius;
-    this.cornerRadius = cornerRadius;
-    this.direction = direction;
+  // Override to use white fill with no background (matching year/week style)
+  getSectorColor(_index: number): string {
+    return 'white';
+  }
 
-    if (!this.svgGroup) return;
-
-    // Clear previous content
-    this.svgGroup.innerHTML = '';
-
-    // Draw sectors based on actual days in year
-    const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-    // Start at top (12 o'clock) - Jan 1 at the top
-    const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
-    const rotationRad = (rotationOffset * Math.PI) / 180;
-    const angleOffset = baseOffset + rotationRad;
-
-    for (let i = 0; i < this.gregorianMonths.length; i++) {
-      const month = this.gregorianMonths[i];
-      const progress =
-        (month.startDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-      const endProgress =
-        (month.endDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-
-      const startAngle = angleOffset + progress;
-      const endAngle = angleOffset + endProgress;
-
-      // For CCW, mirror angles around vertical axis: θ → π - θ
-      // IMPORTANT: Must swap start and end to maintain correct arc direction
-      const mirroredStart =
-        this.direction === -1 ? Math.PI - endAngle : startAngle;
-      const mirroredEnd =
-        this.direction === -1 ? Math.PI - startAngle : endAngle;
-
-      this.drawSector(i, mirroredStart, mirroredEnd);
-    }
-
-    // Draw separator line
-    this.drawSeparator();
+  // Use DayBasedRing's layout implementation
+  protected getSectors(): DayBasedSector[] {
+    return this.gregorianMonths;
   }
 }
 
 /**
  * Hebrew months ring
  */
-export class HebrewMonthsRing extends Ring {
+export class HebrewMonthsRing extends DayBasedRing {
   private hebrewMonths: Array<{ name: string; startDay: number; endDay: number }>;
 
   constructor() {
@@ -272,57 +231,9 @@ export class HebrewMonthsRing extends Ring {
     return this.hebrewMonths[index].name;
   }
 
-  // Override layout to use actual day-based positioning
-  layout(
-    centerX: number,
-    centerY: number,
-    innerRadius: number,
-    outerRadius: number,
-    cornerRadius: number,
-    direction: number = 1,
-    rotationOffset: number = 0
-  ): void {
-    this.centerX = centerX;
-    this.centerY = centerY;
-    this.innerRadius = innerRadius;
-    this.outerRadius = outerRadius;
-    this.cornerRadius = cornerRadius;
-    this.direction = direction;
-
-    if (!this.svgGroup) return;
-
-    // Clear previous content
-    this.svgGroup.innerHTML = '';
-
-    // Draw sectors based on actual days in year
-    const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-    // Start at top (12 o'clock) - Jan 1 at the top
-    const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
-    const rotationRad = (rotationOffset * Math.PI) / 180;
-    const angleOffset = baseOffset + rotationRad;
-
-    for (let i = 0; i < this.hebrewMonths.length; i++) {
-      const month = this.hebrewMonths[i];
-      const progress =
-        (month.startDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-      const endProgress =
-        (month.endDay / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-
-      const startAngle = angleOffset + progress;
-      const endAngle = angleOffset + endProgress;
-
-      // For CCW, mirror angles around vertical axis: θ → π - θ
-      // IMPORTANT: Must swap start and end to maintain correct arc direction
-      const mirroredStart =
-        this.direction === -1 ? Math.PI - endAngle : startAngle;
-      const mirroredEnd =
-        this.direction === -1 ? Math.PI - startAngle : endAngle;
-
-      this.drawSector(i, mirroredStart, mirroredEnd);
-    }
-
-    // Draw separator line
-    this.drawSeparator();
+  // Use DayBasedRing's layout implementation
+  protected getSectors(): DayBasedSector[] {
+    return this.hebrewMonths;
   }
 }
 
@@ -347,8 +258,9 @@ export class WeeksRing extends Ring {
 /**
  * Holidays ring - Major holidays for 2025
  */
-export class HolidaysRing extends Ring {
+export class HolidaysRing extends DayBasedRing {
   private holidays: Array<{ name: string; day: number }>;
+  private readonly HOLIDAY_SECTOR_WIDTH_DAYS = 3; // ±1.5 days for visibility
 
   constructor() {
     super('holidays', 'gradient-holidays');
@@ -385,58 +297,17 @@ export class HolidaysRing extends Ring {
     return this.holidays[index].name;
   }
 
-  // Override layout - draw holiday markers at specific days
-  layout(
-    centerX: number,
-    centerY: number,
-    innerRadius: number,
-    outerRadius: number,
-    cornerRadius: number,
-    direction: number = 1,
-    rotationOffset: number = 0
-  ): void {
-    this.centerX = centerX;
-    this.centerY = centerY;
-    this.innerRadius = innerRadius;
-    this.outerRadius = outerRadius;
-    this.cornerRadius = cornerRadius;
-    this.direction = direction;
-
-    if (!this.svgGroup) return;
-
-    // Clear previous content
-    this.svgGroup.innerHTML = '';
-
+  /**
+   * Override to create narrow sectors around holiday days
+   */
+  protected getSectors(): DayBasedSector[] {
     const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-    const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
-    const rotationRad = (rotationOffset * Math.PI) / 180;
-    const angleOffset = baseOffset + rotationRad;
+    const halfWidth = this.HOLIDAY_SECTOR_WIDTH_DAYS / 2;
 
-    // Draw holiday markers (small sectors, ±1 day)
-    for (let i = 0; i < this.holidays.length; i++) {
-      const holiday = this.holidays[i];
-      const dayProgress =
-        (holiday.day / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-      const dayAngle = angleOffset + dayProgress;
-
-      // Make a small sector (±2 days width for visibility)
-      const sectorWidth =
-        (3 / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-      const startAngle = dayAngle - sectorWidth / 2;
-      const endAngle = dayAngle + sectorWidth / 2;
-
-      // For CCW, mirror angles around vertical axis: θ → π - θ
-      // IMPORTANT: Must swap start and end to maintain correct arc direction
-      const mirroredStart =
-        this.direction === -1 ? Math.PI - endAngle : startAngle;
-      const mirroredEnd =
-        this.direction === -1 ? Math.PI - startAngle : endAngle;
-
-      this.drawSector(i, mirroredStart, mirroredEnd);
-    }
-
-    // Draw separator line
-    this.drawSeparator();
+    return this.holidays.map((holiday) => ({
+      startDay: Math.max(0, holiday.day - halfWidth),
+      endDay: Math.min(daysInYear - 1, holiday.day + halfWidth),
+    }));
   }
 }
 

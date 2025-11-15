@@ -3,7 +3,7 @@
  */
 
 import { Ring } from './Ring';
-import { CALENDAR_CONSTANTS } from './constants';
+import { CALENDAR_CONSTANTS, RING_SYSTEM_CONFIG } from './constants';
 
 export interface RingSystemSettings {
   cornerRadius: number;
@@ -23,14 +23,14 @@ export class RingSystem {
   private centerY: number;
   private rings: Ring[] = [];
   private ringVisibility: Record<string, boolean> = {};
-  private baseRadius: number = 250; // Will be adjusted for perimeter preservation
-  private ringWidth: number = 50; // Increased from 40 for better spacing
-  private ringGap: number = 5; // Gap between rings
+  private baseRadius: number = RING_SYSTEM_CONFIG.DEFAULT_BASE_RADIUS; // Will be adjusted for perimeter preservation
+  private ringWidth: number = RING_SYSTEM_CONFIG.DEFAULT_RING_WIDTH;
+  private ringGap: number = RING_SYSTEM_CONFIG.RING_GAP;
   private cornerRadius: number = 0.5;
   private targetPerimeter: number | null = null;
   private direction: number = 1; // 1 = CW (clockwise), -1 = CCW (counter-clockwise)
   private rotationOffset: number = 0; // Rotation offset in degrees (0, 90, 180, 270)
-  private minInnerRadius: number = 50; // Minimum free space in center (never let rings fill completely)
+  private minInnerRadius: number = RING_SYSTEM_CONFIG.MIN_INNER_RADIUS;
 
   constructor(svgContainer: SVGElement, centerX: number, centerY: number) {
     this.svgContainer = svgContainer;
@@ -116,7 +116,7 @@ export class RingSystem {
       if (totalSpaceNeeded > availableSpace) {
         // Clamp ring width to ensure minimum inner space
         maxRingWidth = Math.max(
-          10, // Minimum ring width
+          RING_SYSTEM_CONFIG.MIN_RING_WIDTH,
           (availableSpace - (visibleRingCount - 1) * this.ringGap) / visibleRingCount
         );
       }
@@ -161,7 +161,10 @@ export class RingSystem {
 
   setRingWidth(width: number): void {
     // Clamp width to a reasonable range
-    this.ringWidth = Math.max(10, Math.min(width, 150));
+    this.ringWidth = Math.max(
+      RING_SYSTEM_CONFIG.MIN_RING_WIDTH,
+      Math.min(width, RING_SYSTEM_CONFIG.MAX_RING_WIDTH)
+    );
     this.layout();
     this.saveSettings();
   }
@@ -172,7 +175,7 @@ export class RingSystem {
   getMaxRingWidth(): number {
     if (this.targetPerimeter === null) {
       // Not initialized yet, return default max
-      return 150;
+      return RING_SYSTEM_CONFIG.MAX_RING_WIDTH;
     }
 
     const adjustedRadius = Ring.calculatePerimeterConstantRadius(
@@ -187,12 +190,12 @@ export class RingSystem {
     ).length;
 
     if (visibleRingCount === 0) {
-      return 150;
+      return RING_SYSTEM_CONFIG.MAX_RING_WIDTH;
     }
 
     const availableSpace = adjustedRadius - this.minInnerRadius;
     const maxRingWidth = Math.max(
-      10,
+      RING_SYSTEM_CONFIG.MIN_RING_WIDTH,
       (availableSpace - (visibleRingCount - 1) * this.ringGap) / visibleRingCount
     );
 
@@ -235,27 +238,42 @@ export class RingSystem {
     return { ...this.ringVisibility };
   }
 
-  updateTodayIndicator(adjustedRadius: number): void {
-    // Calculate today's day of year (0-364)
+  /**
+   * Calculate today's day of year (0-364)
+   */
+  private calculateDayOfYear(): number {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 0);
     const diff = now.getTime() - startOfYear.getTime();
     const oneDay = 1000 * 60 * 60 * 24;
-    const dayOfYear = Math.floor(diff / oneDay) - 1; // 0-indexed
+    return Math.floor(diff / oneDay) - 1; // 0-indexed
+  }
 
-    // Calculate angle for today
+  /**
+   * Calculate angle for a given day of year
+   */
+  private calculateDayAngle(dayOfYear: number): number {
     const daysInYear = CALENDAR_CONSTANTS.DAYS_IN_YEAR;
-    const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET; // Start at top
+    const baseOffset = CALENDAR_CONSTANTS.BASE_OFFSET;
     const rotationRad = (this.rotationOffset * Math.PI) / 180;
-    const progress =
-      (dayOfYear / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
-    const angle = baseOffset + rotationRad + progress;
+    const progress = (dayOfYear / daysInYear) * CALENDAR_CONSTANTS.FULL_CIRCLE;
+    return baseOffset + rotationRad + progress;
+  }
 
-    // For CCW, mirror angle around vertical axis: θ → π - θ
-    const mirroredAngle = this.direction === -1 ? Math.PI - angle : angle;
+  /**
+   * Apply direction mirroring to angle
+   */
+  private applyDirectionMirroring(angle: number): number {
+    return this.direction === -1 ? Math.PI - angle : angle;
+  }
+
+  updateTodayIndicator(adjustedRadius: number): void {
+    const dayOfYear = this.calculateDayOfYear();
+    const angle = this.calculateDayAngle(dayOfYear);
+    const mirroredAngle = this.applyDirectionMirroring(angle);
 
     // Calculate line end point (just beyond outermost ring)
-    const lineLength = adjustedRadius + 15; // Extend 15px beyond
+    const lineLength = adjustedRadius + RING_SYSTEM_CONFIG.TODAY_LINE_EXTENSION;
     const endX = this.centerX + lineLength * Math.cos(mirroredAngle);
     const endY = this.centerY + lineLength * Math.sin(mirroredAngle);
 
