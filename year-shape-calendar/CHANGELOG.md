@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Rings Mode Syntax Error**: Fixed "Unexpected token '*'" error in rings.html
+  - Removed ~1,300 lines of commented-out JavaScript code
+  - Cleaned up empty script tag structure
+  - All code properly moved to TypeScript modules
+- **Rings Mode Selector**: Fixed mode selector to use radio buttons instead of deprecated select element
+  - Updated `rings.ts` to handle header radio buttons (`headerModeOld`, `headerModeRings`, `headerModeZoom`)
+  - Consistent with `index.html` and `CalendarApp.ts` implementation
+  - Properly loads and saves mode preferences
+
+### Technical
+- Build passes successfully
+- All TypeScript modules compile correctly
+- Zero linter errors
+
 ### Pending
 - Google OAuth production publishing
 - Server-side settings sync
