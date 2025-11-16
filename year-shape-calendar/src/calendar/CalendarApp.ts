@@ -11,7 +11,7 @@
  * @version 0.5.0
  */
 
-import type { CalendarEvent } from '../types';
+import type { CalendarEvent, Direction } from '../types';
 import { CalendarRenderer } from './CalendarRenderer';
 import { WeekModal } from './WeekModal';
 import { ZoomMode } from './ZoomMode';
@@ -714,7 +714,14 @@ export class CalendarApp {
     
     // Initialize zoom mode
     if (!this.zoomMode) {
-      this.zoomMode = new ZoomMode(zoomContainer, this.currentYear);
+      // Create callback to show events modal
+      const onShowEvents = (weekIndex: number, events: CalendarEvent[]) => {
+        this.modal.open(weekIndex, events);
+      };
+      
+      this.zoomMode = new ZoomMode(zoomContainer, this.currentYear, onShowEvents);
+      // Apply saved direction setting
+      this.zoomMode.setDirection(this.settings.direction);
     }
     
     // Update events if available
@@ -808,9 +815,17 @@ export class CalendarApp {
    * @returns {void}
    */
   private handleDirectionToggle = (): void => {
-    if (!this.renderer) return;
+    let newDirection: Direction;
     
-    const newDirection = this.renderer.toggleDirection();
+    // Toggle direction based on current mode
+    if (this.currentMode === 'zoom' && this.zoomMode) {
+      newDirection = this.zoomMode.toggleDirection() as Direction;
+    } else if (this.renderer) {
+      newDirection = this.renderer.toggleDirection();
+    } else {
+      return;
+    }
+    
     const directionText = newDirection === 1 ? 'CW' : 'CCW';
     const directionIcon = newDirection === 1 ? '↻' : '↺';
     

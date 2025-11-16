@@ -1,12 +1,12 @@
 /**
  * @fileoverview Zoom Mode - Interactive calendar with nested zoom levels
- * 
+ *
  * ZoomMode provides a hierarchical calendar view with smooth animations between levels:
  * - Year level: Shows 12 months in a circular layout
  * - Month level: Shows all days of the selected month
  * - Week level: Shows 7 days of the selected week
  * - Day level: Shows 12-hour clock view with events
- * 
+ *
  * Features:
  * - Smooth zoom transitions with ease-out-quart easing
  * - Click to zoom in, back button to zoom out
@@ -14,39 +14,40 @@
  * - Swipe navigation for prev/next periods
  * - Hover effects with scale transformations
  * - Google Calendar event integration
- * 
+ *
  * @module calendar/ZoomMode
  */
 
-import type { CalendarEvent } from '../types';
-import { createElement } from '../utils/dom';
+import type { CalendarEvent } from "../types";
+import { createElement } from "../utils/dom";
+import { CircleRenderer, type CircleItem } from "./CircleRenderer";
 
 /**
  * Zoom level type - represents the current view granularity
  */
-export type ZoomLevel = 'year' | 'month' | 'week' | 'day';
+export type ZoomLevel = "year" | "month" | "week" | "day";
 
 /**
  * Interface representing the current state of the zoom view
  */
 interface ZoomState {
-  level: ZoomLevel;    // Current zoom level
-  year: number;        // Current year (e.g., 2025)
-  month: number;       // Current month (0-11, 0 = January)
-  week: number;        // Current week (0-51)
-  day: number;         // Current day (1-31)
+  level: ZoomLevel; // Current zoom level
+  year: number; // Current year (e.g., 2025)
+  month: number; // Current month (0-11, 0 = January)
+  week: number; // Current week (0-51)
+  day: number; // Current day (1-31)
 }
 
 /**
  * ZoomMode class - manages the interactive hierarchical calendar view
- * 
+ *
  * Architecture:
  * - Uses SVG for rendering all visual elements
  * - Event delegation for efficient click handling
  * - RequestAnimationFrame for smooth animations
  * - Separate label layers to prevent occlusion
  * - Transform-based scaling for performance
- * 
+ *
  * @class
  */
 export class ZoomMode {
@@ -57,10 +58,16 @@ export class ZoomMode {
   private eventsByWeek: Record<number, CalendarEvent[]> = {}; // week -> events
   private eventsByDay: Record<string, CalendarEvent[]> = {}; // "YYYY-MM-DD" -> events
 
+  // Circle renderer for DRY code
+  private circleRenderer: CircleRenderer = new CircleRenderer();
+  
   // Animation state
   private animating: boolean = false;
   private animationStartTime: number = 0;
   private animationDuration: number = 800; // ms - fast and fluent animation
+
+  // Direction (1 = CW, -1 = CCW)
+  private direction: number = 1;
 
   // Hover state
   private hoveredMonth: number | null = null;
@@ -71,10 +78,20 @@ export class ZoomMode {
   // Back button
   private backButton: HTMLButtonElement | null = null;
 
-  constructor(container: HTMLElement, initialYear: number = new Date().getFullYear()) {
+  // Callback for showing event details
+  private onShowEvents:
+    | ((weekIndex: number, events: CalendarEvent[]) => void)
+    | null = null;
+
+  constructor(
+    container: HTMLElement,
+    initialYear: number = new Date().getFullYear(),
+    onShowEvents?: (weekIndex: number, events: CalendarEvent[]) => void
+  ) {
     this.container = container;
+    this.onShowEvents = onShowEvents || null;
     this.currentState = {
-      level: 'year',
+      level: "year",
       year: initialYear,
       month: 0,
       week: 0,
@@ -92,15 +109,16 @@ export class ZoomMode {
    */
   private initializeSVG = (): void => {
     // Clear container
-    this.container.innerHTML = '';
+    this.container.innerHTML = "";
 
     // Create SVG
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.setAttribute('viewBox', '0 0 800 800');
-    this.svg.setAttribute('width', '100%');
-    this.svg.setAttribute('height', '100%');
-    this.svg.setAttribute('shape-rendering', 'geometricPrecision');
-    this.svg.classList.add('zoom-mode-svg');
+    this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    this.svg.setAttribute("viewBox", "0 0 800 800");
+    this.svg.setAttribute("width", "100%");
+    this.svg.setAttribute("height", "100%");
+    this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet"); // Maintain aspect ratio - no ellipsis!
+    this.svg.setAttribute("shape-rendering", "geometricPrecision");
+    this.svg.classList.add("zoom-mode-svg");
 
     // Use event delegation on SVG for clicks (works even when elements are recreated)
     // This is critical for zoom mode since hover re-renders can remove direct handlers
@@ -111,13 +129,16 @@ export class ZoomMode {
       // Check up to 10 levels deep to catch any nested elements
       let depth = 0;
       while (target && target !== this.svg && depth < 10) {
-        if (target.hasAttribute && target.hasAttribute('data-month')) {
-          const monthIndex = parseInt(target.getAttribute('data-month') || '0', 10);
+        if (target.hasAttribute && target.hasAttribute("data-month")) {
+          const monthIndex = parseInt(
+            target.getAttribute("data-month") || "0",
+            10
+          );
           e.stopPropagation();
           e.preventDefault();
           // Cancel any pending hover updates
           this.hoveredMonth = null;
-          this.navigateToLevel('month', { month: monthIndex });
+          this.navigateToLevel("month", { month: monthIndex });
           return;
         }
         // Move to parent
@@ -128,127 +149,150 @@ export class ZoomMode {
       }
     };
 
-    this.svg.addEventListener('click', handleClick, true); // Use capture phase to catch events early
-    
+    this.svg.addEventListener("click", handleClick, true); // Use capture phase to catch events early
+
     // Handle pinch zoom for zoom in/out
     let initialDistance = 0;
     let lastScale = 1;
     let isPinching = false;
-    
-    this.svg.addEventListener('touchstart', (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        isPinching = true;
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        initialDistance = Math.hypot(
-          touch2.clientX - touch1.clientX,
-          touch2.clientY - touch1.clientY
-        );
-        lastScale = 1;
-      } else {
-        isPinching = false;
-      }
-    }, { passive: false });
-    
-    this.svg.addEventListener('touchmove', (e: TouchEvent) => {
-      if (e.touches.length === 2 && isPinching) {
-        e.preventDefault();
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        const currentDistance = Math.hypot(
-          touch2.clientX - touch1.clientX,
-          touch2.clientY - touch1.clientY
-        );
-        
-        const scale = currentDistance / initialDistance;
-        const scaleChange = scale / lastScale;
-        lastScale = scale;
-        
-        // Zoom in/out based on pinch scale
-        if (scaleChange > 1.2) {
-          // Pinch out (zoom in)
-          const state = this.currentState;
-          if (state.level === 'year') {
-            // Zoom into first month
-            this.navigateToLevel('month', { month: 0 });
-          } else if (state.level === 'month') {
-            // Zoom into first day of month
-            this.navigateToLevel('week', { week: 0 });
-          } else if (state.level === 'week') {
-            // Zoom into first day of week
-            this.navigateToLevel('day', { day: 1 });
-          }
-          isPinching = false;
-        } else if (scaleChange < 0.8) {
-          // Pinch in (zoom out)
-          this.handleBack();
+
+    this.svg.addEventListener(
+      "touchstart",
+      (e: TouchEvent) => {
+        if (e.touches.length === 2) {
+          isPinching = true;
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          initialDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+          lastScale = 1;
+        } else {
           isPinching = false;
         }
-      }
-    }, { passive: false });
-    
-    this.svg.addEventListener('touchend', () => {
-      isPinching = false;
-      initialDistance = 0;
-      lastScale = 1;
-    }, { passive: false });
-    
+      },
+      { passive: false }
+    );
+
+    this.svg.addEventListener(
+      "touchmove",
+      (e: TouchEvent) => {
+        if (e.touches.length === 2 && isPinching) {
+          e.preventDefault();
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          const currentDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+
+          const scale = currentDistance / initialDistance;
+          const scaleChange = scale / lastScale;
+          lastScale = scale;
+
+          // Zoom in/out based on pinch scale
+          if (scaleChange > 1.2) {
+            // Pinch out (zoom in)
+            const state = this.currentState;
+            if (state.level === "year") {
+              // Zoom into first month
+              this.navigateToLevel("month", { month: 0 });
+            } else if (state.level === "month") {
+              // Zoom into first day of month
+              this.navigateToLevel("week", { week: 0 });
+            } else if (state.level === "week") {
+              // Zoom into first day of week
+              this.navigateToLevel("day", { day: 1 });
+            }
+            isPinching = false;
+          } else if (scaleChange < 0.8) {
+            // Pinch in (zoom out)
+            this.handleBack();
+            isPinching = false;
+          }
+        }
+      },
+      { passive: false }
+    );
+
+    this.svg.addEventListener(
+      "touchend",
+      () => {
+        isPinching = false;
+        initialDistance = 0;
+        lastScale = 1;
+      },
+      { passive: false }
+    );
+
     // Global wheel event handler for zoom in/out on entire SVG
     let globalWheelDelta = 0;
     let globalWheelTimeout: ReturnType<typeof setTimeout> | null = null;
-    
-    this.svg.addEventListener('wheel', (e: WheelEvent) => {
-      // Only handle if not over a specific sector (to avoid double-handling)
-      const target = e.target as SVGElement;
-      if (target.hasAttribute && (target.hasAttribute('data-day') || target.hasAttribute('data-month'))) {
-        return; // Let sector handlers deal with it
-      }
-      
-      e.preventDefault();
-      
-      // Reset timeout on each wheel event
-      if (globalWheelTimeout) {
-        clearTimeout(globalWheelTimeout);
-      }
-      
-      // Accumulate delta
-      globalWheelDelta += e.deltaY;
-      
-      // Set timeout to reset after wheel stops
-      globalWheelTimeout = setTimeout(() => {
-        globalWheelDelta = 0;
-      }, 200);
-      
-      const state = this.currentState;
-      
-      if (Math.abs(globalWheelDelta) >= 100) {
-        if (globalWheelDelta < 0) {
-          // Scroll up = zoom out
-          this.handleBack();
-        } else {
-          // Scroll down = zoom in
-          if (state.level === 'year') {
-            // Zoom into current month
-            const now = new Date();
-            this.navigateToLevel('month', { month: now.getMonth() });
-          } else if (state.level === 'month') {
-            // Zoom into current day's week
-            const now = new Date();
-            const week = this.getWeekForDay(state.year, state.month, now.getDate());
-            this.navigateToLevel('week', { week });
-          } else if (state.level === 'week') {
-            // Zoom into current day
-            const now = new Date();
-            this.navigateToLevel('day', { day: now.getDate() });
-          }
+
+    this.svg.addEventListener(
+      "wheel",
+      (e: WheelEvent) => {
+        // Only handle if not over a specific sector (to avoid double-handling)
+        const target = e.target as SVGElement;
+        if (
+          target.hasAttribute &&
+          (target.hasAttribute("data-day") || target.hasAttribute("data-month"))
+        ) {
+          return; // Let sector handlers deal with it
         }
-        globalWheelDelta = 0;
+
+        e.preventDefault();
+
+        // Reset timeout on each wheel event
         if (globalWheelTimeout) {
           clearTimeout(globalWheelTimeout);
-          globalWheelTimeout = null;
         }
-      }
-    }, { passive: false });
+
+        // Accumulate delta
+        globalWheelDelta += e.deltaY;
+
+        // Set timeout to reset after wheel stops
+        globalWheelTimeout = setTimeout(() => {
+          globalWheelDelta = 0;
+        }, 200);
+
+        const state = this.currentState;
+
+        if (Math.abs(globalWheelDelta) >= 100) {
+          if (globalWheelDelta < 0) {
+            // Scroll up = zoom out
+            this.handleBack();
+          } else {
+            // Scroll down = zoom in
+            if (state.level === "year") {
+              // Zoom into current month
+              const now = new Date();
+              this.navigateToLevel("month", { month: now.getMonth() });
+            } else if (state.level === "month") {
+              // Zoom into current day's week
+              const now = new Date();
+              const week = this.getWeekForDay(
+                state.year,
+                state.month,
+                now.getDate()
+              );
+              this.navigateToLevel("week", { week });
+            } else if (state.level === "week") {
+              // Zoom into current day
+              const now = new Date();
+              this.navigateToLevel("day", { day: now.getDate() });
+            }
+          }
+          globalWheelDelta = 0;
+          if (globalWheelTimeout) {
+            clearTimeout(globalWheelTimeout);
+            globalWheelTimeout = null;
+          }
+        }
+      },
+      { passive: false }
+    );
 
     this.container.appendChild(this.svg);
 
@@ -266,20 +310,20 @@ export class ZoomMode {
    * Initialize back button
    */
   private initializeBackButton = (): void => {
-    this.backButton = createElement('button', [
-      'btn',
-      'primary',
-      'absolute',
-      'bottom-4',
-      'left-1/2',
-      '-translate-x-1/2',
-      'z-50',
-      'hidden',
+    this.backButton = createElement("button", [
+      "btn",
+      "primary",
+      "absolute",
+      "bottom-4",
+      "left-1/2",
+      "-translate-x-1/2",
+      "z-50",
+      "hidden",
     ]) as HTMLButtonElement;
 
-    this.backButton.innerHTML = '← Back';
-    this.backButton.addEventListener('click', this.handleBack);
-    this.backButton.setAttribute('aria-label', 'Go back');
+    this.backButton.innerHTML = "← Back";
+    this.backButton.addEventListener("click", this.handleBack);
+    this.backButton.setAttribute("aria-label", "Go back");
 
     this.container.appendChild(this.backButton);
   };
@@ -288,7 +332,7 @@ export class ZoomMode {
    * Setup browser back button handling
    */
   private setupBrowserBackButton = (): void => {
-    window.addEventListener('popstate', (e) => {
+    window.addEventListener("popstate", (e) => {
       if (e.state && e.state.zoomLevel) {
         this.navigateToLevel(e.state.zoomLevel, e.state.params || {}, false);
       }
@@ -314,14 +358,16 @@ export class ZoomMode {
     }
 
     // Process events
-    Object.values(eventsByWeek).forEach(weekEvents => {
-      weekEvents.forEach(event => {
+    Object.values(eventsByWeek).forEach((weekEvents) => {
+      weekEvents.forEach((event) => {
         if (!event.start) return;
 
         const eventDate = new Date(event.start);
         const year = eventDate.getFullYear();
         const month = eventDate.getMonth();
-        const dayKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(eventDate.getDate()).padStart(2, '0')}`;
+        const dayKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+          eventDate.getDate()
+        ).padStart(2, "0")}`;
 
         if (year === currentYear) {
           if (!this.eventsByYear[year][month]) {
@@ -338,7 +384,7 @@ export class ZoomMode {
     });
 
     // Sort events chronologically within each month
-    Object.keys(this.eventsByYear[currentYear]).forEach(monthStr => {
+    Object.keys(this.eventsByYear[currentYear]).forEach((monthStr) => {
       const month = parseInt(monthStr, 10);
       this.eventsByYear[currentYear][month].sort((a, b) => {
         if (!a.start || !b.start) return 0;
@@ -385,13 +431,13 @@ export class ZoomMode {
    */
   private updateURLHash = (): void => {
     const state = this.currentState;
-    let hash = '#zoom';
+    let hash = "#zoom";
 
-    if (state.level === 'month') {
+    if (state.level === "month") {
       hash += `/month/${state.year}/${state.month}`;
-    } else if (state.level === 'week') {
+    } else if (state.level === "week") {
       hash += `/week/${state.year}/${state.week}`;
-    } else if (state.level === 'day') {
+    } else if (state.level === "day") {
       hash += `/day/${state.year}/${state.month + 1}/${state.day}`;
     } else {
       hash += `/year/${state.year}`;
@@ -399,7 +445,7 @@ export class ZoomMode {
 
     window.history.pushState(
       { zoomLevel: state.level, params: state },
-      '',
+      "",
       hash
     );
   };
@@ -407,7 +453,10 @@ export class ZoomMode {
   /**
    * Animate transition between levels
    */
-  private animateTransition = (oldState: ZoomState, newState: ZoomState): void => {
+  private animateTransition = (
+    oldState: ZoomState,
+    newState: ZoomState
+  ): void => {
     if (oldState.level === newState.level) {
       this.render();
       return;
@@ -420,12 +469,15 @@ export class ZoomMode {
     // When going backwards (e.g., from month to year), use the target center (screen center)
     // When going forwards (e.g., from year to month), use the circle center (month position)
     // When in month level and navigating to week/day, use the target center (screen center) since month is centered
-    const isGoingBackwards = this.isGoingBackwards(oldState.level, newState.level);
+    const isGoingBackwards = this.isGoingBackwards(
+      oldState.level,
+      newState.level
+    );
     let oldCenter: { x: number; y: number };
-    if (oldState.level === 'month') {
+    if (oldState.level === "month") {
       // Month level is always centered on screen, so use target center
       oldCenter = this.getCircleTargetCenter(oldState);
-    } else if (isGoingBackwards && oldState.level !== 'year') {
+    } else if (isGoingBackwards && oldState.level !== "year") {
       // Other backwards transitions also start from screen center
       oldCenter = this.getCircleTargetCenter(oldState);
     } else {
@@ -473,9 +525,9 @@ export class ZoomMode {
     progress: number
   ): void => {
     // Clear SVG
-    this.svg.innerHTML = '';
+    this.svg.innerHTML = "";
     // Always enable pointer events so clicks work during animation
-    this.svg.style.pointerEvents = 'auto';
+    this.svg.style.pointerEvents = "auto";
 
     // Calculate new circle center (starting position for new state)
     const newCenterStart = this.getCircleCenter(newState);
@@ -483,7 +535,7 @@ export class ZoomMode {
     // For month level, animate to the center of the screen, not the month position
     // For other transitions, use the calculated centers
     let newCenterTarget: { x: number; y: number };
-    if (newState.level === 'month') {
+    if (newState.level === "month") {
       // Month circle should animate to center
       newCenterTarget = this.getCircleTargetCenter(newState);
     } else {
@@ -491,13 +543,15 @@ export class ZoomMode {
     }
 
     // Determine if we're zooming in (to a deeper level) or zooming out (to a shallower level)
-    const isZoomingIn = this.getZoomLevelDepth(newState.level) > this.getZoomLevelDepth(oldState.level);
-    
+    const isZoomingIn =
+      this.getZoomLevelDepth(newState.level) >
+      this.getZoomLevelDepth(oldState.level);
+
     // For zoom in: first move to center (0-0.5), then scale (0.5-1.0)
     // For zoom out: first scale (0-0.5), then move to position (0.5-1.0)
     let positionProgress: number;
     let scaleProgress: number;
-    
+
     if (isZoomingIn) {
       // Zoom in: move first, then scale
       positionProgress = Math.min(progress * 2, 1); // 0-0.5 maps to 0-1
@@ -509,8 +563,10 @@ export class ZoomMode {
     }
 
     // Interpolate center position from old center to new target center
-    const currentCenterX = oldCenter.x + (newCenterTarget.x - oldCenter.x) * positionProgress;
-    const currentCenterY = oldCenter.y + (newCenterTarget.y - oldCenter.y) * positionProgress;
+    const currentCenterX =
+      oldCenter.x + (newCenterTarget.x - oldCenter.x) * positionProgress;
+    const currentCenterY =
+      oldCenter.y + (newCenterTarget.y - oldCenter.y) * positionProgress;
 
     // Interpolate scale
     const oldScale = this.getCircleScale(oldState);
@@ -525,9 +581,17 @@ export class ZoomMode {
     if (progress < 0.8) {
       const oldCircle = this.renderCircle(oldState, oldOpacity);
       if (oldCircle) {
-        const oldGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        oldGroup.setAttribute('transform', `translate(${oldCenter.x}, ${oldCenter.y}) scale(${oldScale * (1 + progress * 2)})`);
-        oldGroup.style.pointerEvents = 'none'; // Disable clicks on old circle
+        const oldGroup = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "g"
+        );
+        oldGroup.setAttribute(
+          "transform",
+          `translate(${oldCenter.x}, ${oldCenter.y}) scale(${
+            oldScale * (1 + progress * 2)
+          })`
+        );
+        oldGroup.style.pointerEvents = "none"; // Disable clicks on old circle
         oldGroup.appendChild(oldCircle);
         this.svg.appendChild(oldGroup);
       }
@@ -538,10 +602,16 @@ export class ZoomMode {
     if (progress > 0.1) {
       const newCircle = this.renderCircle(newState, newOpacity);
       if (newCircle) {
-        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const group = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "g"
+        );
         // Use interpolated center (already calculated to animate to target)
-        group.setAttribute('transform', `translate(${currentCenterX}, ${currentCenterY}) scale(${currentScale})`);
-        group.style.pointerEvents = 'auto'; // Always enable clicks
+        group.setAttribute(
+          "transform",
+          `translate(${currentCenterX}, ${currentCenterY}) scale(${currentScale})`
+        );
+        group.style.pointerEvents = "auto"; // Always enable clicks
         group.appendChild(newCircle);
         this.svg.appendChild(group);
       }
@@ -572,7 +642,9 @@ export class ZoomMode {
    * Get target center for a state (where it should end up)
    * For month level, the target is always the screen center
    */
-  private getCircleTargetCenter = (_state: ZoomState): { x: number; y: number } => {
+  private getCircleTargetCenter = (
+    _state: ZoomState
+  ): { x: number; y: number } => {
     const centerX = 400; // Center of 800x800 viewBox
     const centerY = 400;
 
@@ -585,10 +657,14 @@ export class ZoomMode {
    */
   private getZoomLevelDepth = (level: ZoomLevel): number => {
     switch (level) {
-      case 'year': return 0;
-      case 'month': return 1;
-      case 'week': return 2;
-      case 'day': return 3;
+      case "year":
+        return 0;
+      case "month":
+        return 1;
+      case "week":
+        return 2;
+      case "day":
+        return 3;
     }
   };
 
@@ -596,27 +672,30 @@ export class ZoomMode {
    * Get circle scale for a state
    */
   private getCircleScale = (state: ZoomState): number => {
-    if (state.level === 'year') return 1;
-    if (state.level === 'month') return 0.8;
-    if (state.level === 'week') return 0.9;
+    if (state.level === "year") return 1;
+    if (state.level === "month") return 0.8;
+    if (state.level === "week") return 0.9;
     return 0.95;
   };
 
   /**
    * Render circle for a state
    */
-  private renderCircle = (state: ZoomState, opacity: number = 1): SVGElement | null => {
-    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    group.setAttribute('opacity', String(opacity));
-    group.style.pointerEvents = 'auto'; // Ensure pointer events work through groups
+  private renderCircle = (
+    state: ZoomState,
+    opacity: number = 1
+  ): SVGElement | null => {
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.setAttribute("opacity", String(opacity));
+    group.style.pointerEvents = "auto"; // Ensure pointer events work through groups
 
-    if (state.level === 'year') {
+    if (state.level === "year") {
       return this.renderYearCircle(group, state);
-    } else if (state.level === 'month') {
+    } else if (state.level === "month") {
       return this.renderMonthCircle(group, state);
-    } else if (state.level === 'week') {
+    } else if (state.level === "week") {
       return this.renderWeekCircle(group, state);
-    } else if (state.level === 'day') {
+    } else if (state.level === "day") {
       return this.renderDayCircle(group, state);
     }
 
@@ -624,16 +703,29 @@ export class ZoomMode {
   };
 
   /**
-   * Render year circle (12 months)
+   * Render year circle (12 months) - REFACTORED to use CircleRenderer
    */
-  private renderYearCircle = (group: SVGElement, state: ZoomState): SVGElement => {
+  private renderYearCircle = (
+    group: SVGElement,
+    state: ZoomState
+  ): SVGElement => {
     const centerX = 0;
     const centerY = 0;
     const radius = 320;
 
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     // Get current month
@@ -642,11 +734,51 @@ export class ZoomMode {
     const currentYear = now.getFullYear();
     const isCurrentYear = state.year === currentYear;
 
+    // Prepare circle items
+    const items: CircleItem[] = months.map((monthName, index) => ({
+      index,
+      label: monthName,
+      value: index,
+      isCurrent: isCurrentYear && index === currentMonth,
+    }));
+
+    // Use CircleRenderer for unified rendering
+    this.circleRenderer.render(group, {
+      centerX,
+      centerY,
+      radius,
+      innerRadius: radius * 0.7,
+      items,
+      colorScheme: (item) => {
+        const hue = (item.index * 30) % 360;
+        return item.isCurrent
+          ? `hsl(${hue}, 80%, 50%)` // Brighter for current
+          : `hsl(${hue}, 70%, 60%)`;
+      },
+      direction: this.direction,
+      onItemClick: (item) => {
+        this.navigateToLevel("month", { month: item.value });
+      },
+      onItemHover: (item) => {
+        this.hoveredMonth = item ? item.value : null;
+      },
+      labelFontSize: 24,
+      labelFontWeight: "bold",
+      enableHover: true,
+      hoverScale: 1.5,
+      adjacentScale: 1.1,
+      sectorClass: "month-sector",
+    });
+
+    // OLD CODE BELOW - To be replaced/removed
+    if (false) {
+
     // Draw months
     months.forEach((monthName, index) => {
-      const angle = (index / 12) * Math.PI * 2 - Math.PI / 2;
-      const startAngle = angle - (Math.PI / 12);
-      const endAngle = angle + (Math.PI / 12);
+      const baseAngle = (index / 12) * Math.PI * 2 - Math.PI / 2;
+      const angle = this.applyDirectionMirroring(baseAngle);
+      const startAngle = angle - Math.PI / 12;
+      const endAngle = angle + Math.PI / 12;
 
       // Check if this is the current month
       const isCurrent = isCurrentYear && index === currentMonth;
@@ -667,19 +799,22 @@ export class ZoomMode {
       }
 
       // Create a group for this sector with transform origin at center
-      const sectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const sectorGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
       const midAngle = (startAngle + endAngle) / 2;
       const midRadius = (radius * 0.7 + radius) / 2;
       const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
       const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
-      
+
       // Use CSS classes instead of inline styles
-      sectorGroup.classList.add('sector-group');
+      sectorGroup.classList.add("sector-group");
       sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
       sectorGroup.style.transform = `scale(${scaleValue})`;
-      sectorGroup.setAttribute('data-month', String(index));
-      sectorGroup.setAttribute('data-hover-type', 'month');
-      
+      sectorGroup.setAttribute("data-month", String(index));
+      sectorGroup.setAttribute("data-hover-type", "month");
+
       // Draw sector at base size (always use radius * 1.0, scale via transform)
       const baseColor = isCurrent
         ? `hsl(${(index * 30) % 360}, 80%, 50%)` // Brighter for current
@@ -694,23 +829,23 @@ export class ZoomMode {
         baseColor
       );
 
-      sector.setAttribute('class', 'month-sector');
-      sector.setAttribute('data-month', String(index));
-      sector.setAttribute('data-test', 'month-' + index);
-      sector.setAttribute('data-month-name', monthName);
+      sector.setAttribute("class", "month-sector");
+      sector.setAttribute("data-month", String(index));
+      sector.setAttribute("data-test", "month-" + index);
+      sector.setAttribute("data-month-name", monthName);
       if (isCurrent) {
-        sector.setAttribute('data-current', 'true');
-        sector.setAttribute('stroke', 'rgba(255, 255, 255, 0.6)');
-        sector.setAttribute('stroke-width', '2');
+        sector.setAttribute("data-current", "true");
+        sector.setAttribute("stroke", "rgba(255, 255, 255, 0.6)");
+        sector.setAttribute("stroke-width", "2");
       }
-      sector.style.cursor = 'pointer';
-      sector.style.pointerEvents = 'all';
-      sector.style.touchAction = 'manipulation';
-      (sector.style as any).webkitTouchCallout = 'none';
-      sector.style.userSelect = 'none';
+      sector.style.cursor = "pointer";
+      sector.style.pointerEvents = "all";
+      sector.style.touchAction = "manipulation";
+      (sector.style as any).webkitTouchCallout = "none";
+      sector.style.userSelect = "none";
       // Ensure the path itself can receive clicks
-      (sector as any).setAttribute('pointer-events', 'all');
-      
+      (sector as any).setAttribute("pointer-events", "all");
+
       // Add sector to group
       sectorGroup.appendChild(sector);
 
@@ -721,7 +856,7 @@ export class ZoomMode {
       const handleMonthNavigation = (e: Event): void => {
         // CRITICAL: Cancel any pending hover updates IMMEDIATELY
         if (hoverTimeout) {
-          if (typeof hoverTimeout === 'number') {
+          if (typeof hoverTimeout === "number") {
             clearTimeout(hoverTimeout);
           } else {
             cancelAnimationFrame(hoverTimeout);
@@ -734,64 +869,72 @@ export class ZoomMode {
         e.stopPropagation();
         e.preventDefault();
 
-        this.navigateToLevel('month', { month: monthIndex });
+        this.navigateToLevel("month", { month: monthIndex });
       };
 
       // Click handler for desktop
-      sector.addEventListener('click', handleMonthNavigation, true);
+      sector.addEventListener("click", handleMonthNavigation, true);
 
       // Touch handlers for mobile (prevent zoom, handle tap)
       let touchStartTime = 0;
       let touchStartX = 0;
       let touchStartY = 0;
 
-      sector.addEventListener('touchstart', (e: TouchEvent) => {
-        // Cancel hover updates on touch
-        if (hoverTimeout) {
-          if (typeof hoverTimeout === 'number') {
-            clearTimeout(hoverTimeout);
-          } else {
-            cancelAnimationFrame(hoverTimeout);
+      sector.addEventListener(
+        "touchstart",
+        (e: TouchEvent) => {
+          // Cancel hover updates on touch
+          if (hoverTimeout) {
+            if (typeof hoverTimeout === "number") {
+              clearTimeout(hoverTimeout);
+            } else {
+              cancelAnimationFrame(hoverTimeout);
+            }
           }
-        }
 
-        // Store touch start info
-        if (e.touches.length === 1) {
-          touchStartTime = Date.now();
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
-        } else {
-          // Multiple touches = pinch zoom, prevent it
-          e.preventDefault();
-        }
-      }, { passive: false });
+          // Store touch start info
+          if (e.touches.length === 1) {
+            touchStartTime = Date.now();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+          } else {
+            // Multiple touches = pinch zoom, prevent it
+            e.preventDefault();
+          }
+        },
+        { passive: false }
+      );
 
-      sector.addEventListener('touchend', (e: TouchEvent) => {
-        // Only handle single tap (not pinch)
-        if (e.changedTouches.length !== 1) {
-          return;
-        }
+      sector.addEventListener(
+        "touchend",
+        (e: TouchEvent) => {
+          // Only handle single tap (not pinch)
+          if (e.changedTouches.length !== 1) {
+            return;
+          }
 
-        const touchEnd = e.changedTouches[0];
-        const touchDuration = Date.now() - touchStartTime;
-        const touchDistance = Math.sqrt(
-          Math.pow(touchEnd.clientX - touchStartX, 2) +
-          Math.pow(touchEnd.clientY - touchStartY, 2)
-        );
+          const touchEnd = e.changedTouches[0];
+          const touchDuration = Date.now() - touchStartTime;
+          const touchDistance = Math.sqrt(
+            Math.pow(touchEnd.clientX - touchStartX, 2) +
+              Math.pow(touchEnd.clientY - touchStartY, 2)
+          );
 
-        // If it's a quick tap (not a drag or long press), navigate
-        if (touchDuration < 300 && touchDistance < 10) {
-          e.preventDefault();
-          e.stopPropagation();
-          handleMonthNavigation(e);
-        }
-      }, { passive: false });
+          // If it's a quick tap (not a drag or long press), navigate
+          if (touchDuration < 300 && touchDistance < 10) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleMonthNavigation(e);
+          }
+        },
+        { passive: false }
+      );
 
       // Also add mousedown handler for faster response
-      sector.addEventListener('mousedown', () => {
+      sector.addEventListener("mousedown", () => {
         // Cancel hover updates on mousedown
         if (hoverTimeout) {
-          if (typeof hoverTimeout === 'number') {
+          if (typeof hoverTimeout === "number") {
             clearTimeout(hoverTimeout);
           } else {
             cancelAnimationFrame(hoverTimeout);
@@ -801,12 +944,12 @@ export class ZoomMode {
 
       // Hover handlers with smooth animation
       // Use a longer delay to ensure clicks fire first
-      let hoverTimeout: number | ReturnType<typeof setTimeout> | null = null;
+      const hoverTimeout: number | ReturnType<typeof setTimeout> | null = null;
 
-      sector.addEventListener('mouseenter', () => {
+      sector.addEventListener("mouseenter", () => {
         // Cancel any pending hover updates
         if (hoverTimeout) {
-          if (typeof hoverTimeout === 'number') {
+          if (typeof hoverTimeout === "number") {
             clearTimeout(hoverTimeout);
           } else {
             cancelAnimationFrame(hoverTimeout);
@@ -814,7 +957,7 @@ export class ZoomMode {
         }
         this.hoveredMonth = monthIndex;
         // Update all sector group scales for smooth transition
-        if (this.currentState.level === 'year' && !this.animating) {
+        if (this.currentState.level === "year" && !this.animating) {
           this.updateMonthScales();
           // Move hovered sector group to end so it renders on top
           const parent = sectorGroup.parentElement;
@@ -824,10 +967,10 @@ export class ZoomMode {
         }
       });
 
-      sector.addEventListener('mouseleave', () => {
+      sector.addEventListener("mouseleave", () => {
         // Cancel any pending hover updates
         if (hoverTimeout) {
-          if (typeof hoverTimeout === 'number') {
+          if (typeof hoverTimeout === "number") {
             clearTimeout(hoverTimeout);
           } else {
             cancelAnimationFrame(hoverTimeout);
@@ -835,7 +978,7 @@ export class ZoomMode {
         }
         this.hoveredMonth = null;
         // Update all sector group scales for smooth transition
-        if (this.currentState.level === 'year' && !this.animating) {
+        if (this.currentState.level === "year" && !this.animating) {
           this.updateMonthScales();
         }
       });
@@ -848,26 +991,31 @@ export class ZoomMode {
 
       // Use standardized label creation
       const { label } = this.createLabel(labelX, labelY, monthName, {
-        fontSize: isCurrent ? '28px' : '24px',
-        fontWeight: 'bold',
-        fill: '#fff',
-        className: 'month-label',
+        fontSize: isCurrent ? "28px" : "24px",
+        fontWeight: "bold",
+        fill: "#fff",
+        className: "month-label",
       });
 
       // Add label to sector group so it scales with the sector
       sectorGroup.appendChild(label);
-      
+
       // Add sector group to main group (not sector directly)
       group.appendChild(sectorGroup);
     });
 
+    } // End if (false) - old code disabled
+
     // Draw period text in center (year)
-    const periodText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    periodText.setAttribute('x', String(centerX));
-    periodText.setAttribute('y', String(centerY));
-    periodText.setAttribute('text-anchor', 'middle');
-    periodText.setAttribute('dominant-baseline', 'middle');
-    periodText.classList.add('period-text', 'year');
+    const periodText = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text"
+    );
+    periodText.setAttribute("x", String(centerX));
+    periodText.setAttribute("y", String(centerY));
+    periodText.setAttribute("text-anchor", "middle");
+    periodText.setAttribute("dominant-baseline", "middle");
+    periodText.classList.add("period-text", "year");
     periodText.textContent = String(state.year);
 
     group.appendChild(periodText);
@@ -877,7 +1025,7 @@ export class ZoomMode {
 
   /**
    * SVG STRUCTURE DOCUMENTATION:
-   * 
+   *
    * When a circle is rendered, the SVG structure is:
    *   <svg>
    *     <g transform="translate(400,400) scale(1)">  <!-- Wrapper group with transform -->
@@ -893,7 +1041,7 @@ export class ZoomMode {
    *       </g>
    *     </g>
    *   </svg>
-   * 
+   *
    * Key points:
    * - The wrapper group has transform="translate(...) scale(...)"
    * - Sector groups have data-month, data-day, data-week-day, or data-hour attributes
@@ -906,7 +1054,9 @@ export class ZoomMode {
    * This is the group with transform="translate(...) scale(...)" attribute
    */
   private findWrapperGroup = (): SVGGElement | null => {
-    const wrapper = this.svg.querySelector('g[transform*="scale"]') as SVGGElement;
+    const wrapper = this.svg.querySelector(
+      'g[transform*="scale"]'
+    ) as SVGGElement;
     return wrapper || null;
   };
 
@@ -915,56 +1065,61 @@ export class ZoomMode {
    * Used for month circle where labels are in a separate layer
    */
   private ensureLabelsLayerVisible = (wrapperGroup: SVGGElement): void => {
-    const labelsGroup = wrapperGroup.querySelector('.labels-layer') as SVGGElement;
+    const labelsGroup = wrapperGroup.querySelector(
+      ".labels-layer"
+    ) as SVGGElement;
     if (!labelsGroup) return;
 
     // Force visibility
-    labelsGroup.style.visibility = 'visible';
-    labelsGroup.style.opacity = '1';
-    labelsGroup.style.display = 'block';
-    labelsGroup.style.pointerEvents = 'none';
+    labelsGroup.style.visibility = "visible";
+    labelsGroup.style.opacity = "1";
+    labelsGroup.style.display = "block";
+    labelsGroup.style.pointerEvents = "none";
 
     // Move to end to ensure it renders on top
     wrapperGroup.appendChild(labelsGroup);
 
     // Ensure all labels are visible
-    const labels = labelsGroup.querySelectorAll('.day-label');
+    const labels = labelsGroup.querySelectorAll(".day-label");
     labels.forEach((label) => {
       const textEl = label as SVGTextElement;
-      textEl.style.transform = 'none'; // NEVER use transforms on labels
-      textEl.style.visibility = 'visible';
-      textEl.style.opacity = '1';
-      textEl.style.display = 'block';
-      textEl.style.pointerEvents = 'none';
+      textEl.style.transform = "none"; // NEVER use transforms on labels
+      textEl.style.visibility = "visible";
+      textEl.style.opacity = "1";
+      textEl.style.display = "block";
+      textEl.style.pointerEvents = "none";
     });
 
     // Ensure all background circles are visible
-    const bgCircles = labelsGroup.querySelectorAll('circle[data-day]');
+    const bgCircles = labelsGroup.querySelectorAll("circle[data-day]");
     bgCircles.forEach((circle) => {
       const circleEl = circle as SVGCircleElement;
-      circleEl.style.transform = 'none';
-      circleEl.style.visibility = 'visible';
-      circleEl.style.opacity = '1';
-      circleEl.style.display = 'block';
-      circleEl.style.pointerEvents = 'none';
+      circleEl.style.transform = "none";
+      circleEl.style.visibility = "visible";
+      circleEl.style.opacity = "1";
+      circleEl.style.display = "block";
+      circleEl.style.pointerEvents = "none";
     });
   };
 
   /**
    * Update month sector scales based on hover state (for smooth CSS transitions)
-   * 
+   *
    * Structure: yearGroup > sectorGroups[data-month] > sector + label
    */
   private updateMonthScales = (): void => {
-    if (this.currentState.level !== 'year') return;
+    if (this.currentState.level !== "year") return;
 
     const yearGroup = this.findWrapperGroup();
     if (!yearGroup) return;
 
-    const sectorGroups = yearGroup.querySelectorAll('g[data-month]');
+    const sectorGroups = yearGroup.querySelectorAll("g[data-month]");
     sectorGroups.forEach((g) => {
-      const monthIndex = parseInt((g as SVGGElement).getAttribute('data-month') || '0', 10);
-      
+      const monthIndex = parseInt(
+        (g as SVGGElement).getAttribute("data-month") || "0",
+        10
+      );
+
       let scaleValue = 1;
       if (this.hoveredMonth === monthIndex) {
         scaleValue = 1.5; // Larger hovered month
@@ -987,24 +1142,27 @@ export class ZoomMode {
 
   /**
    * Update day sector scales in month circle based on hover state
-   * 
+   *
    * Structure: monthGroup > sectorGroups[data-day] > sector
    *            monthGroup > .labels-layer > labels + bgCircles
-   * 
+   *
    * IMPORTANT: Labels are in a SEPARATE layer to prevent occlusion.
    * They must NEVER use transforms, and must always be visible.
    */
   private updateDayScales = (): void => {
-    if (this.currentState.level !== 'month') return;
+    if (this.currentState.level !== "month") return;
 
     const monthGroup = this.findWrapperGroup();
     if (!monthGroup) return;
 
     // Update sector scales
-    const sectorGroups = monthGroup.querySelectorAll('g[data-day]');
+    const sectorGroups = monthGroup.querySelectorAll("g[data-day]");
     sectorGroups.forEach((g) => {
       const sectorGroup = g as SVGGElement;
-      const dayIndex = parseInt(sectorGroup.getAttribute('data-day') || '0', 10);
+      const dayIndex = parseInt(
+        sectorGroup.getAttribute("data-day") || "0",
+        10
+      );
       const scaleValue = this.hoveredDay === dayIndex ? 1.5 : 1;
       sectorGroup.style.transform = `scale(${scaleValue})`;
     });
@@ -1016,22 +1174,25 @@ export class ZoomMode {
 
   /**
    * Update week day sector scales in week circle based on hover state
-   * 
+   *
    * Structure: weekGroup > sectorGroups[data-week-day] > sector + label
-   * 
+   *
    * NOTE: Labels are INSIDE sector groups, so they scale with sectors.
    * This is different from month circle where labels are separate.
    */
   private updateWeekDayScales = (): void => {
-    if (this.currentState.level !== 'week') return;
+    if (this.currentState.level !== "week") return;
 
     const weekGroup = this.findWrapperGroup();
     if (!weekGroup) return;
 
-    const sectorGroups = weekGroup.querySelectorAll('g[data-week-day]');
+    const sectorGroups = weekGroup.querySelectorAll("g[data-week-day]");
     sectorGroups.forEach((g) => {
       const sectorGroup = g as SVGGElement;
-      const dayIndex = parseInt(sectorGroup.getAttribute('data-week-day') || '0', 10);
+      const dayIndex = parseInt(
+        sectorGroup.getAttribute("data-week-day") || "0",
+        10
+      );
       const scaleValue = this.hoveredWeekDay === dayIndex ? 1.5 : 1;
       sectorGroup.style.transform = `scale(${scaleValue})`;
     });
@@ -1039,21 +1200,24 @@ export class ZoomMode {
 
   /**
    * Update hour sector scales in day circle based on hover state
-   * 
+   *
    * Structure: dayGroup > sectorGroups[data-hour] > sector + label
-   * 
+   *
    * NOTE: Labels are INSIDE sector groups, so they scale with sectors.
    */
   private updateHourScales = (): void => {
-    if (this.currentState.level !== 'day') return;
+    if (this.currentState.level !== "day") return;
 
     const dayGroup = this.findWrapperGroup();
     if (!dayGroup) return;
 
-    const sectorGroups = dayGroup.querySelectorAll('g[data-hour]');
+    const sectorGroups = dayGroup.querySelectorAll("g[data-hour]");
     sectorGroups.forEach((g) => {
       const sectorGroup = g as SVGGElement;
-      const hourIndex = parseInt(sectorGroup.getAttribute('data-hour') || '0', 10);
+      const hourIndex = parseInt(
+        sectorGroup.getAttribute("data-hour") || "0",
+        10
+      );
       const scaleValue = this.hoveredHour === hourIndex ? 1.5 : 1;
       sectorGroup.style.transform = `scale(${scaleValue})`;
     });
@@ -1073,41 +1237,52 @@ export class ZoomMode {
       stroke?: string;
       strokeWidth?: string;
       className?: string;
-      bgCircle?: { radius: number; fill: string; stroke: string; strokeWidth: string };
+      bgCircle?: {
+        radius: number;
+        fill: string;
+        stroke: string;
+        strokeWidth: string;
+      };
       isCurrent?: boolean;
     } = {}
   ): { label: SVGTextElement; bgCircle?: SVGCircleElement } => {
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', String(x));
-    label.setAttribute('y', String(y));
-    label.setAttribute('text-anchor', 'middle');
-    label.setAttribute('dominant-baseline', 'middle');
-    label.setAttribute('class', options.className || 'label');
+    const label = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text"
+    );
+    label.setAttribute("x", String(x));
+    label.setAttribute("y", String(y));
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("dominant-baseline", "middle");
+    label.setAttribute("class", options.className || "label");
     label.textContent = text;
-    label.style.fontSize = options.fontSize || '28px';
-    label.style.fontWeight = options.fontWeight || 'bold';
-    label.style.fill = options.fill || '#fff';
+    label.style.fontSize = options.fontSize || "28px";
+    label.style.fontWeight = options.fontWeight || "bold";
+    label.style.fill = options.fill || "#fff";
     if (options.stroke) {
-      label.setAttribute('stroke', options.stroke);
+      label.setAttribute("stroke", options.stroke);
       label.style.stroke = options.stroke;
-      label.style.strokeWidth = options.strokeWidth || '2px';
-      label.setAttribute('stroke-width', options.strokeWidth || '2');
-      label.setAttribute('stroke-linejoin', 'round');
-      label.setAttribute('paint-order', 'stroke fill');
-      label.style.paintOrder = 'stroke fill';
+      label.style.strokeWidth = options.strokeWidth || "2px";
+      label.setAttribute("stroke-width", options.strokeWidth || "2");
+      label.setAttribute("stroke-linejoin", "round");
+      label.setAttribute("paint-order", "stroke fill");
+      label.style.paintOrder = "stroke fill";
     }
-    label.style.pointerEvents = 'none';
+    label.style.pointerEvents = "none";
 
     let bgCircle: SVGCircleElement | undefined;
     if (options.bgCircle) {
-      bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      bgCircle.setAttribute('cx', String(x));
-      bgCircle.setAttribute('cy', String(y));
-      bgCircle.setAttribute('r', String(options.bgCircle.radius));
-      bgCircle.setAttribute('fill', options.bgCircle.fill);
-      bgCircle.setAttribute('stroke', options.bgCircle.stroke);
-      bgCircle.setAttribute('stroke-width', options.bgCircle.strokeWidth);
-      bgCircle.style.pointerEvents = 'none';
+      bgCircle = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle"
+      );
+      bgCircle.setAttribute("cx", String(x));
+      bgCircle.setAttribute("cy", String(y));
+      bgCircle.setAttribute("r", String(options.bgCircle.radius));
+      bgCircle.setAttribute("fill", options.bgCircle.fill);
+      bgCircle.setAttribute("stroke", options.bgCircle.stroke);
+      bgCircle.setAttribute("stroke-width", options.bgCircle.strokeWidth);
+      bgCircle.style.pointerEvents = "none";
     }
 
     return { label, bgCircle };
@@ -1116,7 +1291,10 @@ export class ZoomMode {
   /**
    * Render month circle (days 1-31)
    */
-  private renderMonthCircle = (group: SVGElement, state: ZoomState): SVGElement => {
+  private renderMonthCircle = (
+    group: SVGElement,
+    state: ZoomState
+  ): SVGElement => {
     const centerX = 0;
     const centerY = 0;
     const radius = 320;
@@ -1146,10 +1324,13 @@ export class ZoomMode {
 
     // Draw days - first pass: create sectors only
     for (let day = 1; day <= monthDaysCount; day++) {
-      const angle = ((day - 1) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
-      const dayAngle = (day / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
-      const startAngle = angle - (Math.PI / monthDaysCount);
-      const endAngle = angle + (Math.PI / monthDaysCount);
+      const baseAngle =
+        ((day - 1) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
+      const angle = this.applyDirectionMirroring(baseAngle);
+      const baseDayAngle = (day / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
+      const dayAngle = this.applyDirectionMirroring(baseDayAngle);
+      const startAngle = angle - Math.PI / monthDaysCount;
+      const endAngle = angle + Math.PI / monthDaysCount;
 
       // Check if Sunday
       const dayDate = new Date(year, month, day);
@@ -1162,18 +1343,21 @@ export class ZoomMode {
       const scaleValue = this.hoveredDay === day ? 1.5 : 1;
 
       // Create a group for this sector with transform origin at center
-      const sectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const sectorGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
       const midAngle = (startAngle + endAngle) / 2;
       const midRadius = (radius * 0.7 + radius) / 2;
       const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
       const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
-      
+
       // Apply smooth CSS transition for scale transform (fast and fluid)
-      sectorGroup.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      sectorGroup.style.transition = "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
       sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
       sectorGroup.style.transform = `scale(${scaleValue})`;
-      sectorGroup.setAttribute('data-day', String(day));
-      sectorGroup.setAttribute('data-hover-type', 'day');
+      sectorGroup.setAttribute("data-day", String(day));
+      sectorGroup.setAttribute("data-hover-type", "day");
 
       // Draw day sector - use similar color scheme to year's
       let fillColor: string;
@@ -1195,58 +1379,76 @@ export class ZoomMode {
         fillColor
       );
 
-      sector.classList.add('sector', 'day-sector');
-      sector.setAttribute('data-day', String(day));
+      sector.classList.add("sector", "day-sector");
+      sector.setAttribute("data-day", String(day));
       if (isCurrent) {
-        sector.classList.add('current');
-        sector.setAttribute('data-current', 'true');
+        sector.classList.add("current");
+        sector.setAttribute("data-current", "true");
         // Much more visible stroke for current day
-        sector.setAttribute('stroke', 'rgba(100, 200, 255, 1)');
-        sector.setAttribute('stroke-width', '4');
+        sector.setAttribute("stroke", "rgba(100, 200, 255, 1)");
+        sector.setAttribute("stroke-width", "4");
         // Add a filter for glow effect
-        const filterId = 'current-day-glow-month';
+        const filterId = "current-day-glow-month";
         let filter = this.svg.querySelector(`#${filterId}`) as SVGFilterElement;
         if (!filter && this.svg) {
-          filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-          filter.setAttribute('id', filterId);
-          const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
-          feGaussianBlur.setAttribute('stdDeviation', '4');
-          feGaussianBlur.setAttribute('result', 'coloredBlur');
-          const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
-          const feMergeNode1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
-          feMergeNode1.setAttribute('in', 'coloredBlur');
-          const feMergeNode2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
-          feMergeNode2.setAttribute('in', 'SourceGraphic');
+          filter = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "filter"
+          );
+          filter.setAttribute("id", filterId);
+          const feGaussianBlur = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "feGaussianBlur"
+          );
+          feGaussianBlur.setAttribute("stdDeviation", "4");
+          feGaussianBlur.setAttribute("result", "coloredBlur");
+          const feMerge = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "feMerge"
+          );
+          const feMergeNode1 = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "feMergeNode"
+          );
+          feMergeNode1.setAttribute("in", "coloredBlur");
+          const feMergeNode2 = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "feMergeNode"
+          );
+          feMergeNode2.setAttribute("in", "SourceGraphic");
           feMerge.appendChild(feMergeNode1);
           feMerge.appendChild(feMergeNode2);
           filter.appendChild(feGaussianBlur);
           filter.appendChild(feMerge);
           // Get or create defs element in the SVG
-          let defs = this.svg.querySelector('defs');
+          let defs = this.svg.querySelector("defs");
           if (!defs) {
-            defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "defs"
+            );
             this.svg.insertBefore(defs, this.svg.firstChild);
           }
           defs.appendChild(filter);
         }
         if (filter) {
-          sector.setAttribute('filter', `url(#${filterId})`);
+          sector.setAttribute("filter", `url(#${filterId})`);
         }
       }
       // Click handler - zoom to week or day based on wheel
       let wheelDelta = 0;
       let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
-      sector.addEventListener('wheel', (e) => {
+      sector.addEventListener("wheel", (e) => {
         e.preventDefault();
-        
+
         // Reset timeout on each wheel event
         if (wheelTimeout) {
           clearTimeout(wheelTimeout);
         }
-        
+
         // Accumulate delta (positive = scroll down = zoom in, negative = scroll up = zoom out)
         wheelDelta += e.deltaY;
-        
+
         // Set timeout to reset wheelDelta after wheel stops
         wheelTimeout = setTimeout(() => {
           wheelDelta = 0;
@@ -1255,10 +1457,10 @@ export class ZoomMode {
         if (Math.abs(wheelDelta) >= 100) {
           if (wheelDelta < 0) {
             // Scroll up (negative) = zoom out - go to month
-            this.navigateToLevel('month', { month });
+            this.navigateToLevel("month", { month });
           } else {
             // Scroll down (positive) = zoom in - go to day
-            this.navigateToLevel('day', { day });
+            this.navigateToLevel("day", { day });
           }
           wheelDelta = 0;
           if (wheelTimeout) {
@@ -1272,7 +1474,7 @@ export class ZoomMode {
           } else {
             // Scroll down = zoom in - go to week
             const week = this.getWeekForDay(year, month, day);
-            this.navigateToLevel('week', { week });
+            this.navigateToLevel("week", { week });
           }
           wheelDelta = 0;
           if (wheelTimeout) {
@@ -1282,16 +1484,16 @@ export class ZoomMode {
         }
       });
 
-      sector.addEventListener('click', () => {
+      sector.addEventListener("click", () => {
         // Default: go to week
         const week = this.getWeekForDay(year, month, day);
-        this.navigateToLevel('week', { week });
+        this.navigateToLevel("week", { week });
       });
 
       // Add hover handlers
-      sector.addEventListener('mouseenter', () => {
+      sector.addEventListener("mouseenter", () => {
         this.hoveredDay = day;
-        if (this.currentState.level === 'month' && !this.animating) {
+        if (this.currentState.level === "month" && !this.animating) {
           this.updateDayScales();
           // Move hovered sector group to end so it renders on top
           const parent = sectorGroup.parentElement;
@@ -1301,16 +1503,16 @@ export class ZoomMode {
         }
       });
 
-      sector.addEventListener('mouseleave', () => {
+      sector.addEventListener("mouseleave", () => {
         this.hoveredDay = null;
-        if (this.currentState.level === 'month' && !this.animating) {
+        if (this.currentState.level === "month" && !this.animating) {
           this.updateDayScales();
         }
       });
 
       // Add sector to group
       sectorGroup.appendChild(sector);
-      
+
       // Append sector group to main group (labels will be added separately)
       group.appendChild(sectorGroup);
 
@@ -1328,61 +1530,72 @@ export class ZoomMode {
     }
 
     // Second pass: render all labels in a separate layer (always on top, no occlusion)
-    const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    labelsGroup.classList.add('labels-layer');
-    
+    const labelsGroup = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "g"
+    );
+    labelsGroup.classList.add("labels-layer");
+
     labelData.forEach(({ day, x, y, isCurrent }) => {
       // Create label with consistent styling (using CSS classes)
       const { label, bgCircle } = this.createLabel(x, y, String(day), {
-        fontSize: isCurrent ? '40px' : '32px',
-        fill: '#ffffff',
-        stroke: '#000000',
-        strokeWidth: '2',
-        className: 'day-label',
+        fontSize: isCurrent ? "40px" : "32px",
+        fill: "#ffffff",
+        stroke: "#000000",
+        strokeWidth: "2",
+        className: "day-label",
         isCurrent,
         bgCircle: {
           radius: isCurrent ? 24 : 20,
-          fill: isCurrent ? 'rgba(100, 200, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
-          stroke: isCurrent ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.5)',
-          strokeWidth: isCurrent ? '2' : '1',
+          fill: isCurrent ? "rgba(100, 200, 255, 0.9)" : "rgba(0, 0, 0, 0.75)",
+          stroke: isCurrent
+            ? "rgba(255, 255, 255, 0.9)"
+            : "rgba(255, 255, 255, 0.5)",
+          strokeWidth: isCurrent ? "2" : "1",
         },
       });
 
       // Use CSS classes for styling - labels stay fixed size (no scaling) to avoid occlusion
-      label.classList.add('label-scalable', 'day-label');
-      label.setAttribute('data-day', String(day));
+      label.classList.add("label-scalable", "day-label");
+      label.setAttribute("data-day", String(day));
       // CRITICAL: Set explicit position and ensure label is always visible
       // Don't use transforms on labels - they cause issues with visibility
-      label.style.transform = 'none';
-      label.style.visibility = 'visible';
-      label.style.opacity = '1';
-      label.style.display = 'block';
-      
+      label.style.transform = "none";
+      label.style.visibility = "visible";
+      label.style.opacity = "1";
+      label.style.display = "block";
+
       if (bgCircle) {
-        bgCircle.classList.add('label-scalable');
-        bgCircle.setAttribute('data-day', String(day));
-        bgCircle.style.transform = 'none';
-        bgCircle.style.visibility = 'visible';
-        bgCircle.style.opacity = '1';
-        bgCircle.style.display = 'block';
+        bgCircle.classList.add("label-scalable");
+        bgCircle.setAttribute("data-day", String(day));
+        bgCircle.style.transform = "none";
+        bgCircle.style.visibility = "visible";
+        bgCircle.style.opacity = "1";
+        bgCircle.style.display = "block";
         labelsGroup.appendChild(bgCircle);
       }
       labelsGroup.appendChild(label);
     });
-    
+
     // Add labels group AFTER all sectors so labels are always on top
     group.appendChild(labelsGroup);
 
     // Draw events in center
     if (monthEvents.length > 0) {
-      const eventsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const eventsGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
       monthEvents.forEach((event, index) => {
-        const eventText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        eventText.setAttribute('x', String(centerX));
-        eventText.setAttribute('y', String(centerY - 60 + index * 20));
-        eventText.setAttribute('text-anchor', 'middle');
-        eventText.setAttribute('dominant-baseline', 'middle');
-        eventText.classList.add('event-text');
+        const eventText = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text"
+        );
+        eventText.setAttribute("x", String(centerX));
+        eventText.setAttribute("y", String(centerY - 60 + index * 20));
+        eventText.setAttribute("text-anchor", "middle");
+        eventText.setAttribute("dominant-baseline", "middle");
+        eventText.classList.add("event-text");
         eventText.textContent = event.summary.substring(0, 30);
 
         eventsGroup.appendChild(eventText);
@@ -1392,16 +1605,29 @@ export class ZoomMode {
 
     // Draw period text in center (month name and dates)
     const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
-    const periodText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    periodText.setAttribute('x', String(centerX));
-    periodText.setAttribute('y', String(centerY + 80));
-    periodText.setAttribute('text-anchor', 'middle');
-    periodText.setAttribute('dominant-baseline', 'middle');
-    periodText.classList.add('period-text', 'month');
+    const periodText = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text"
+    );
+    periodText.setAttribute("x", String(centerX));
+    periodText.setAttribute("y", String(centerY + 80));
+    periodText.setAttribute("text-anchor", "middle");
+    periodText.setAttribute("dominant-baseline", "middle");
+    periodText.classList.add("period-text", "month");
     periodText.textContent = `${monthNames[month]} 1-${totalDaysInMonth}`;
 
     group.appendChild(periodText);
@@ -1412,7 +1638,10 @@ export class ZoomMode {
   /**
    * Render week circle (7 days, Sunday on top)
    */
-  private renderWeekCircle = (group: SVGElement, state: ZoomState): SVGElement => {
+  private renderWeekCircle = (
+    group: SVGElement,
+    state: ZoomState
+  ): SVGElement => {
     const centerX = 0;
     const centerY = 0;
     const radius = 320;
@@ -1426,7 +1655,7 @@ export class ZoomMode {
     // Get week events (first 4)
     const weekEvents = (this.eventsByWeek[week] || []).slice(0, 4);
 
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     // Get current date
     const now = new Date();
@@ -1436,9 +1665,10 @@ export class ZoomMode {
 
     // Draw days
     for (let i = 0; i < 7; i++) {
-      const angle = (i / 7) * Math.PI * 2 - Math.PI / 2;
-      const startAngle = angle - (Math.PI / 7);
-      const endAngle = angle + (Math.PI / 7);
+      const baseAngle = (i / 7) * Math.PI * 2 - Math.PI / 2;
+      const angle = this.applyDirectionMirroring(baseAngle);
+      const startAngle = angle - Math.PI / 7;
+      const endAngle = angle + Math.PI / 7;
 
       const dayDate = new Date(weekStart);
       dayDate.setDate(dayDate.getDate() + i);
@@ -1447,25 +1677,31 @@ export class ZoomMode {
       const dayYear = dayDate.getFullYear();
 
       // Check if current day
-      const isCurrent = dayYear === currentYear && dayMonth === currentMonth && day === currentDay;
+      const isCurrent =
+        dayYear === currentYear &&
+        dayMonth === currentMonth &&
+        day === currentDay;
 
       // Calculate scale based on hover
       const scaleValue = this.hoveredWeekDay === i ? 1.5 : 1;
 
       // Create a group for this sector with transform origin at center
-      const sectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const sectorGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
       const midAngle = (startAngle + endAngle) / 2;
       const midRadius = (radius * 0.7 + radius) / 2;
       const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
       const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
-      
+
       // Use CSS classes
-      sectorGroup.classList.add('sector-group');
+      sectorGroup.classList.add("sector-group");
       // Use pixel values for transform origin (same as month circles) - this ensures correct scaling
       sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
       sectorGroup.style.transform = `scale(${scaleValue})`;
-      sectorGroup.setAttribute('data-week-day', String(i));
-      sectorGroup.setAttribute('data-hover-type', 'week-day');
+      sectorGroup.setAttribute("data-week-day", String(i));
+      sectorGroup.setAttribute("data-hover-type", "week-day");
 
       // Draw day sector - use similar color scheme to year's
       // Color based on day index (i) to match year's pattern
@@ -1482,28 +1718,39 @@ export class ZoomMode {
         fillColor
       );
 
-      sector.classList.add('sector', 'day-sector');
-      sector.setAttribute('data-day', String(i));
+      sector.classList.add("sector", "day-sector");
+      sector.setAttribute("data-day", String(i));
       if (isCurrent) {
-        sector.classList.add('current');
-        sector.setAttribute('data-current', 'true');
-        sector.setAttribute('stroke', 'rgba(100, 200, 255, 0.8)');
-        sector.setAttribute('stroke-width', '2');
+        sector.classList.add("current");
+        sector.setAttribute("data-current", "true");
+        sector.setAttribute("stroke", "rgba(100, 200, 255, 0.8)");
+        sector.setAttribute("stroke-width", "2");
       }
-      sector.style.cursor = 'pointer';
+      sector.style.cursor = "pointer";
 
-      // Click handler - zoom to day
-      sector.addEventListener('click', () => {
-        this.navigateToLevel('day', {
-          month: dayDate.getMonth(),
-          day: dayDate.getDate(),
-        });
+      // Click handler - show events for this day
+      sector.addEventListener("click", () => {
+        if (this.onShowEvents) {
+          // Get events for this specific day from the current week
+          const weekEvents = this.eventsByWeek[week] || [];
+          const dayEvents = weekEvents.filter((e) => {
+            if (!e.start) return false;
+            const eventDate = new Date(e.start);
+            return (
+              eventDate.getFullYear() === year &&
+              eventDate.getMonth() === dayMonth &&
+              eventDate.getDate() === day
+            );
+          });
+          // Show modal with events for this single day (pass week index for Google Calendar link)
+          this.onShowEvents(week, dayEvents);
+        }
       });
 
       // Add hover handlers
-      sector.addEventListener('mouseenter', () => {
+      sector.addEventListener("mouseenter", () => {
         this.hoveredWeekDay = i;
-        if (this.currentState.level === 'week' && !this.animating) {
+        if (this.currentState.level === "week" && !this.animating) {
           this.updateWeekDayScales();
           // Move hovered sector group to end so it renders on top
           const parent = sectorGroup.parentElement;
@@ -1513,9 +1760,9 @@ export class ZoomMode {
         }
       });
 
-      sector.addEventListener('mouseleave', () => {
+      sector.addEventListener("mouseleave", () => {
         this.hoveredWeekDay = null;
-        if (this.currentState.level === 'week' && !this.animating) {
+        if (this.currentState.level === "week" && !this.animating) {
           this.updateWeekDayScales();
         }
       });
@@ -1529,31 +1776,42 @@ export class ZoomMode {
       const labelY = centerY + Math.sin(angle) * labelRadius;
 
       // Use standardized label creation
-      const { label } = this.createLabel(labelX, labelY, `${dayNames[i]}\n${day}`, {
-        fontSize: isCurrent ? '24px' : '20px',
-        fill: '#fff',
-        className: 'day-label',
-        isCurrent,
-      });
-      label.style.whiteSpace = 'pre';
+      const { label } = this.createLabel(
+        labelX,
+        labelY,
+        `${dayNames[i]}\n${day}`,
+        {
+          fontSize: isCurrent ? "24px" : "20px",
+          fill: "#fff",
+          className: "day-label",
+          isCurrent,
+        }
+      );
+      label.style.whiteSpace = "pre";
 
       // Add label to sector group so it scales with the sector
       sectorGroup.appendChild(label);
-      
+
       // Append sector group to main group
       group.appendChild(sectorGroup);
     }
 
     // Draw events in center
     if (weekEvents.length > 0) {
-      const eventsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const eventsGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
       weekEvents.forEach((event, index) => {
-        const eventText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        eventText.setAttribute('x', String(centerX));
-        eventText.setAttribute('y', String(centerY - 60 + index * 20));
-        eventText.setAttribute('text-anchor', 'middle');
-        eventText.setAttribute('dominant-baseline', 'middle');
-        eventText.classList.add('event-text');
+        const eventText = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text"
+        );
+        eventText.setAttribute("x", String(centerX));
+        eventText.setAttribute("y", String(centerY - 60 + index * 20));
+        eventText.setAttribute("text-anchor", "middle");
+        eventText.setAttribute("dominant-baseline", "middle");
+        eventText.classList.add("event-text");
         eventText.textContent = event.summary.substring(0, 30);
 
         eventsGroup.appendChild(eventText);
@@ -1565,32 +1823,51 @@ export class ZoomMode {
     const weekEndDate = new Date(weekStart);
     weekEndDate.setDate(weekEndDate.getDate() + 6);
     const monthNamesShort = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
     const startDay = weekStart.getDate();
     const startMonthName = monthNamesShort[weekStart.getMonth()];
     const endDay = weekEndDate.getDate();
     const endMonthName = monthNamesShort[weekEndDate.getMonth()];
     // Create text element with two lines using tspan
-    const periodText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    periodText.setAttribute('x', String(centerX));
-    periodText.setAttribute('y', String(centerY + 60));
-    periodText.setAttribute('text-anchor', 'middle');
-    periodText.setAttribute('dominant-baseline', 'middle');
-    periodText.classList.add('period-text', 'week');
-    
+    const periodText = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text"
+    );
+    periodText.setAttribute("x", String(centerX));
+    periodText.setAttribute("y", String(centerY + 60));
+    periodText.setAttribute("text-anchor", "middle");
+    periodText.setAttribute("dominant-baseline", "middle");
+    periodText.classList.add("period-text", "week");
+
     // First line: Week number
-    const tspan1 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-    tspan1.setAttribute('x', String(centerX));
-    tspan1.setAttribute('dy', '0');
+    const tspan1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "tspan"
+    );
+    tspan1.setAttribute("x", String(centerX));
+    tspan1.setAttribute("dy", "0");
     tspan1.textContent = `Week ${week + 1}`;
     periodText.appendChild(tspan1);
-    
+
     // Second line: Date range
-    const tspan2 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-    tspan2.setAttribute('x', String(centerX));
-    tspan2.setAttribute('dy', '1.2em'); // Line spacing
+    const tspan2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "tspan"
+    );
+    tspan2.setAttribute("x", String(centerX));
+    tspan2.setAttribute("dy", "1.2em"); // Line spacing
     if (startMonthName === endMonthName) {
       tspan2.textContent = `${startDay}-${endDay} ${startMonthName}`;
     } else {
@@ -1606,7 +1883,10 @@ export class ZoomMode {
   /**
    * Render day circle (12-hour clock)
    */
-  private renderDayCircle = (group: SVGElement, state: ZoomState): SVGElement => {
+  private renderDayCircle = (
+    group: SVGElement,
+    state: ZoomState
+  ): SVGElement => {
     const centerX = 0;
     const centerY = 0;
     const radius = 320;
@@ -1615,7 +1895,9 @@ export class ZoomMode {
     const month = state.month;
     const day = state.day;
 
-    const dayKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dayKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      day
+    ).padStart(2, "0")}`;
     const dayEvents = (this.eventsByDay[dayKey] || []).slice(0, 4);
 
     // Get current date and time
@@ -1624,13 +1906,15 @@ export class ZoomMode {
     const currentMonth = now.getMonth();
     const currentDay = now.getDate();
     const currentHour12 = now.getHours() % 12 || 12; // Convert to 12-hour format (1-12)
-    const isCurrentDay = year === currentYear && month === currentMonth && day === currentDay;
+    const isCurrentDay =
+      year === currentYear && month === currentMonth && day === currentDay;
 
     // Draw hours (12-hour clock, 12 at top)
     for (let hour = 1; hour <= 12; hour++) {
-      const angle = ((hour - 3) / 12) * Math.PI * 2; // 12 at top
-      const startAngle = angle - (Math.PI / 12);
-      const endAngle = angle + (Math.PI / 12);
+      const baseAngle = ((hour - 3) / 12) * Math.PI * 2; // 12 at top
+      const angle = this.applyDirectionMirroring(baseAngle);
+      const startAngle = angle - Math.PI / 12;
+      const endAngle = angle + Math.PI / 12;
 
       // Check if current hour
       const isCurrent = isCurrentDay && hour === currentHour12;
@@ -1639,19 +1923,22 @@ export class ZoomMode {
       const scaleValue = this.hoveredHour === hour ? 1.5 : 1;
 
       // Create a group for this sector with transform origin at center
-      const sectorGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const sectorGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
       const midAngle = (startAngle + endAngle) / 2;
       const midRadius = (radius * 0.7 + radius) / 2;
       const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
       const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
-      
+
       // Use CSS classes
-      sectorGroup.classList.add('sector-group');
+      sectorGroup.classList.add("sector-group");
       // Use pixel values for transform origin (same as month circles) - this ensures correct scaling
       sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
       sectorGroup.style.transform = `scale(${scaleValue})`;
-      sectorGroup.setAttribute('data-hour', String(hour));
-      sectorGroup.setAttribute('data-hover-type', 'hour');
+      sectorGroup.setAttribute("data-hour", String(hour));
+      sectorGroup.setAttribute("data-hover-type", "hour");
 
       // Draw hour sector - use similar color scheme to year's
       const fillColor = isCurrent
@@ -1667,20 +1954,20 @@ export class ZoomMode {
         fillColor
       );
 
-      sector.classList.add('sector', 'hour-sector');
-      sector.setAttribute('data-hour', String(hour));
+      sector.classList.add("sector", "hour-sector");
+      sector.setAttribute("data-hour", String(hour));
       if (isCurrent) {
-        sector.classList.add('current');
-        sector.setAttribute('data-current', 'true');
-        sector.setAttribute('stroke', 'rgba(100, 200, 255, 0.8)');
-        sector.setAttribute('stroke-width', '2');
+        sector.classList.add("current");
+        sector.setAttribute("data-current", "true");
+        sector.setAttribute("stroke", "rgba(100, 200, 255, 0.8)");
+        sector.setAttribute("stroke-width", "2");
       }
       // Pointer events handled by CSS class
 
       // Add hover handlers
-      sector.addEventListener('mouseenter', () => {
+      sector.addEventListener("mouseenter", () => {
         this.hoveredHour = hour;
-        if (this.currentState.level === 'day' && !this.animating) {
+        if (this.currentState.level === "day" && !this.animating) {
           this.updateHourScales();
           // Move hovered sector group to end so it renders on top
           const parent = sectorGroup.parentElement;
@@ -1690,9 +1977,9 @@ export class ZoomMode {
         }
       });
 
-      sector.addEventListener('mouseleave', () => {
+      sector.addEventListener("mouseleave", () => {
         this.hoveredHour = null;
-        if (this.currentState.level === 'day' && !this.animating) {
+        if (this.currentState.level === "day" && !this.animating) {
           this.updateHourScales();
         }
       });
@@ -1707,15 +1994,15 @@ export class ZoomMode {
 
       // Use standardized label creation
       const { label } = this.createLabel(labelX, labelY, String(hour), {
-        fontSize: isCurrent ? '28px' : '24px',
-        fill: isCurrent ? '#64c8ff' : '#fff',
-        className: 'hour-label',
+        fontSize: isCurrent ? "28px" : "24px",
+        fill: isCurrent ? "#64c8ff" : "#fff",
+        className: "hour-label",
         isCurrent,
       });
 
       // Add label to sector group so it scales with the sector
       sectorGroup.appendChild(label);
-      
+
       // Append sector group to main group
       group.appendChild(sectorGroup);
     }
@@ -1743,19 +2030,22 @@ export class ZoomMode {
       const dotX = centerX + Math.cos(angle) * (radius * 0.75);
       const dotY = centerY + Math.sin(angle) * (radius * 0.75);
 
-      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      dot.setAttribute('cx', String(dotX));
-      dot.setAttribute('cy', String(dotY));
-      dot.setAttribute('r', String(dotRadius));
-      dot.setAttribute('fill', isPM ? '#ff6464' : '#4a9eff');
-      dot.setAttribute('class', 'event-dot');
-      dot.style.cursor = 'pointer';
+      const dot = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle"
+      );
+      dot.setAttribute("cx", String(dotX));
+      dot.setAttribute("cy", String(dotY));
+      dot.setAttribute("r", String(dotRadius));
+      dot.setAttribute("fill", isPM ? "#ff6464" : "#4a9eff");
+      dot.setAttribute("class", "event-dot");
+      dot.style.cursor = "pointer";
 
       // Tooltip
-      dot.setAttribute('title', event.summary);
+      dot.setAttribute("title", event.summary);
 
       // Click handler
-      dot.addEventListener('click', () => {
+      dot.addEventListener("click", () => {
         // Could show event details here
       });
 
@@ -1764,14 +2054,20 @@ export class ZoomMode {
 
     // Draw events list in center
     if (dayEvents.length > 0) {
-      const eventsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const eventsGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
       dayEvents.forEach((event, index) => {
-        const eventText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        eventText.setAttribute('x', String(centerX));
-        eventText.setAttribute('y', String(centerY - 60 + index * 20));
-        eventText.setAttribute('text-anchor', 'middle');
-        eventText.setAttribute('dominant-baseline', 'middle');
-        eventText.classList.add('event-text');
+        const eventText = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text"
+        );
+        eventText.setAttribute("x", String(centerX));
+        eventText.setAttribute("y", String(centerY - 60 + index * 20));
+        eventText.setAttribute("text-anchor", "middle");
+        eventText.setAttribute("dominant-baseline", "middle");
+        eventText.classList.add("event-text");
         eventText.textContent = event.summary.substring(0, 30);
 
         eventsGroup.appendChild(eventText);
@@ -1781,15 +2077,28 @@ export class ZoomMode {
 
     // Draw period text in center (date)
     const monthNamesShort = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
-    const periodText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    periodText.setAttribute('x', String(centerX));
-    periodText.setAttribute('y', String(centerY + 80));
-    periodText.setAttribute('text-anchor', 'middle');
-    periodText.setAttribute('dominant-baseline', 'middle');
-    periodText.classList.add('period-text', 'day');
+    const periodText = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "text"
+    );
+    periodText.setAttribute("x", String(centerX));
+    periodText.setAttribute("y", String(centerY + 80));
+    periodText.setAttribute("text-anchor", "middle");
+    periodText.setAttribute("dominant-baseline", "middle");
+    periodText.classList.add("period-text", "day");
     periodText.textContent = `${monthNamesShort[month]} ${day}, ${year}`;
 
     group.appendChild(periodText);
@@ -1809,7 +2118,7 @@ export class ZoomMode {
     endAngle: number,
     fill: string
   ): SVGElement => {
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
     // Use more precise arc calculation for smoother rendering
     const x1 = centerX + Math.cos(startAngle) * outerRadius;
@@ -1826,52 +2135,60 @@ export class ZoomMode {
     // Build path with smooth arcs
     const d = [
       `M ${x1.toFixed(2)} ${y1.toFixed(2)}`,
-      `A ${outerRadius.toFixed(2)} ${outerRadius.toFixed(2)} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`,
+      `A ${outerRadius.toFixed(2)} ${outerRadius.toFixed(
+        2
+      )} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`,
       `L ${x3.toFixed(2)} ${y3.toFixed(2)}`,
-      `A ${innerRadius.toFixed(2)} ${innerRadius.toFixed(2)} 0 ${largeArc} 0 ${x4.toFixed(2)} ${y4.toFixed(2)}`,
-      'Z',
-    ].join(' ');
+      `A ${innerRadius.toFixed(2)} ${innerRadius.toFixed(
+        2
+      )} 0 ${largeArc} 0 ${x4.toFixed(2)} ${y4.toFixed(2)}`,
+      "Z",
+    ].join(" ");
 
-    path.setAttribute('d', d);
-    path.setAttribute('fill', fill);
-    path.setAttribute('stroke', 'rgba(255, 255, 255, 0.2)');
-    path.setAttribute('stroke-width', '1');
-    path.setAttribute('shape-rendering', 'geometricPrecision'); // Smooth rendering
-    path.setAttribute('vector-effect', 'non-scaling-stroke'); // Keep stroke consistent
+    path.setAttribute("d", d);
+    path.setAttribute("fill", fill);
+    path.setAttribute("stroke", "rgba(255, 255, 255, 0.2)");
+    path.setAttribute("stroke-width", "1");
+    path.setAttribute("shape-rendering", "geometricPrecision"); // Smooth rendering
+    path.setAttribute("vector-effect", "non-scaling-stroke"); // Keep stroke consistent
 
     return path;
   };
 
   /**
    * Get week number for a day (0-51, Sunday-based weeks)
-   * 
+   *
    * This method calculates which week a given date falls into, using Sunday as the
    * first day of the week. Week 0 starts on the first Sunday on or before January 1st.
-   * 
+   *
    * @param year - The year
    * @param month - The month (0-11)
    * @param day - The day (1-31)
    * @returns Week number (0-51)
    */
-  private getWeekForDay = (year: number, month: number, day: number): number => {
+  private getWeekForDay = (
+    year: number,
+    month: number,
+    day: number
+  ): number => {
     const date = new Date(year, month, day);
-    
+
     // Find the Sunday of the week containing this date
     const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
     const sundayOfWeek = new Date(date);
     sundayOfWeek.setDate(date.getDate() - dayOfWeek);
-    
+
     // Find the first Sunday on or before January 1st of this year
     const startOfYear = new Date(year, 0, 1);
     const startDayOfWeek = startOfYear.getDay();
     const firstSunday = new Date(startOfYear);
     firstSunday.setDate(1 - startDayOfWeek);
-    
+
     // Calculate the number of weeks between first Sunday and the Sunday of our date
     const diffInMs = sundayOfWeek.getTime() - firstSunday.getTime();
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
     const weekNumber = Math.floor(diffInDays / 7);
-    
+
     // Clamp to valid range (0-51)
     return Math.max(0, Math.min(51, weekNumber));
   };
@@ -1894,13 +2211,15 @@ export class ZoomMode {
   /**
    * Check if navigation is going backwards
    */
-  private isGoingBackwards = (oldLevel: ZoomLevel, newLevel: ZoomLevel): boolean => {
-    const levelOrder: ZoomLevel[] = ['year', 'month', 'week', 'day'];
+  private isGoingBackwards = (
+    oldLevel: ZoomLevel,
+    newLevel: ZoomLevel
+  ): boolean => {
+    const levelOrder: ZoomLevel[] = ["year", "month", "week", "day"];
     const oldIndex = levelOrder.indexOf(oldLevel);
     const newIndex = levelOrder.indexOf(newLevel);
     return oldIndex > newIndex;
   };
-
 
   /**
    * Handle back button
@@ -1908,12 +2227,12 @@ export class ZoomMode {
   private handleBack = (): void => {
     const state = this.currentState;
 
-    if (state.level === 'day') {
-      this.navigateToLevel('week', { week: state.week });
-    } else if (state.level === 'week') {
-      this.navigateToLevel('month', { month: state.month });
-    } else if (state.level === 'month') {
-      this.navigateToLevel('year', {});
+    if (state.level === "day") {
+      this.navigateToLevel("week", { week: state.week });
+    } else if (state.level === "week") {
+      this.navigateToLevel("month", { month: state.month });
+    } else if (state.level === "month") {
+      this.navigateToLevel("year", {});
     }
   };
 
@@ -1926,12 +2245,12 @@ export class ZoomMode {
     }
 
     if (!this.svg) {
-      console.error('[ZoomMode] SVG element not found in render()!');
+      console.error("[ZoomMode] SVG element not found in render()!");
       return;
     }
 
     // Clear SVG but preserve defs element for filters
-    const existingDefs = this.svg.querySelector('defs');
+    const existingDefs = this.svg.querySelector("defs");
     // Remove all children except defs
     while (this.svg.firstChild) {
       if (this.svg.firstChild !== existingDefs) {
@@ -1947,7 +2266,10 @@ export class ZoomMode {
     }
     // Ensure defs exists
     if (!existingDefs) {
-      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const defs = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "defs"
+      );
       this.svg.insertBefore(defs, this.svg.firstChild);
     } else if (!this.svg.contains(existingDefs)) {
       this.svg.insertBefore(existingDefs, this.svg.firstChild);
@@ -1957,42 +2279,87 @@ export class ZoomMode {
     const circle = this.renderCircle(this.currentState, 1);
     if (circle) {
       // For month level, always use center (not the month position)
-      const center = this.currentState.level === 'month'
-        ? this.getCircleTargetCenter(this.currentState)
-        : this.getCircleCenter(this.currentState);
+      const center =
+        this.currentState.level === "month"
+          ? this.getCircleTargetCenter(this.currentState)
+          : this.getCircleCenter(this.currentState);
       const scale = this.getCircleScale(this.currentState);
 
-      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      group.setAttribute('transform', `translate(${center.x}, ${center.y}) scale(${scale})`);
-      group.style.pointerEvents = 'auto'; // Ensure pointer events work through groups
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      group.setAttribute(
+        "transform",
+        `translate(${center.x}, ${center.y}) scale(${scale})`
+      );
+      group.style.pointerEvents = "auto"; // Ensure pointer events work through groups
       group.appendChild(circle);
       this.svg.appendChild(group);
     } else {
-      console.error('[ZoomMode] renderCircle returned null!');
+      console.error("[ZoomMode] renderCircle returned null!");
     }
 
     // Update back button visibility and text
     if (this.backButton) {
-      if (this.currentState.level === 'year') {
-        this.backButton.classList.add('hidden');
+      if (this.currentState.level === "year") {
+        this.backButton.classList.add("hidden");
       } else {
-        this.backButton.classList.remove('hidden');
+        this.backButton.classList.remove("hidden");
         // Format: "← [month number]" or "← [date]" instead of "zoom out to"
         const state = this.currentState;
-        let buttonText = '←';
-        if (state.level === 'month') {
-          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        let buttonText = "←";
+        if (state.level === "month") {
+          const monthNames = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ];
           buttonText = `← ${state.month + 1} ${monthNames[state.month]}`;
-        } else if (state.level === 'week') {
+        } else if (state.level === "week") {
           const weekStart = this.getWeekStartDate(state.year, state.week);
-          const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          buttonText = `← ${weekStart.getDate()} ${monthNamesShort[weekStart.getMonth()]}`;
-        } else if (state.level === 'day') {
-          const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const monthNamesShort = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ];
+          buttonText = `← ${weekStart.getDate()} ${
+            monthNamesShort[weekStart.getMonth()]
+          }`;
+        } else if (state.level === "day") {
+          const monthNamesShort = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ];
           buttonText = `← ${state.day} ${monthNamesShort[state.month]}`;
         }
         this.backButton.innerHTML = buttonText;
-        this.backButton.setAttribute('aria-label', buttonText);
+        this.backButton.setAttribute("aria-label", buttonText);
       }
     }
   };
@@ -2014,17 +2381,60 @@ export class ZoomMode {
   };
 
   /**
+   * Toggle rotation direction (CW/CCW)
+   *
+   * @returns The new direction value (1 = CW, -1 = CCW)
+   */
+  toggleDirection = (): number => {
+    this.direction = this.direction === 1 ? -1 : 1;
+    this.render(); // Re-render to apply new direction
+    return this.direction;
+  };
+
+  /**
+   * Get current rotation direction
+   *
+   * @returns The current direction value (1 = CW, -1 = CCW)
+   */
+  getDirection = (): number => {
+    return this.direction;
+  };
+
+  /**
+   * Set rotation direction
+   *
+   * @param direction - The direction to set (1 = CW, -1 = CCW)
+   */
+  setDirection = (direction: number): void => {
+    this.direction = direction;
+    if (!this.animating) {
+      this.render(); // Re-render to apply new direction
+    }
+  };
+
+  /**
+   * Apply direction mirroring to an angle
+   * When direction is CCW (-1), mirror the angle around the vertical axis
+   *
+   * @param angle - The angle in radians
+   * @returns The mirrored angle if CCW, or the original angle if CW
+   */
+  private applyDirectionMirroring = (angle: number): number => {
+    return this.direction === -1 ? Math.PI - angle : angle;
+  };
+
+  /**
    * Navigate to previous period (year/month/week/day based on current level)
    */
   navigatePrev = (): void => {
     const state = this.currentState;
 
-    if (state.level === 'year') {
+    if (state.level === "year") {
       // Navigate to previous year
       this.currentState.year--;
       this.updateEvents(this.eventsByWeek);
       this.render();
-    } else if (state.level === 'month') {
+    } else if (state.level === "month") {
       // Navigate to previous month
       if (state.month === 0) {
         this.currentState.month = 11;
@@ -2032,8 +2442,11 @@ export class ZoomMode {
       } else {
         this.currentState.month--;
       }
-      this.navigateToLevel('month', { month: this.currentState.month, year: this.currentState.year });
-    } else if (state.level === 'week') {
+      this.navigateToLevel("month", {
+        month: this.currentState.month,
+        year: this.currentState.year,
+      });
+    } else if (state.level === "week") {
       // Navigate to previous week
       if (state.week === 0) {
         this.currentState.week = 51;
@@ -2041,8 +2454,11 @@ export class ZoomMode {
       } else {
         this.currentState.week--;
       }
-      this.navigateToLevel('week', { week: this.currentState.week, year: this.currentState.year });
-    } else if (state.level === 'day') {
+      this.navigateToLevel("week", {
+        week: this.currentState.week,
+        year: this.currentState.year,
+      });
+    } else if (state.level === "day") {
       // Navigate to previous day
       const currentDate = new Date(state.year, state.month, state.day);
       currentDate.setDate(currentDate.getDate() - 1);
@@ -2054,7 +2470,7 @@ export class ZoomMode {
         this.currentState.month,
         this.currentState.day
       );
-      this.navigateToLevel('day', {
+      this.navigateToLevel("day", {
         year: this.currentState.year,
         month: this.currentState.month,
         day: this.currentState.day,
@@ -2068,12 +2484,12 @@ export class ZoomMode {
   navigateNext = (): void => {
     const state = this.currentState;
 
-    if (state.level === 'year') {
+    if (state.level === "year") {
       // Navigate to next year
       this.currentState.year++;
       this.updateEvents(this.eventsByWeek);
       this.render();
-    } else if (state.level === 'month') {
+    } else if (state.level === "month") {
       // Navigate to next month
       if (state.month === 11) {
         this.currentState.month = 0;
@@ -2081,8 +2497,11 @@ export class ZoomMode {
       } else {
         this.currentState.month++;
       }
-      this.navigateToLevel('month', { month: this.currentState.month, year: this.currentState.year });
-    } else if (state.level === 'week') {
+      this.navigateToLevel("month", {
+        month: this.currentState.month,
+        year: this.currentState.year,
+      });
+    } else if (state.level === "week") {
       // Navigate to next week
       if (state.week === 51) {
         this.currentState.week = 0;
@@ -2090,8 +2509,11 @@ export class ZoomMode {
       } else {
         this.currentState.week++;
       }
-      this.navigateToLevel('week', { week: this.currentState.week, year: this.currentState.year });
-    } else if (state.level === 'day') {
+      this.navigateToLevel("week", {
+        week: this.currentState.week,
+        year: this.currentState.year,
+      });
+    } else if (state.level === "day") {
       // Navigate to next day
       const currentDate = new Date(state.year, state.month, state.day);
       currentDate.setDate(currentDate.getDate() + 1);
@@ -2103,7 +2525,7 @@ export class ZoomMode {
         this.currentState.month,
         this.currentState.day
       );
-      this.navigateToLevel('day', {
+      this.navigateToLevel("day", {
         year: this.currentState.year,
         month: this.currentState.month,
         day: this.currentState.day,
@@ -2117,11 +2539,10 @@ export class ZoomMode {
   destroy = (): void => {
     // Cleanup event listeners
     if (this.backButton) {
-      this.backButton.removeEventListener('click', this.handleBack);
+      this.backButton.removeEventListener("click", this.handleBack);
     }
 
     // Clear container
-    this.container.innerHTML = '';
+    this.container.innerHTML = "";
   };
 }
-

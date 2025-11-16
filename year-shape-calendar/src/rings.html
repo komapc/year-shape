@@ -139,7 +139,7 @@
         height: 700px;
         max-width: 90vw;
         max-height: 90vw;
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(30, 30, 40, 0.95); /* Dark background for dark theme */
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         overflow: hidden;
@@ -247,7 +247,7 @@
       }
 
       .ring-sector {
-        stroke: rgba(255, 255, 255, 0.3);
+        stroke: rgba(255, 255, 255, 0.1);
         stroke-width: 1.5;
         cursor: pointer;
         transition: opacity 0.2s ease, stroke 0.2s ease;
@@ -257,8 +257,8 @@
         /* CRITICAL: No transforms, filters, or any effects that could cause position changes */
         transform: none;
         filter: none;
-        /* Make sectors darker in dark theme */
-        opacity: 0.75;
+        /* Balanced opacity for dark background */
+        opacity: 0.5;
       }
 
       /* Hover on sector path - precise detection using actual path shape */
@@ -460,12 +460,22 @@
         }
 
         .ring-label {
-          font-size: 11px;
-          stroke-width: 2.5px;
+          font-size: 14px;
+          stroke-width: 3px;
         }
 
         .center-text {
-          font-size: 24px;
+          font-size: 32px;
+          font-weight: 600;
+        }
+
+        .month-label {
+          font-size: 16px;
+          font-weight: 500;
+        }
+
+        .date-label {
+          font-size: 15px;
         }
 
         button {
@@ -647,7 +657,11 @@
 
       <div class="main-content flex-1">
         <div id="canvas-container">
-          <svg id="calendar-svg" viewBox="0 0 700 700">
+          <svg
+            id="calendar-svg"
+            viewBox="0 0 700 700"
+            preserveAspectRatio="xMidYMid meet"
+          >
             <defs>
               <!-- Gradients for each ring -->
               <linearGradient
@@ -921,7 +935,7 @@
           <div
             class="flex items-center gap-4 flex-wrap justify-center sm:justify-start"
           >
-            <span>YearWheel v0.11.0</span>
+            <span>YearWheel v0.12.0</span>
             <span>•</span>
             <a
               href="privacy.html"
@@ -955,4 +969,3 @@
     </div>
   </body>
 </html>
-x`x
