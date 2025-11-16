@@ -1,21 +1,54 @@
 /**
- * Zoom Mode - Interactive calendar with nested zoom levels
- * Year → Month → Week → Day
+ * @fileoverview Zoom Mode - Interactive calendar with nested zoom levels
+ * 
+ * ZoomMode provides a hierarchical calendar view with smooth animations between levels:
+ * - Year level: Shows 12 months in a circular layout
+ * - Month level: Shows all days of the selected month
+ * - Week level: Shows 7 days of the selected week
+ * - Day level: Shows 12-hour clock view with events
+ * 
+ * Features:
+ * - Smooth zoom transitions with ease-out-quart easing
+ * - Click to zoom in, back button to zoom out
+ * - Wheel/pinch gestures for zoom control
+ * - Swipe navigation for prev/next periods
+ * - Hover effects with scale transformations
+ * - Google Calendar event integration
+ * 
+ * @module calendar/ZoomMode
  */
 
 import type { CalendarEvent } from '../types';
 import { createElement } from '../utils/dom';
 
+/**
+ * Zoom level type - represents the current view granularity
+ */
 export type ZoomLevel = 'year' | 'month' | 'week' | 'day';
 
+/**
+ * Interface representing the current state of the zoom view
+ */
 interface ZoomState {
-  level: ZoomLevel;
-  year: number;
-  month: number; // 0-11
-  week: number; // 0-51
-  day: number; // 1-31
+  level: ZoomLevel;    // Current zoom level
+  year: number;        // Current year (e.g., 2025)
+  month: number;       // Current month (0-11, 0 = January)
+  week: number;        // Current week (0-51)
+  day: number;         // Current day (1-31)
 }
 
+/**
+ * ZoomMode class - manages the interactive hierarchical calendar view
+ * 
+ * Architecture:
+ * - Uses SVG for rendering all visual elements
+ * - Event delegation for efficient click handling
+ * - RequestAnimationFrame for smooth animations
+ * - Separate label layers to prevent occlusion
+ * - Transform-based scaling for performance
+ * 
+ * @class
+ */
 export class ZoomMode {
   private container: HTMLElement;
   private svg!: SVGElement;
@@ -27,7 +60,7 @@ export class ZoomMode {
   // Animation state
   private animating: boolean = false;
   private animationStartTime: number = 0;
-  private animationDuration: number = 2000; // ms - slower animation (increased from 1200)
+  private animationDuration: number = 800; // ms - fast and fluent animation
 
   // Hover state
   private hoveredMonth: number | null = null;
@@ -410,10 +443,9 @@ export class ZoomMode {
       const elapsed = Date.now() - this.animationStartTime;
       const progress = Math.min(elapsed / this.animationDuration, 1);
 
-      // Easing function (ease-in-out cubic) - smoother animation
-      const eased = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      // Easing function (ease-out-quart) - more fluid and natural
+      // Starts fast, decelerates smoothly
+      const eased = 1 - Math.pow(1 - progress, 4);
 
       this.renderTransition(oldState, newState, oldCenter, eased);
 
@@ -1136,8 +1168,8 @@ export class ZoomMode {
       const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
       const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
       
-      // Apply smooth CSS transition for scale transform (faster animation)
-      sectorGroup.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
+      // Apply smooth CSS transition for scale transform (fast and fluid)
+      sectorGroup.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
       sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
       sectorGroup.style.transform = `scale(${scaleValue})`;
       sectorGroup.setAttribute('data-day', String(day));
