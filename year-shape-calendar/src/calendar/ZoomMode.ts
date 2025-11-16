@@ -1843,14 +1843,37 @@ export class ZoomMode {
   };
 
   /**
-   * Get week number for a day
+   * Get week number for a day (0-51, Sunday-based weeks)
+   * 
+   * This method calculates which week a given date falls into, using Sunday as the
+   * first day of the week. Week 0 starts on the first Sunday on or before January 1st.
+   * 
+   * @param year - The year
+   * @param month - The month (0-11)
+   * @param day - The day (1-31)
+   * @returns Week number (0-51)
    */
   private getWeekForDay = (year: number, month: number, day: number): number => {
     const date = new Date(year, month, day);
+    
+    // Find the Sunday of the week containing this date
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+    const sundayOfWeek = new Date(date);
+    sundayOfWeek.setDate(date.getDate() - dayOfWeek);
+    
+    // Find the first Sunday on or before January 1st of this year
     const startOfYear = new Date(year, 0, 1);
-    const diff = date.getTime() - startOfYear.getTime();
-    const oneWeek = 1000 * 60 * 60 * 24 * 7;
-    return Math.floor(diff / oneWeek);
+    const startDayOfWeek = startOfYear.getDay();
+    const firstSunday = new Date(startOfYear);
+    firstSunday.setDate(1 - startDayOfWeek);
+    
+    // Calculate the number of weeks between first Sunday and the Sunday of our date
+    const diffInMs = sundayOfWeek.getTime() - firstSunday.getTime();
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const weekNumber = Math.floor(diffInDays / 7);
+    
+    // Clamp to valid range (0-51)
+    return Math.max(0, Math.min(51, weekNumber));
   };
 
   /**
