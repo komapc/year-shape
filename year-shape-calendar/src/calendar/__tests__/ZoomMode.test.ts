@@ -7,7 +7,7 @@
  * - #8: Event display callback
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ZoomMode } from '../ZoomMode';
 import type { CalendarEvent } from '../../types';
 
