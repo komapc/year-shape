@@ -1308,8 +1308,7 @@ export class ZoomMode {
       const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
 
       // Apply smooth CSS transition for scale transform (fast and fluid)
-      sectorGroup.style.transition =
-        "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+      sectorGroup.style.transition = "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
       sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
       sectorGroup.style.transform = `scale(${scaleValue})`;
       sectorGroup.setAttribute("data-day", String(day));
