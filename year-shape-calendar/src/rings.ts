@@ -230,11 +230,11 @@ const setupLoginStatus = (): void => {
       loginStatus.classList.remove('hidden');
       headerSignInBtn.classList.add('hidden');
 
-      // Always show user's name if available, otherwise show "Hello, User"
+      // Always show user's name if available, otherwise just show "Hello"
       if (userInfo?.name) {
         statusText.textContent = `Hello, ${userInfo.name}`;
       } else {
-        statusText.textContent = 'Hello, User';
+        statusText.textContent = 'Hello';
         // Try to fetch user info one more time in the background
         googleCalendarService.fetchUserInfo().then(() => {
           const updatedInfo = googleCalendarService.getUserInfo();
@@ -242,7 +242,7 @@ const setupLoginStatus = (): void => {
             statusText.textContent = `Hello, ${updatedInfo.name}`;
           }
         }).catch(() => {
-          // Ignore errors, just keep "Hello, User"
+          // Ignore errors, just keep "Hello"
         });
       }
     } else {

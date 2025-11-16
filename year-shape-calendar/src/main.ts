@@ -16,7 +16,12 @@ const initApp = (): void => {
   }
 
   try {
-    new CalendarApp();
+    const app = new CalendarApp();
+    // Store app instance globally for swipe navigation
+    (window as any).__calendarApp = app;
+    
+    // Initialize swipe navigation for year/month/week/day navigation
+    initializeSwipeNavigation();
     
     // Initialize swipe navigation for mode switching
     initializeSwipeNavigation();

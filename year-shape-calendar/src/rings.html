@@ -139,7 +139,7 @@
         height: 700px;
         max-width: 90vw;
         max-height: 90vw;
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.85);
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         overflow: hidden;
@@ -247,7 +247,7 @@
       }
 
       .ring-sector {
-        stroke: rgba(255, 255, 255, 0.6);
+        stroke: rgba(255, 255, 255, 0.3);
         stroke-width: 1.5;
         cursor: pointer;
         transition: opacity 0.2s ease, stroke 0.2s ease;
@@ -257,11 +257,13 @@
         /* CRITICAL: No transforms, filters, or any effects that could cause position changes */
         transform: none;
         filter: none;
+        /* Make sectors darker in dark theme */
+        opacity: 0.75;
       }
 
       /* Hover on sector path - precise detection using actual path shape */
       .ring-sector:hover {
-        opacity: 1;
+        opacity: 0.95;
         stroke: white;
         /* CRITICAL: Keep stroke-width exactly the same to prevent layout shift */
         stroke-width: 1.5;
@@ -272,7 +274,7 @@
 
       /* Also support group hover for cases where group has pointer events */
       .ring-sector-group:hover .ring-sector {
-        opacity: 1;
+        opacity: 0.95;
         stroke: white;
         stroke-width: 1.5;
         /* NO filters, transforms, or effects that could cause visual displacement */
@@ -529,306 +531,322 @@
           background: transparent;
         "
       >
-      <div
-        class="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4"
-      >
         <div
-          class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto"
+          class="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4"
         >
-          <h1
-            class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent"
-          >
-            YearWheel
-          </h1>
-          <!-- Mode Selector (Radio Buttons) -->
           <div
-            class="flex items-center gap-3"
-            role="radiogroup"
-            aria-label="Select calendar mode"
+            class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2 w-full sm:w-auto"
           >
-            <label class="flex items-center gap-1.5 cursor-pointer group">
-              <input
-                type="radio"
-                name="headerMode"
-                value="old"
-                id="headerModeOld"
-                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
-              />
-              <span
-                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
-                >Classic</span
+            <h1
+              class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent"
+            >
+              YearWheel
+            </h1>
+            <!-- Mode Selector + Settings (Radio Buttons with settings inline) -->
+            <div
+              class="flex items-center gap-2"
+              role="radiogroup"
+              aria-label="Select calendar mode"
+            >
+              <label class="flex items-center gap-1.5 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="headerMode"
+                  value="old"
+                  id="headerModeOld"
+                  class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                />
+                <span
+                  class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                  >Classic</span
+                >
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="headerMode"
+                  value="rings"
+                  id="headerModeRings"
+                  class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                  checked
+                />
+                <span
+                  class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                  >Rings</span
+                >
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="headerMode"
+                  value="zoom"
+                  id="headerModeZoom"
+                  class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
+                />
+                <span
+                  class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
+                  >Zoom</span
+                >
+              </label>
+              <span class="text-gray-600">|</span>
+              <button
+                id="toggleSettingsRings"
+                class="btn text-xs"
+                aria-label="Toggle settings panel"
+                title="Settings & Controls"
               >
-            </label>
-            <label class="flex items-center gap-1.5 cursor-pointer group">
-              <input
-                type="radio"
-                name="headerMode"
-                value="rings"
-                id="headerModeRings"
-                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
-                checked
-              />
-              <span
-                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
-                >Rings</span
+                ⚙️
+              </button>
+              <button
+                id="toggleAboutRings"
+                class="btn text-xs"
+                aria-label="Toggle about panel"
+                title="About"
               >
-            </label>
-            <label class="flex items-center gap-1.5 cursor-pointer group">
-              <input
-                type="radio"
-                name="headerMode"
-                value="zoom"
-                id="headerModeZoom"
-                class="w-3.5 h-3.5 border-gray-600 text-primary-500 focus:ring-primary-500 cursor-pointer"
-              />
-              <span
-                class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors"
-                >Zoom</span
-              >
-            </label>
-          </div>
-          <button
-            id="toggleSettingsRings"
-            class="btn text-xs"
-            aria-label="Toggle settings panel"
-            title="Settings & Controls"
-          >
-            ⚙️
-          </button>
-          <button
-            id="toggleAboutRings"
-            class="btn text-xs"
-            aria-label="Toggle about panel"
-            title="About"
-          >
-            ℹ️
-          </button>
-        </div>
-
-        <!-- Login Status / Sign In Button -->
-        <div id="headerAuthRings" class="flex items-center gap-2">
-          <!-- Logged In Status (shown when authenticated) -->
-          <div
-            id="loginStatusRings"
-            class="flex items-center gap-2 glass px-3 py-1.5 rounded-lg border border-dark-border text-sm hidden"
-          >
-            <span class="status-dot w-2 h-2 rounded-full bg-green-500"></span>
-            <span class="status-text">Logged in</span>
+                ℹ️
+              </button>
+            </div>
           </div>
 
-          <!-- Sign In Button (shown when NOT authenticated) -->
-          <button
-            id="headerSignInBtnRings"
-            class="btn primary flex items-center gap-2 text-sm hidden"
-            aria-label="Sign in with Google Calendar"
-          >
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            <span>Sign in with Google</span>
-          </button>
+          <!-- Login Status / Sign In Button -->
+          <div id="headerAuthRings" class="flex items-center gap-2">
+            <!-- Logged In Status (shown when authenticated) -->
+            <div
+              id="loginStatusRings"
+              class="flex items-center gap-2 glass px-3 py-1.5 rounded-lg border border-dark-border text-sm hidden"
+            >
+              <span class="status-dot w-2 h-2 rounded-full bg-green-500"></span>
+              <span class="status-text">Logged in</span>
+            </div>
+
+            <!-- Sign In Button (shown when NOT authenticated) -->
+            <button
+              id="headerSignInBtnRings"
+              class="btn primary flex items-center gap-2 text-sm hidden"
+              aria-label="Sign in with Google Calendar"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              <span>Sign in with Google</span>
+            </button>
+          </div>
         </div>
-      </div>
       </header>
 
       <div class="main-content flex-1">
-      <div id="canvas-container">
-        <svg id="calendar-svg" viewBox="0 0 700 700">
-          <defs>
-            <!-- Gradients for each ring -->
-            <linearGradient
-              id="gradient-seasons"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
+        <div id="canvas-container">
+          <svg id="calendar-svg" viewBox="0 0 700 700">
+            <defs>
+              <!-- Gradients for each ring -->
+              <linearGradient
+                id="gradient-seasons"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #667eea; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #764ba2; stop-opacity: 1"
+                />
+              </linearGradient>
+              <linearGradient
+                id="gradient-months"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #f093fb; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #f5576c; stop-opacity: 1"
+                />
+              </linearGradient>
+              <linearGradient
+                id="gradient-hebrew"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #4facfe; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #00f2fe; stop-opacity: 1"
+                />
+              </linearGradient>
+              <linearGradient
+                id="gradient-weeks"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #43e97b; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #38f9d7; stop-opacity: 1"
+                />
+              </linearGradient>
+              <linearGradient
+                id="gradient-holidays"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #ffeaa7; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #fdcb6e; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+
+            <!-- Ring groups (rendered by JavaScript) -->
+            <g id="rings-container"></g>
+
+            <!-- Today indicator line -->
+            <line
+              id="todayLine"
+              x1="350"
+              y1="350"
+              x2="350"
+              y2="100"
+              stroke="#ff4444"
+              stroke-width="3"
+              stroke-dasharray="5,5"
+              opacity="0.8"
+              pointer-events="none"
             >
-              <stop offset="0%" style="stop-color: #667eea; stop-opacity: 1" />
-              <stop
-                offset="100%"
-                style="stop-color: #764ba2; stop-opacity: 1"
+              <animate
+                attributeName="opacity"
+                values="0.8;1;0.8"
+                dur="2s"
+                repeatCount="indefinite"
               />
-            </linearGradient>
-            <linearGradient
-              id="gradient-months"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
+            </line>
+
+            <!-- Today indicator dot at the end of line -->
+            <circle
+              id="todayDot"
+              cx="350"
+              cy="100"
+              r="6"
+              fill="#ff4444"
+              stroke="white"
+              stroke-width="2"
+              pointer-events="none"
             >
-              <stop offset="0%" style="stop-color: #f093fb; stop-opacity: 1" />
-              <stop
-                offset="100%"
-                style="stop-color: #f5576c; stop-opacity: 1"
+              <animate
+                attributeName="r"
+                values="6;8;6"
+                dur="2s"
+                repeatCount="indefinite"
               />
-            </linearGradient>
-            <linearGradient
-              id="gradient-hebrew"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
+            </circle>
+
+            <!-- Center text (will be counter-mirrored by JavaScript in CCW mode) -->
+            <text
+              class="center-text"
+              id="centerText"
+              x="350"
+              y="350"
+              transform-origin="350 350"
             >
-              <stop offset="0%" style="stop-color: #4facfe; stop-opacity: 1" />
-              <stop
-                offset="100%"
-                style="stop-color: #00f2fe; stop-opacity: 1"
-              />
-            </linearGradient>
-            <linearGradient
-              id="gradient-weeks"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
-            >
-              <stop offset="0%" style="stop-color: #43e97b; stop-opacity: 1" />
-              <stop
-                offset="100%"
-                style="stop-color: #38f9d7; stop-opacity: 1"
-              />
-            </linearGradient>
-            <linearGradient
-              id="gradient-holidays"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
-            >
-              <stop offset="0%" style="stop-color: #ffeaa7; stop-opacity: 1" />
-              <stop
-                offset="100%"
-                style="stop-color: #fdcb6e; stop-opacity: 1"
-              />
-            </linearGradient>
-          </defs>
-
-          <!-- Ring groups (rendered by JavaScript) -->
-          <g id="rings-container"></g>
-
-          <!-- Today indicator line -->
-          <line
-            id="todayLine"
-            x1="350"
-            y1="350"
-            x2="350"
-            y2="100"
-            stroke="#ff4444"
-            stroke-width="3"
-            stroke-dasharray="5,5"
-            opacity="0.8"
-            pointer-events="none"
-          >
-            <animate
-              attributeName="opacity"
-              values="0.8;1;0.8"
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </line>
-
-          <!-- Today indicator dot at the end of line -->
-          <circle
-            id="todayDot"
-            cx="350"
-            cy="100"
-            r="6"
-            fill="#ff4444"
-            stroke="white"
-            stroke-width="2"
-            pointer-events="none"
-          >
-            <animate
-              attributeName="r"
-              values="6;8;6"
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </circle>
-
-          <!-- Center text (will be counter-mirrored by JavaScript in CCW mode) -->
-          <text
-            class="center-text"
-            id="centerText"
-            x="350"
-            y="350"
-            transform-origin="350 350"
-          >
-            2025
-          </text>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Controls at bottom -->
-    <div class="controls" style="margin-top: 20px; margin-bottom: 0">
-      <div class="control-group">
-        <label>
-          Shape (Square ↔ Circle)
-          <span class="value-display" id="cornerValue">50%</span>
-        </label>
-        <input type="range" id="cornerRadius" min="0" max="100" value="50" />
-      </div>
-
-      <div class="control-group">
-        <label>
-          Ring Width
-          <span class="value-display" id="widthValue">50px</span>
-        </label>
-        <input type="range" id="ringWidth" min="30" max="80" value="50" />
-      </div>
-
-      <div class="control-group">
-        <label>Direction & Rotation</label>
-        <div style="display: flex; gap: 10px; margin-top: 8px">
-          <button
-            id="directionToggle"
-            style="
-              flex: 1;
-              padding: 8px;
-              background: rgba(255, 255, 255, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              border-radius: 6px;
-              color: white;
-              cursor: pointer;
-              font-weight: 600;
-              transition: all 0.2s;
-            "
-          >
-            ↻ CW
-          </button>
-          <button
-            id="rotateYear"
-            style="
-              flex: 1;
-              padding: 8px;
-              background: rgba(255, 255, 255, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              border-radius: 6px;
-              color: white;
-              cursor: pointer;
-              font-weight: 600;
-              transition: all 0.2s;
-            "
-          >
-            🔄 Rotate 90°
-          </button>
+              2025
+            </text>
+          </svg>
         </div>
       </div>
-    </div>
 
-    <!-- OLD INLINE SCRIPT - MOVED TO TypeScript MODULES
+      <!-- Controls at bottom -->
+      <div class="controls" style="margin-top: 20px; margin-bottom: 0">
+        <div class="control-group">
+          <label>
+            Shape (Square ↔ Circle)
+            <span class="value-display" id="cornerValue">50%</span>
+          </label>
+          <input type="range" id="cornerRadius" min="0" max="100" value="50" />
+        </div>
+
+        <div class="control-group">
+          <label>
+            Ring Width
+            <span class="value-display" id="widthValue">50px</span>
+          </label>
+          <input type="range" id="ringWidth" min="30" max="80" value="50" />
+        </div>
+
+        <div class="control-group">
+          <label>Direction & Rotation</label>
+          <div style="display: flex; gap: 10px; margin-top: 8px">
+            <button
+              id="directionToggle"
+              style="
+                flex: 1;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 6px;
+                color: white;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.2s;
+              "
+            >
+              ↻ CW
+            </button>
+            <button
+              id="rotateYear"
+              style="
+                flex: 1;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 6px;
+                color: white;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.2s;
+              "
+            >
+              🔄 Rotate 90°
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OLD INLINE SCRIPT - MOVED TO TypeScript MODULES
     All JavaScript has been extracted to:
     - src/calendar/rings/constants.ts (constants)
     - src/calendar/rings/Ring.ts (base class)
@@ -837,53 +855,58 @@
     - src/calendar/RingsMode.ts (main mode class)
     - src/rings.ts (entry point)
     -->
-    <!-- Script block removed - all code moved to TypeScript modules -->
-    <!-- All JavaScript code has been moved to TypeScript modules (src/rings.ts and related files) -->
+      <!-- Script block removed - all code moved to TypeScript modules -->
+      <!-- All JavaScript code has been moved to TypeScript modules (src/rings.ts and related files) -->
 
-    <!-- Use TypeScript module for rings mode -->
-    <script type="module" src="/rings.ts"></script>
+      <!-- Use TypeScript module for rings mode -->
+      <script type="module" src="/rings.ts"></script>
 
-    <!-- Layer Controls at bottom (hideable) -->
-    <div
-      class="layer-controls"
-      id="layerControls"
-      style="margin-top: 20px; margin-bottom: 20px; position: relative; z-index: 10"
-    >
+      <!-- Layer Controls at bottom (hideable) -->
       <div
+        class="layer-controls"
+        id="layerControls"
         style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
+          margin-top: 20px;
+          margin-bottom: 20px;
+          position: relative;
+          z-index: 10;
         "
       >
-        <h3 style="margin: 0">📚 Layer Controls</h3>
-        <button
-          id="toggleLayerControls"
+        <div
           style="
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
           "
-          title="Toggle Layer Controls"
         >
-          <span id="layerControlsToggleText">▶ Show</span>
-        </button>
-      </div>
-      <div id="layerControlsContent" style="display: none">
-        <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px">
-          Drag to reorder • Click checkbox to show/hide
-        </p>
-        <ul class="layer-list" id="layerList">
-          <!-- Populated by JavaScript -->
-        </ul>
-      </div>
+          <h3 style="margin: 0">📚 Layer Controls</h3>
+          <button
+            id="toggleLayerControls"
+            style="
+              padding: 6px 12px;
+              background: rgba(255, 255, 255, 0.2);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              border-radius: 6px;
+              color: white;
+              cursor: pointer;
+              font-weight: 600;
+              font-size: 0.85rem;
+              transition: all 0.2s;
+            "
+            title="Toggle Layer Controls"
+          >
+            <span id="layerControlsToggleText">▶ Show</span>
+          </button>
+        </div>
+        <div id="layerControlsContent" style="display: none">
+          <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px">
+            Drag to reorder • Click checkbox to show/hide
+          </p>
+          <ul class="layer-list" id="layerList">
+            <!-- Populated by JavaScript -->
+          </ul>
+        </div>
       </div>
 
       <!-- Footer -->
@@ -891,43 +914,43 @@
         class="w-full max-w-7xl mx-auto px-6 py-4 mt-auto border-t border-dark-border"
         style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: auto"
       >
-      <div
-        class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm"
-        style="color: rgba(255, 255, 255, 0.7)"
-      >
         <div
-          class="flex items-center gap-4 flex-wrap justify-center sm:justify-start"
+          class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm"
+          style="color: rgba(255, 255, 255, 0.7)"
         >
-          <span>YearWheel v0.11.0</span>
-          <span>•</span>
-          <a
-            href="privacy.html"
-            style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
-            onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
-            onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
-            >Privacy Policy</a
+          <div
+            class="flex items-center gap-4 flex-wrap justify-center sm:justify-start"
           >
-          <span>•</span>
-          <a
-            href="terms.html"
-            style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
-            onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
-            onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
-            >Terms of Service</a
-          >
-          <span>•</span>
-          <a
-            href="agreement.html"
-            style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
-            onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
-            onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
-            >User Agreement</a
-          >
+            <span>YearWheel v0.11.0</span>
+            <span>•</span>
+            <a
+              href="privacy.html"
+              style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
+              onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
+              onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
+              >Privacy Policy</a
+            >
+            <span>•</span>
+            <a
+              href="terms.html"
+              style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
+              onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
+              onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
+              >Terms of Service</a
+            >
+            <span>•</span>
+            <a
+              href="agreement.html"
+              style="color: rgba(255, 255, 255, 0.7); transition: color 0.2s"
+              onmouseover="this.style.color='rgba(255, 255, 255, 0.9)'"
+              onmouseout="this.style.color='rgba(255, 255, 255, 0.7)'"
+              >User Agreement</a
+            >
+          </div>
+          <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.6)">
+            © 2025 YearWheel. All rights reserved.
+          </div>
         </div>
-        <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.6)">
-          © 2025 YearWheel. All rights reserved.
-        </div>
-      </div>
       </footer>
     </div>
   </body>
