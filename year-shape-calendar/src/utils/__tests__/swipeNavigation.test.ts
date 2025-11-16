@@ -8,9 +8,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 describe('Swipe Navigation Bug Fix', () => {
-  let touchStartEvent: TouchEvent;
-  let touchEndEvent: TouchEvent;
-
   beforeEach(() => {
     // Setup DOM
     document.body.innerHTML = '<div id="calendar-container"></div>';
