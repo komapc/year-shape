@@ -715,6 +715,8 @@ export class CalendarApp {
     // Initialize zoom mode
     if (!this.zoomMode) {
       this.zoomMode = new ZoomMode(zoomContainer, this.currentYear);
+      // Apply saved direction setting
+      this.zoomMode.setDirection(this.settings.direction);
     }
     
     // Update events if available
@@ -808,9 +810,17 @@ export class CalendarApp {
    * @returns {void}
    */
   private handleDirectionToggle = (): void => {
-    if (!this.renderer) return;
+    let newDirection: number;
     
-    const newDirection = this.renderer.toggleDirection();
+    // Toggle direction based on current mode
+    if (this.currentMode === 'zoom' && this.zoomMode) {
+      newDirection = this.zoomMode.toggleDirection();
+    } else if (this.renderer) {
+      newDirection = this.renderer.toggleDirection();
+    } else {
+      return;
+    }
+    
     const directionText = newDirection === 1 ? 'CW' : 'CCW';
     const directionIcon = newDirection === 1 ? '↻' : '↺';
     
