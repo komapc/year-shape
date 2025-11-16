@@ -1045,6 +1045,25 @@ export class CalendarApp {
   };
 
   /**
+   * Public methods for swipe navigation
+   */
+  public navigatePrev = (): void => {
+    this.handlePrevYear();
+  };
+
+  public navigateNext = (): void => {
+    this.handleNextYear();
+  };
+
+  public getCurrentMode = (): string => {
+    return this.currentMode;
+  };
+
+  public getZoomMode = (): any => {
+    return this.zoomMode;
+  };
+
+  /**
    * Handle moon phase toggle
    */
   private handleMoonPhaseToggle = (event: Event): void => {
@@ -1216,11 +1235,11 @@ export class CalendarApp {
       statusDot.classList.remove('bg-red-500');
       statusDot.classList.add('bg-green-500');
 
-      // Always show user's name if available, otherwise show "Hello, User"
+      // Always show user's name if available, otherwise just show "Hello"
       if (userInfo?.name) {
         statusText.textContent = `Hello, ${userInfo.name}`;
       } else {
-        statusText.textContent = 'Hello, User';
+        statusText.textContent = 'Hello';
         // Try to fetch user info one more time in the background
         googleCalendarService.fetchUserInfo().then(() => {
           const updatedInfo = googleCalendarService.getUserInfo();
@@ -1228,7 +1247,7 @@ export class CalendarApp {
             statusText.textContent = `Hello, ${updatedInfo.name}`;
           }
         }).catch(() => {
-          // Ignore errors, just keep "Hello, User"
+          // Ignore errors, just keep "Hello"
         });
       }
       

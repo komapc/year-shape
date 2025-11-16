@@ -597,7 +597,7 @@ export class ZoomMode {
   private renderYearCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 300;
+    const radius = 320;
 
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -1087,7 +1087,7 @@ export class ZoomMode {
   private renderMonthCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 300;
+    const radius = 320;
 
     const month = state.month;
     const year = state.year;
@@ -1383,7 +1383,7 @@ export class ZoomMode {
   private renderWeekCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 300;
+    const radius = 320;
 
     const week = state.week;
     const year = state.year;
@@ -1577,7 +1577,7 @@ export class ZoomMode {
   private renderDayCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 300;
+    const radius = 320;
 
     const year = state.year;
     const month = state.month;
@@ -1949,6 +1949,111 @@ export class ZoomMode {
     this.currentState.year = year;
     this.updateEvents(this.eventsByWeek); // Reprocess events
     this.render();
+  };
+
+  /**
+   * Get current zoom state (for swipe navigation)
+   */
+  getCurrentState = (): ZoomState => {
+    return { ...this.currentState };
+  };
+
+  /**
+   * Navigate to previous period (year/month/week/day based on current level)
+   */
+  navigatePrev = (): void => {
+    const state = this.currentState;
+
+    if (state.level === 'year') {
+      // Navigate to previous year
+      this.currentState.year--;
+      this.updateEvents(this.eventsByWeek);
+      this.render();
+    } else if (state.level === 'month') {
+      // Navigate to previous month
+      if (state.month === 0) {
+        this.currentState.month = 11;
+        this.currentState.year--;
+      } else {
+        this.currentState.month--;
+      }
+      this.navigateToLevel('month', { month: this.currentState.month, year: this.currentState.year });
+    } else if (state.level === 'week') {
+      // Navigate to previous week
+      if (state.week === 0) {
+        this.currentState.week = 51;
+        this.currentState.year--;
+      } else {
+        this.currentState.week--;
+      }
+      this.navigateToLevel('week', { week: this.currentState.week, year: this.currentState.year });
+    } else if (state.level === 'day') {
+      // Navigate to previous day
+      const currentDate = new Date(state.year, state.month, state.day);
+      currentDate.setDate(currentDate.getDate() - 1);
+      this.currentState.year = currentDate.getFullYear();
+      this.currentState.month = currentDate.getMonth();
+      this.currentState.day = currentDate.getDate();
+      this.currentState.week = this.getWeekForDay(
+        this.currentState.year,
+        this.currentState.month,
+        this.currentState.day
+      );
+      this.navigateToLevel('day', {
+        year: this.currentState.year,
+        month: this.currentState.month,
+        day: this.currentState.day,
+      });
+    }
+  };
+
+  /**
+   * Navigate to next period (year/month/week/day based on current level)
+   */
+  navigateNext = (): void => {
+    const state = this.currentState;
+
+    if (state.level === 'year') {
+      // Navigate to next year
+      this.currentState.year++;
+      this.updateEvents(this.eventsByWeek);
+      this.render();
+    } else if (state.level === 'month') {
+      // Navigate to next month
+      if (state.month === 11) {
+        this.currentState.month = 0;
+        this.currentState.year++;
+      } else {
+        this.currentState.month++;
+      }
+      this.navigateToLevel('month', { month: this.currentState.month, year: this.currentState.year });
+    } else if (state.level === 'week') {
+      // Navigate to next week
+      if (state.week === 51) {
+        this.currentState.week = 0;
+        this.currentState.year++;
+      } else {
+        this.currentState.week++;
+      }
+      this.navigateToLevel('week', { week: this.currentState.week, year: this.currentState.year });
+    } else if (state.level === 'day') {
+      // Navigate to next day
+      const currentDate = new Date(state.year, state.month, state.day);
+      currentDate.setDate(currentDate.getDate() + 1);
+      this.currentState.year = currentDate.getFullYear();
+      this.currentState.month = currentDate.getMonth();
+      this.currentState.day = currentDate.getDate();
+      this.currentState.week = this.getWeekForDay(
+        this.currentState.year,
+        this.currentState.month,
+        this.currentState.day
+      );
+      this.navigateToLevel('day', {
+        year: this.currentState.year,
+        month: this.currentState.month,
+        day: this.currentState.day,
+      });
+    }
   };
 
   /**
