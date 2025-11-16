@@ -42,7 +42,9 @@ export class ZoomMode {
   private backButton: HTMLButtonElement | null = null;
 
   // Callback for showing event details
-  private onShowEvents: ((weekIndex: number, events: CalendarEvent[]) => void) | null = null;
+  private onShowEvents:
+    | ((weekIndex: number, events: CalendarEvent[]) => void)
+    | null = null;
 
   constructor(
     container: HTMLElement,
@@ -1656,12 +1658,14 @@ export class ZoomMode {
         if (this.onShowEvents) {
           // Get events for this specific day from the current week
           const weekEvents = this.eventsByWeek[week] || [];
-          const dayEvents = weekEvents.filter(e => {
+          const dayEvents = weekEvents.filter((e) => {
             if (!e.start) return false;
             const eventDate = new Date(e.start);
-            return eventDate.getFullYear() === year && 
-                   eventDate.getMonth() === dayMonth && 
-                   eventDate.getDate() === day;
+            return (
+              eventDate.getFullYear() === year &&
+              eventDate.getMonth() === dayMonth &&
+              eventDate.getDate() === day
+            );
           });
           // Show modal with events for this single day (pass week index for Google Calendar link)
           this.onShowEvents(week, dayEvents);

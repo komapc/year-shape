@@ -11,7 +11,7 @@
  * @version 0.5.0
  */
 
-import type { CalendarEvent } from '../types';
+import type { CalendarEvent, Direction } from '../types';
 import { CalendarRenderer } from './CalendarRenderer';
 import { WeekModal } from './WeekModal';
 import { ZoomMode } from './ZoomMode';
@@ -815,11 +815,11 @@ export class CalendarApp {
    * @returns {void}
    */
   private handleDirectionToggle = (): void => {
-    let newDirection: number;
+    let newDirection: Direction;
     
     // Toggle direction based on current mode
     if (this.currentMode === 'zoom' && this.zoomMode) {
-      newDirection = this.zoomMode.toggleDirection();
+      newDirection = this.zoomMode.toggleDirection() as Direction;
     } else if (this.renderer) {
       newDirection = this.renderer.toggleDirection();
     } else {
