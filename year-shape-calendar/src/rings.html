@@ -139,7 +139,7 @@
         height: 700px;
         max-width: 90vw;
         max-height: 90vw;
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(30, 30, 40, 0.95); /* Dark background for dark theme */
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         overflow: hidden;
@@ -247,7 +247,7 @@
       }
 
       .ring-sector {
-        stroke: rgba(255, 255, 255, 0.15);
+        stroke: rgba(255, 255, 255, 0.1);
         stroke-width: 1.5;
         cursor: pointer;
         transition: opacity 0.2s ease, stroke 0.2s ease;
@@ -257,8 +257,8 @@
         /* CRITICAL: No transforms, filters, or any effects that could cause position changes */
         transform: none;
         filter: none;
-        /* Make sectors darker in dark theme */
-        opacity: 0.35;
+        /* Balanced opacity for dark background */
+        opacity: 0.5;
       }
 
       /* Hover on sector path - precise detection using actual path shape */
@@ -955,4 +955,3 @@
     </div>
   </body>
 </html>
-x`x
