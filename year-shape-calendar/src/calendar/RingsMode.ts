@@ -1,11 +1,24 @@
 /**
  * @fileoverview RingsMode - Multi-ring calendar visualization
  * 
- * This class manages the rings calendar mode, including:
- * - RingSystem initialization and layout
- * - Layer controls (drag and drop, visibility toggles)
- * - Settings persistence
- * - UI control integration
+ * RingsMode provides a layered, customizable calendar view where different
+ * time periods (seasons, months, weeks, holidays) are displayed as concentric rings.
+ * 
+ * Features:
+ * - 5 available ring types: Seasons, Gregorian Months, Hebrew Months, Weeks, Holidays
+ * - Drag-and-drop layer reordering
+ * - Toggle visibility for each ring
+ * - Adjustable corner radius (square to circle)
+ * - Configurable ring width
+ * - Rotation direction control (CW/CCW)
+ * - Settings persistence to localStorage
+ * 
+ * Architecture:
+ * - RingSystem handles the actual rendering and layout
+ * - Ring implementations define the data for each ring type
+ * - RingsMode coordinates UI controls and settings
+ * 
+ * @module calendar/RingsMode
  */
 
 import { RingSystem } from './rings/RingSystem';
@@ -18,12 +31,23 @@ import {
 } from './rings/ringImplementations';
 import { Ring } from './rings/Ring';
 
+/**
+ * Metadata for a single ring layer - display information
+ */
 export interface RingMetadata {
-  label: string;
-  color: string;
-  icon: string;
+  label: string;  // Display name (e.g., "Seasons")
+  color: string;  // Primary color in hex format
+  icon: string;   // Emoji icon for UI
 }
 
+/**
+ * RingsMode class - manages the multi-ring calendar visualization
+ * 
+ * Coordinates between the RingSystem (rendering) and UI controls (user input),
+ * providing a complete interactive experience with drag-and-drop layer management.
+ * 
+ * @class
+ */
 export class RingsMode {
   private ringSystem: RingSystem;
   private ringMetadata: Record<string, RingMetadata> = {
