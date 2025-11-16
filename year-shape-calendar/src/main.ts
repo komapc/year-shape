@@ -23,6 +23,9 @@ const initApp = (): void => {
     // Initialize swipe navigation for year/month/week/day navigation
     initializeSwipeNavigation();
     
+    // Initialize swipe navigation for mode switching
+    initializeSwipeNavigation();
+    
     // Initialize PWA install manager
     console.log('PWA Install Manager initialized:', pwaInstallManager);
     
