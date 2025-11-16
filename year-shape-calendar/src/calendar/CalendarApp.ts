@@ -703,8 +703,11 @@ export class CalendarApp {
       zoomContainer.style.cssText = `
         position: relative;
         width: 100%;
-        height: 100%;
-        min-height: 600px;
+        aspect-ratio: 1 / 1;
+        max-width: min(90vw, 90vh);
+        max-height: min(90vw, 90vh);
+        min-height: 400px;
+        margin: 0 auto;
       `;
       this.shapeContainer.parentElement?.appendChild(zoomContainer);
     }

@@ -114,10 +114,10 @@ export const initializeSwipeNavigation = (): void => {
           }
         } else {
           // In old/rings mode, navigate through years
-          if (deltaX > 0) {
+      if (deltaX > 0) {
             // Swipe right - go to previous year
             app.navigatePrev();
-          } else {
+      } else {
             // Swipe left - go to next year
             app.navigateNext();
           }
