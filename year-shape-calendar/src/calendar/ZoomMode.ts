@@ -20,6 +20,7 @@
 
 import type { CalendarEvent } from "../types";
 import { createElement } from "../utils/dom";
+import { CircleRenderer, type CircleItem } from "./CircleRenderer";
 
 /**
  * Zoom level type - represents the current view granularity
@@ -57,6 +58,9 @@ export class ZoomMode {
   private eventsByWeek: Record<number, CalendarEvent[]> = {}; // week -> events
   private eventsByDay: Record<string, CalendarEvent[]> = {}; // "YYYY-MM-DD" -> events
 
+  // Circle renderer for DRY code
+  private circleRenderer: CircleRenderer = new CircleRenderer();
+  
   // Animation state
   private animating: boolean = false;
   private animationStartTime: number = 0;
@@ -699,7 +703,7 @@ export class ZoomMode {
   };
 
   /**
-   * Render year circle (12 months)
+   * Render year circle (12 months) - REFACTORED to use CircleRenderer
    */
   private renderYearCircle = (
     group: SVGElement,
@@ -729,6 +733,45 @@ export class ZoomMode {
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     const isCurrentYear = state.year === currentYear;
+
+    // Prepare circle items
+    const items: CircleItem[] = months.map((monthName, index) => ({
+      index,
+      label: monthName,
+      value: index,
+      isCurrent: isCurrentYear && index === currentMonth,
+    }));
+
+    // Use CircleRenderer for unified rendering
+    this.circleRenderer.render(group, {
+      centerX,
+      centerY,
+      radius,
+      innerRadius: radius * 0.7,
+      items,
+      colorScheme: (item) => {
+        const hue = (item.index * 30) % 360;
+        return item.isCurrent
+          ? `hsl(${hue}, 80%, 50%)` // Brighter for current
+          : `hsl(${hue}, 70%, 60%)`;
+      },
+      direction: this.direction,
+      onItemClick: (item) => {
+        this.navigateToLevel("month", { month: item.value });
+      },
+      onItemHover: (item) => {
+        this.hoveredMonth = item ? item.value : null;
+      },
+      labelFontSize: 24,
+      labelFontWeight: "bold",
+      enableHover: true,
+      hoverScale: 1.5,
+      adjacentScale: 1.1,
+      sectorClass: "month-sector",
+    });
+
+    // OLD CODE BELOW - To be replaced/removed
+    if (false) {
 
     // Draw months
     months.forEach((monthName, index) => {
@@ -960,6 +1003,8 @@ export class ZoomMode {
       // Add sector group to main group (not sector directly)
       group.appendChild(sectorGroup);
     });
+
+    } // End if (false) - old code disabled
 
     // Draw period text in center (year)
     const periodText = document.createElementNS(
