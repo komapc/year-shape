@@ -41,11 +41,16 @@ export class ZoomMode {
   // Back button
   private backButton: HTMLButtonElement | null = null;
 
+  // Callback for showing event details
+  private onShowEvents: ((weekIndex: number, events: CalendarEvent[]) => void) | null = null;
+
   constructor(
     container: HTMLElement,
-    initialYear: number = new Date().getFullYear()
+    initialYear: number = new Date().getFullYear(),
+    onShowEvents?: (weekIndex: number, events: CalendarEvent[]) => void
   ) {
     this.container = container;
+    this.onShowEvents = onShowEvents || null;
     this.currentState = {
       level: "year",
       year: initialYear,
@@ -1241,7 +1246,8 @@ export class ZoomMode {
 
     // Draw days - first pass: create sectors only
     for (let day = 1; day <= monthDaysCount; day++) {
-      const baseAngle = ((day - 1) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
+      const baseAngle =
+        ((day - 1) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
       const angle = this.applyDirectionMirroring(baseAngle);
       const baseDayAngle = (day / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
       const dayAngle = this.applyDirectionMirroring(baseDayAngle);
@@ -1645,12 +1651,21 @@ export class ZoomMode {
       }
       sector.style.cursor = "pointer";
 
-      // Click handler - zoom to day
+      // Click handler - show events for this day
       sector.addEventListener("click", () => {
-        this.navigateToLevel("day", {
-          month: dayDate.getMonth(),
-          day: dayDate.getDate(),
-        });
+        if (this.onShowEvents) {
+          // Get events for this specific day from the current week
+          const weekEvents = this.eventsByWeek[week] || [];
+          const dayEvents = weekEvents.filter(e => {
+            if (!e.start) return false;
+            const eventDate = new Date(e.start);
+            return eventDate.getFullYear() === year && 
+                   eventDate.getMonth() === dayMonth && 
+                   eventDate.getDate() === day;
+          });
+          // Show modal with events for this single day (pass week index for Google Calendar link)
+          this.onShowEvents(week, dayEvents);
+        }
       });
 
       // Add hover handlers
@@ -2288,7 +2303,7 @@ export class ZoomMode {
 
   /**
    * Toggle rotation direction (CW/CCW)
-   * 
+   *
    * @returns The new direction value (1 = CW, -1 = CCW)
    */
   toggleDirection = (): number => {
@@ -2299,7 +2314,7 @@ export class ZoomMode {
 
   /**
    * Get current rotation direction
-   * 
+   *
    * @returns The current direction value (1 = CW, -1 = CCW)
    */
   getDirection = (): number => {
@@ -2308,7 +2323,7 @@ export class ZoomMode {
 
   /**
    * Set rotation direction
-   * 
+   *
    * @param direction - The direction to set (1 = CW, -1 = CCW)
    */
   setDirection = (direction: number): void => {
@@ -2321,7 +2336,7 @@ export class ZoomMode {
   /**
    * Apply direction mirroring to an angle
    * When direction is CCW (-1), mirror the angle around the vertical axis
-   * 
+   *
    * @param angle - The angle in radians
    * @returns The mirrored angle if CCW, or the original angle if CW
    */

@@ -714,7 +714,12 @@ export class CalendarApp {
     
     // Initialize zoom mode
     if (!this.zoomMode) {
-      this.zoomMode = new ZoomMode(zoomContainer, this.currentYear);
+      // Create callback to show events modal
+      const onShowEvents = (weekIndex: number, events: CalendarEvent[]) => {
+        this.modal.open(weekIndex, events);
+      };
+      
+      this.zoomMode = new ZoomMode(zoomContainer, this.currentYear, onShowEvents);
       // Apply saved direction setting
       this.zoomMode.setDirection(this.settings.direction);
     }
