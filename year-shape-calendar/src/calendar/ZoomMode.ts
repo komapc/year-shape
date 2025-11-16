@@ -1,12 +1,12 @@
 /**
  * @fileoverview Zoom Mode - Interactive calendar with nested zoom levels
- * 
+ *
  * ZoomMode provides a hierarchical calendar view with smooth animations between levels:
  * - Year level: Shows 12 months in a circular layout
  * - Month level: Shows all days of the selected month
  * - Week level: Shows 7 days of the selected week
  * - Day level: Shows 12-hour clock view with events
- * 
+ *
  * Features:
  * - Smooth zoom transitions with ease-out-quart easing
  * - Click to zoom in, back button to zoom out
@@ -14,7 +14,7 @@
  * - Swipe navigation for prev/next periods
  * - Hover effects with scale transformations
  * - Google Calendar event integration
- * 
+ *
  * @module calendar/ZoomMode
  */
 
@@ -30,23 +30,23 @@ export type ZoomLevel = "year" | "month" | "week" | "day";
  * Interface representing the current state of the zoom view
  */
 interface ZoomState {
-  level: ZoomLevel;    // Current zoom level
-  year: number;        // Current year (e.g., 2025)
-  month: number;       // Current month (0-11, 0 = January)
-  week: number;        // Current week (0-51)
-  day: number;         // Current day (1-31)
+  level: ZoomLevel; // Current zoom level
+  year: number; // Current year (e.g., 2025)
+  month: number; // Current month (0-11, 0 = January)
+  week: number; // Current week (0-51)
+  day: number; // Current day (1-31)
 }
 
 /**
  * ZoomMode class - manages the interactive hierarchical calendar view
- * 
+ *
  * Architecture:
  * - Uses SVG for rendering all visual elements
  * - Event delegation for efficient click handling
  * - RequestAnimationFrame for smooth animations
  * - Separate label layers to prevent occlusion
  * - Transform-based scaling for performance
- * 
+ *
  * @class
  */
 export class ZoomMode {
@@ -2112,10 +2112,10 @@ export class ZoomMode {
 
   /**
    * Get week number for a day (0-51, Sunday-based weeks)
-   * 
+   *
    * This method calculates which week a given date falls into, using Sunday as the
    * first day of the week. Week 0 starts on the first Sunday on or before January 1st.
-   * 
+   *
    * @param year - The year
    * @param month - The month (0-11)
    * @param day - The day (1-31)
@@ -2127,23 +2127,23 @@ export class ZoomMode {
     day: number
   ): number => {
     const date = new Date(year, month, day);
-    
+
     // Find the Sunday of the week containing this date
     const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
     const sundayOfWeek = new Date(date);
     sundayOfWeek.setDate(date.getDate() - dayOfWeek);
-    
+
     // Find the first Sunday on or before January 1st of this year
     const startOfYear = new Date(year, 0, 1);
     const startDayOfWeek = startOfYear.getDay();
     const firstSunday = new Date(startOfYear);
     firstSunday.setDate(1 - startDayOfWeek);
-    
+
     // Calculate the number of weeks between first Sunday and the Sunday of our date
     const diffInMs = sundayOfWeek.getTime() - firstSunday.getTime();
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
     const weekNumber = Math.floor(diffInDays / 7);
-    
+
     // Clamp to valid range (0-51)
     return Math.max(0, Math.min(51, weekNumber));
   };
