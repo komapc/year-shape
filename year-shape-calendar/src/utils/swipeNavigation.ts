@@ -1,11 +1,8 @@
 /**
  * @fileoverview Swipe Navigation Utility
  * 
- * Handles swipe left/right gestures to switch between calendar modes
+ * Handles swipe left/right gestures for year/month/week/day navigation
  */
-
-import { navigateToMode, getModeFromHash } from './modeNavigation';
-import type { CalendarMode } from './settings';
 
 interface SwipeState {
   startX: number;
@@ -15,7 +12,7 @@ interface SwipeState {
 }
 
 /**
- * Initialize swipe navigation for mode switching
+ * Initialize swipe navigation for year/month/week/day navigation
  */
 export const initializeSwipeNavigation = (): void => {
   let swipeState: SwipeState | null = null;
@@ -73,18 +70,34 @@ export const initializeSwipeNavigation = (): void => {
       deltaY < SWIPE_MAX_VERTICAL &&
       deltaTime < SWIPE_MAX_TIME
     ) {
-      const currentMode = getModeFromHash() || 'zoom';
-      const modes: CalendarMode[] = ['old', 'rings', 'zoom'];
-      const currentIndex = modes.indexOf(currentMode);
-
-      if (deltaX > 0) {
-        // Swipe right - go to previous mode
-        const prevIndex = currentIndex > 0 ? currentIndex - 1 : modes.length - 1;
-        navigateToMode(modes[prevIndex]);
-      } else {
-        // Swipe left - go to next mode
-        const nextIndex = currentIndex < modes.length - 1 ? currentIndex + 1 : 0;
-        navigateToMode(modes[nextIndex]);
+      // Get app instance from global scope
+      const app = (window as any).__calendarApp;
+      
+      if (app) {
+        const currentMode = app.getCurrentMode();
+        
+        if (currentMode === 'zoom') {
+          // In zoom mode, navigate through year/month/week/day
+          const zoomMode = app.getZoomMode();
+          if (zoomMode) {
+            if (deltaX > 0) {
+              // Swipe right - go to previous
+              zoomMode.navigatePrev();
+            } else {
+              // Swipe left - go to next
+              zoomMode.navigateNext();
+            }
+          }
+        } else {
+          // In old/rings mode, navigate through years
+          if (deltaX > 0) {
+            // Swipe right - go to previous year
+            app.navigatePrev();
+          } else {
+            // Swipe left - go to next year
+            app.navigateNext();
+          }
+        }
       }
     }
 
@@ -96,6 +109,6 @@ export const initializeSwipeNavigation = (): void => {
   document.addEventListener('touchmove', handleTouchMove, { passive: true });
   document.addEventListener('touchend', handleTouchEnd, { passive: true });
 
-  console.log('[SwipeNavigation] Initialized swipe left/right to switch modes');
+  console.log('[SwipeNavigation] Initialized swipe navigation for year/month/week/day');
 };
 

@@ -35,12 +35,12 @@
     <!-- Header -->
     <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6" style="overflow-x: hidden">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2 w-full sm:w-auto">
           <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
             YearWheel
           </h1>
-          <!-- Mode Selector (Radio Buttons) -->
-          <div class="flex items-center gap-3" role="radiogroup" aria-label="Select calendar mode">
+          <!-- Mode Selector + Settings (Radio Buttons with settings inline) -->
+          <div class="flex items-center gap-2" role="radiogroup" aria-label="Select calendar mode">
             <label class="flex items-center gap-1.5 cursor-pointer group">
               <input 
                 type="radio" 
@@ -72,23 +72,24 @@
               />
               <span class="text-xs text-dark-muted group-hover:text-gray-300 transition-colors">Zoom</span>
             </label>
+            <span class="text-gray-600">|</span>
+            <button 
+              id="toggleSettings" 
+              class="btn text-xs"
+              aria-label="Toggle settings panel"
+              title="Settings & Controls"
+            >
+              ⚙️
+            </button>
+            <button 
+              id="toggleAbout" 
+              class="btn text-xs"
+              aria-label="Toggle about panel"
+              title="About"
+            >
+              ℹ️
+            </button>
           </div>
-          <button 
-            id="toggleSettings" 
-            class="btn text-xs"
-            aria-label="Toggle settings panel"
-            title="Settings & Controls"
-          >
-            ⚙️
-          </button>
-          <button 
-            id="toggleAbout" 
-            class="btn text-xs"
-            aria-label="Toggle about panel"
-            title="About"
-          >
-            ℹ️
-          </button>
         </div>
         
         <!-- Login Status / Sign In Button -->
