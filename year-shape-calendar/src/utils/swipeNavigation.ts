@@ -1,18 +1,42 @@
 /**
  * @fileoverview Swipe Navigation Utility
  * 
- * Handles swipe left/right gestures for year/month/week/day navigation
+ * Implements context-aware horizontal swipe gestures for navigation.
+ * 
+ * Behavior:
+ * - **Classic/Rings Mode**: Swipe left/right navigates through years
+ * - **Zoom Mode**: Swipe left/right navigates through current level:
+ *   - Year level: Previous/next year
+ *   - Month level: Previous/next month (wraps to adjacent year)
+ *   - Week level: Previous/next week (wraps to adjacent year)
+ *   - Day level: Previous/next day
+ * 
+ * Gesture Detection:
+ * - Minimum swipe distance: 50px
+ * - Maximum vertical movement: 100px (to distinguish from scrolling)
+ * - Maximum duration: 500ms (to distinguish from long presses)
+ * - Single-touch only (multi-touch disabled)
+ * 
+ * @module utils/swipeNavigation
  */
 
+/**
+ * Interface tracking swipe gesture state
+ */
 interface SwipeState {
-  startX: number;
-  startY: number;
-  startTime: number;
-  isSwipe: boolean;
+  startX: number;      // Initial touch X coordinate
+  startY: number;      // Initial touch Y coordinate
+  startTime: number;   // Timestamp of touch start
+  isSwipe: boolean;    // Whether gesture qualifies as horizontal swipe
 }
 
 /**
- * Initialize swipe navigation for year/month/week/day navigation
+ * Initialize swipe navigation for context-aware year/month/week/day navigation
+ * 
+ * Attaches global touch event listeners to detect and handle swipe gestures.
+ * Requires CalendarApp instance to be available at `window.__calendarApp`.
+ * 
+ * @returns void
  */
 export const initializeSwipeNavigation = (): void => {
   let swipeState: SwipeState | null = null;
