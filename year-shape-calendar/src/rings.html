@@ -304,7 +304,7 @@
 
       .ring-label {
         fill: rgba(0, 0, 0, 0.95);
-        font-size: 18px; /* Reduced 30% from 26px */
+        font-size: 14px; /* Smaller for better fit */
         font-weight: 700;
         pointer-events: none;
         user-select: none;
@@ -327,7 +327,7 @@
 
       .center-text {
         fill: rgba(0, 0, 0, 0.7);
-        font-size: 45px; /* Reduced 30% from 64px */
+        font-size: 36px; /* Smaller for better fit */
         font-weight: 700;
         text-anchor: middle;
         dominant-baseline: middle;
@@ -339,15 +339,15 @@
         fill: rgba(0, 0, 0, 0.8);
       }
 
-      /* Mobile: Double font sizes */
+      /* Mobile: Smaller font sizes for better fit */
       @media (max-width: 768px) {
         .ring-label {
-          font-size: 52px;
-          stroke-width: 12px;
+          font-size: 10px;
+          stroke-width: 2px;
         }
 
         .center-text {
-          font-size: 128px;
+          font-size: 20px;
         }
       }
 
@@ -460,22 +460,22 @@
         }
 
         .ring-label {
-          font-size: 14px;
-          stroke-width: 3px;
+          font-size: 11px;
+          stroke-width: 2.5px;
         }
 
         .center-text {
-          font-size: 32px;
+          font-size: 24px;
           font-weight: 600;
         }
-
+        
         .month-label {
-          font-size: 16px;
+          font-size: 13px;
           font-weight: 500;
         }
-
+        
         .date-label {
-          font-size: 15px;
+          font-size: 12px;
         }
 
         button {
