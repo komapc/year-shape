@@ -1007,24 +1007,17 @@ export class ZoomMode {
 
     // Add arrow indicator for current month
     if (isCurrentYear) {
-      // Use the same angle calculation as CircleRenderer for consistency
+      // Calculate angle for current month
+      // NOTE: Don't apply direction mirroring here - CircleRenderer already positions
+      // sectors correctly based on direction, so arrow should use base angle to point
+      // to the same logical position
       const totalItems = 12;
       const baseAngle = (currentMonth / totalItems) * Math.PI * 2 - Math.PI / 2;
-      const angle = this.applyDirectionMirroring(baseAngle);
-      
-      // Debug logging
-      console.log('[ZoomMode] Current month arrow:', {
-        currentMonth,
-        currentYear,
-        baseAngle: baseAngle * (180 / Math.PI), // Convert to degrees
-        angle: angle * (180 / Math.PI),
-        direction: this.direction
-      });
-      
+
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
         centerY,
-        angle,
+        baseAngle, // Use base angle, not mirrored
         radius,
         {
           size: 35,
