@@ -1242,6 +1242,16 @@ export class ZoomMode {
 
   /**
    * Create an arrow indicator pointing at a specific angle (for current items)
+   * 
+   * Note: The angle parameter should already have direction mirroring applied
+   * (via applyDirectionMirroring) so arrows work correctly in both CW and CCW modes.
+   * 
+   * @param centerX - Center X coordinate of the circle
+   * @param centerY - Center Y coordinate of the circle
+   * @param angle - Angle in radians (already mirrored for direction)
+   * @param radius - Radius of the circle
+   * @param options - Configuration options for arrow appearance
+   * @returns SVG group element containing the arrow
    */
   private createCurrentIndicatorArrow = (
     centerX: number,
