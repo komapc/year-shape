@@ -60,7 +60,7 @@ export class ZoomMode {
 
   // Circle renderer for DRY code
   private circleRenderer: CircleRenderer = new CircleRenderer();
-  
+
   // Animation state
   private animating: boolean = false;
   private animationStartTime: number = 0;
@@ -772,118 +772,88 @@ export class ZoomMode {
 
     // OLD CODE BELOW - To be replaced/removed
     if (false) {
+      // Draw months
+      months.forEach((monthName, index) => {
+        const baseAngle = (index / 12) * Math.PI * 2 - Math.PI / 2;
+        const angle = this.applyDirectionMirroring(baseAngle);
+        const startAngle = angle - Math.PI / 12;
+        const endAngle = angle + Math.PI / 12;
 
-    // Draw months
-    months.forEach((monthName, index) => {
-      const baseAngle = (index / 12) * Math.PI * 2 - Math.PI / 2;
-      const angle = this.applyDirectionMirroring(baseAngle);
-      const startAngle = angle - Math.PI / 12;
-      const endAngle = angle + Math.PI / 12;
+        // Check if this is the current month
+        const isCurrent = isCurrentYear && index === currentMonth;
 
-      // Check if this is the current month
-      const isCurrent = isCurrentYear && index === currentMonth;
-
-      // Calculate scale based on hover (use CSS transform for smooth transitions)
-      let scaleValue = 1;
-      if (this.hoveredMonth === index) {
-        scaleValue = 1.5; // Larger hovered month
-      } else if (this.hoveredMonth !== null) {
-        const hoverDist = Math.min(
-          Math.abs(index - this.hoveredMonth),
-          Math.abs(index - this.hoveredMonth + 12),
-          Math.abs(index - this.hoveredMonth - 12)
-        );
-        if (hoverDist === 1) {
-          scaleValue = 1.1; // Slightly enlarged adjacent months
-        }
-      }
-
-      // Create a group for this sector with transform origin at center
-      const sectorGroup = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "g"
-      );
-      const midAngle = (startAngle + endAngle) / 2;
-      const midRadius = (radius * 0.7 + radius) / 2;
-      const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
-      const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
-
-      // Use CSS classes instead of inline styles
-      sectorGroup.classList.add("sector-group");
-      sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
-      sectorGroup.style.transform = `scale(${scaleValue})`;
-      sectorGroup.setAttribute("data-month", String(index));
-      sectorGroup.setAttribute("data-hover-type", "month");
-
-      // Draw sector at base size (always use radius * 1.0, scale via transform)
-      const baseColor = isCurrent
-        ? `hsl(${(index * 30) % 360}, 80%, 50%)` // Brighter for current
-        : `hsl(${(index * 30) % 360}, 70%, 60%)`;
-      const sector = this.createSector(
-        centerX,
-        centerY,
-        radius * 0.7,
-        radius, // Always base radius, scale via CSS transform
-        startAngle,
-        endAngle,
-        baseColor
-      );
-
-      sector.setAttribute("class", "month-sector");
-      sector.setAttribute("data-month", String(index));
-      sector.setAttribute("data-test", "month-" + index);
-      sector.setAttribute("data-month-name", monthName);
-      if (isCurrent) {
-        sector.setAttribute("data-current", "true");
-        sector.setAttribute("stroke", "rgba(255, 255, 255, 0.6)");
-        sector.setAttribute("stroke-width", "2");
-      }
-      sector.style.cursor = "pointer";
-      sector.style.pointerEvents = "all";
-      sector.style.touchAction = "manipulation";
-      (sector.style as any).webkitTouchCallout = "none";
-      sector.style.userSelect = "none";
-      // Ensure the path itself can receive clicks
-      (sector as any).setAttribute("pointer-events", "all");
-
-      // Add sector to group
-      sectorGroup.appendChild(sector);
-
-      // Store month index for event handlers
-      const monthIndex = index;
-
-      // Handle navigation on tap/click
-      const handleMonthNavigation = (e: Event): void => {
-        // CRITICAL: Cancel any pending hover updates IMMEDIATELY
-        if (hoverTimeout) {
-          if (typeof hoverTimeout === "number") {
-            clearTimeout(hoverTimeout);
-          } else {
-            cancelAnimationFrame(hoverTimeout);
+        // Calculate scale based on hover (use CSS transform for smooth transitions)
+        let scaleValue = 1;
+        if (this.hoveredMonth === index) {
+          scaleValue = 1.5; // Larger hovered month
+        } else if (this.hoveredMonth !== null) {
+          const hoverDist = Math.min(
+            Math.abs(index - this.hoveredMonth),
+            Math.abs(index - this.hoveredMonth + 12),
+            Math.abs(index - this.hoveredMonth - 12)
+          );
+          if (hoverDist === 1) {
+            scaleValue = 1.1; // Slightly enlarged adjacent months
           }
         }
 
-        // Cancel hover state
-        this.hoveredMonth = null;
+        // Create a group for this sector with transform origin at center
+        const sectorGroup = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "g"
+        );
+        const midAngle = (startAngle + endAngle) / 2;
+        const midRadius = (radius * 0.7 + radius) / 2;
+        const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
+        const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
 
-        e.stopPropagation();
-        e.preventDefault();
+        // Use CSS classes instead of inline styles
+        sectorGroup.classList.add("sector-group");
+        sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
+        sectorGroup.style.transform = `scale(${scaleValue})`;
+        sectorGroup.setAttribute("data-month", String(index));
+        sectorGroup.setAttribute("data-hover-type", "month");
 
-        this.navigateToLevel("month", { month: monthIndex });
-      };
+        // Draw sector at base size (always use radius * 1.0, scale via transform)
+        const baseColor = isCurrent
+          ? `hsl(${(index * 30) % 360}, 80%, 50%)` // Brighter for current
+          : `hsl(${(index * 30) % 360}, 70%, 60%)`;
+        const sector = this.createSector(
+          centerX,
+          centerY,
+          radius * 0.7,
+          radius, // Always base radius, scale via CSS transform
+          startAngle,
+          endAngle,
+          baseColor
+        );
 
-      // Click handler for desktop
-      sector.addEventListener("click", handleMonthNavigation, true);
+        sector.setAttribute("class", "month-sector");
+        sector.setAttribute("data-month", String(index));
+        sector.setAttribute("data-test", "month-" + index);
+        sector.setAttribute("data-month-name", monthName);
+        if (isCurrent) {
+          sector.setAttribute("data-current", "true");
+          sector.setAttribute("stroke", "rgba(255, 255, 255, 0.6)");
+          sector.setAttribute("stroke-width", "2");
+        }
+        sector.style.cursor = "pointer";
+        sector.style.pointerEvents = "all";
+        sector.style.touchAction = "manipulation";
+        (sector.style as any).webkitTouchCallout = "none";
+        sector.style.userSelect = "none";
+        // Ensure the path itself can receive clicks
+        (sector as any).setAttribute("pointer-events", "all");
 
-      // Touch handlers for mobile (prevent zoom, handle tap)
-      let touchStartTime = 0;
-      let touchStartX = 0;
-      let touchStartY = 0;
+        // Add sector to group
+        sectorGroup.appendChild(sector);
 
-      sector.addEventListener(
-        "touchstart",
-        (e: TouchEvent) => {
-          // Cancel hover updates on touch
+        // Store month index for event handlers
+        const monthIndex = index;
+
+        // Handle navigation on tap/click
+        const handleMonthNavigation = (e: Event): void => {
+          // CRITICAL: Cancel any pending hover updates IMMEDIATELY
           if (hoverTimeout) {
             if (typeof hoverTimeout === "number") {
               clearTimeout(hoverTimeout);
@@ -892,119 +862,172 @@ export class ZoomMode {
             }
           }
 
-          // Store touch start info
-          if (e.touches.length === 1) {
-            touchStartTime = Date.now();
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-          } else {
-            // Multiple touches = pinch zoom, prevent it
-            e.preventDefault();
-          }
-        },
-        { passive: false }
-      );
+          // Cancel hover state
+          this.hoveredMonth = null;
 
-      sector.addEventListener(
-        "touchend",
-        (e: TouchEvent) => {
-          // Only handle single tap (not pinch)
-          if (e.changedTouches.length !== 1) {
-            return;
-          }
+          e.stopPropagation();
+          e.preventDefault();
 
-          const touchEnd = e.changedTouches[0];
-          const touchDuration = Date.now() - touchStartTime;
-          const touchDistance = Math.sqrt(
-            Math.pow(touchEnd.clientX - touchStartX, 2) +
-              Math.pow(touchEnd.clientY - touchStartY, 2)
-          );
+          this.navigateToLevel("month", { month: monthIndex });
+        };
 
-          // If it's a quick tap (not a drag or long press), navigate
-          if (touchDuration < 300 && touchDistance < 10) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleMonthNavigation(e);
-          }
-        },
-        { passive: false }
-      );
+        // Click handler for desktop
+        sector.addEventListener("click", handleMonthNavigation, true);
 
-      // Also add mousedown handler for faster response
-      sector.addEventListener("mousedown", () => {
-        // Cancel hover updates on mousedown
-        if (hoverTimeout) {
-          if (typeof hoverTimeout === "number") {
-            clearTimeout(hoverTimeout);
-          } else {
-            cancelAnimationFrame(hoverTimeout);
+        // Touch handlers for mobile (prevent zoom, handle tap)
+        let touchStartTime = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        sector.addEventListener(
+          "touchstart",
+          (e: TouchEvent) => {
+            // Cancel hover updates on touch
+            if (hoverTimeout) {
+              if (typeof hoverTimeout === "number") {
+                clearTimeout(hoverTimeout);
+              } else {
+                cancelAnimationFrame(hoverTimeout);
+              }
+            }
+
+            // Store touch start info
+            if (e.touches.length === 1) {
+              touchStartTime = Date.now();
+              touchStartX = e.touches[0].clientX;
+              touchStartY = e.touches[0].clientY;
+            } else {
+              // Multiple touches = pinch zoom, prevent it
+              e.preventDefault();
+            }
+          },
+          { passive: false }
+        );
+
+        sector.addEventListener(
+          "touchend",
+          (e: TouchEvent) => {
+            // Only handle single tap (not pinch)
+            if (e.changedTouches.length !== 1) {
+              return;
+            }
+
+            const touchEnd = e.changedTouches[0];
+            const touchDuration = Date.now() - touchStartTime;
+            const touchDistance = Math.sqrt(
+              Math.pow(touchEnd.clientX - touchStartX, 2) +
+                Math.pow(touchEnd.clientY - touchStartY, 2)
+            );
+
+            // If it's a quick tap (not a drag or long press), navigate
+            if (touchDuration < 300 && touchDistance < 10) {
+              e.preventDefault();
+              e.stopPropagation();
+              handleMonthNavigation(e);
+            }
+          },
+          { passive: false }
+        );
+
+        // Also add mousedown handler for faster response
+        sector.addEventListener("mousedown", () => {
+          // Cancel hover updates on mousedown
+          if (hoverTimeout) {
+            if (typeof hoverTimeout === "number") {
+              clearTimeout(hoverTimeout);
+            } else {
+              cancelAnimationFrame(hoverTimeout);
+            }
           }
-        }
+        });
+
+        // Hover handlers with smooth animation
+        // Use a longer delay to ensure clicks fire first
+        const hoverTimeout: number | ReturnType<typeof setTimeout> | null =
+          null;
+
+        sector.addEventListener("mouseenter", () => {
+          // Cancel any pending hover updates
+          if (hoverTimeout) {
+            if (typeof hoverTimeout === "number") {
+              clearTimeout(hoverTimeout);
+            } else {
+              cancelAnimationFrame(hoverTimeout);
+            }
+          }
+          this.hoveredMonth = monthIndex;
+          // Update all sector group scales for smooth transition
+          if (this.currentState.level === "year" && !this.animating) {
+            this.updateMonthScales();
+            // Move hovered sector group to end so it renders on top
+            const parent = sectorGroup.parentElement;
+            if (parent) {
+              parent.appendChild(sectorGroup);
+            }
+          }
+        });
+
+        sector.addEventListener("mouseleave", () => {
+          // Cancel any pending hover updates
+          if (hoverTimeout) {
+            if (typeof hoverTimeout === "number") {
+              clearTimeout(hoverTimeout);
+            } else {
+              cancelAnimationFrame(hoverTimeout);
+            }
+          }
+          this.hoveredMonth = null;
+          // Update all sector group scales for smooth transition
+          if (this.currentState.level === "year" && !this.animating) {
+            this.updateMonthScales();
+          }
+        });
+
+        // Draw month label (inside the sector group so it scales with the sector)
+        const labelAngle = angle;
+        const labelRadius = radius * 0.85;
+        const labelX = centerX + Math.cos(labelAngle) * labelRadius;
+        const labelY = centerY + Math.sin(labelAngle) * labelRadius;
+
+        // Use standardized label creation
+        const { label } = this.createLabel(labelX, labelY, monthName, {
+          fontSize: isCurrent ? "28px" : "24px",
+          fontWeight: "bold",
+          fill: "#fff",
+          className: "month-label",
+        });
+
+        // Add label to sector group so it scales with the sector
+        sectorGroup.appendChild(label);
+
+        // Add sector group to main group (not sector directly)
+        group.appendChild(sectorGroup);
       });
-
-      // Hover handlers with smooth animation
-      // Use a longer delay to ensure clicks fire first
-      const hoverTimeout: number | ReturnType<typeof setTimeout> | null = null;
-
-      sector.addEventListener("mouseenter", () => {
-        // Cancel any pending hover updates
-        if (hoverTimeout) {
-          if (typeof hoverTimeout === "number") {
-            clearTimeout(hoverTimeout);
-          } else {
-            cancelAnimationFrame(hoverTimeout);
-          }
-        }
-        this.hoveredMonth = monthIndex;
-        // Update all sector group scales for smooth transition
-        if (this.currentState.level === "year" && !this.animating) {
-          this.updateMonthScales();
-          // Move hovered sector group to end so it renders on top
-          const parent = sectorGroup.parentElement;
-          if (parent) {
-            parent.appendChild(sectorGroup);
-          }
-        }
-      });
-
-      sector.addEventListener("mouseleave", () => {
-        // Cancel any pending hover updates
-        if (hoverTimeout) {
-          if (typeof hoverTimeout === "number") {
-            clearTimeout(hoverTimeout);
-          } else {
-            cancelAnimationFrame(hoverTimeout);
-          }
-        }
-        this.hoveredMonth = null;
-        // Update all sector group scales for smooth transition
-        if (this.currentState.level === "year" && !this.animating) {
-          this.updateMonthScales();
-        }
-      });
-
-      // Draw month label (inside the sector group so it scales with the sector)
-      const labelAngle = angle;
-      const labelRadius = radius * 0.85;
-      const labelX = centerX + Math.cos(labelAngle) * labelRadius;
-      const labelY = centerY + Math.sin(labelAngle) * labelRadius;
-
-      // Use standardized label creation
-      const { label } = this.createLabel(labelX, labelY, monthName, {
-        fontSize: isCurrent ? "28px" : "24px",
-        fontWeight: "bold",
-        fill: "#fff",
-        className: "month-label",
-      });
-
-      // Add label to sector group so it scales with the sector
-      sectorGroup.appendChild(label);
-
-      // Add sector group to main group (not sector directly)
-      group.appendChild(sectorGroup);
-    });
-
     } // End if (false) - old code disabled
+
+    // Add arrow indicator for current month
+    if (isCurrentYear) {
+      // Calculate angle for current month
+      // CircleRenderer uses different mirroring: -angle instead of Math.PI - angle
+      // We need to match CircleRenderer's angle calculation exactly
+      const totalItems = 12;
+      const baseAngle = (currentMonth / totalItems) * Math.PI * 2 - Math.PI / 2;
+      // Apply same mirroring as CircleRenderer (from svg.ts applyDirectionMirroring)
+      const angle = this.direction === 1 ? baseAngle : -baseAngle;
+
+      const arrow = this.createCurrentIndicatorArrow(
+        centerX,
+        centerY,
+        angle,
+        radius,
+        {
+          size: 35,
+          color: "#64c8ff",
+          pulseAnimation: true,
+        }
+      );
+      group.appendChild(arrow);
+    }
 
     // Draw period text in center (year)
     const periodText = document.createElementNS(
@@ -1224,6 +1247,85 @@ export class ZoomMode {
   };
 
   /**
+   * Create an arrow indicator pointing at a specific angle (for current items)
+   */
+  private createCurrentIndicatorArrow = (
+    centerX: number,
+    centerY: number,
+    angle: number,
+    radius: number,
+    options: {
+      size?: number;
+      color?: string;
+      pulseAnimation?: boolean;
+    } = {}
+  ): SVGElement => {
+    const size = options.size || 30;
+    const color = options.color || "#64c8ff";
+    const pulseAnimation = options.pulseAnimation !== false;
+
+    // Position arrow outside the circle
+    const arrowDistance = radius + size + 10;
+    const arrowX = centerX + Math.cos(angle) * arrowDistance;
+    const arrowY = centerY + Math.sin(angle) * arrowDistance;
+
+    // Create arrow group
+    const arrowGroup = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "g"
+    );
+    arrowGroup.classList.add("current-indicator-arrow");
+
+    // Calculate arrow points (pointing toward center)
+    // Arrow is an equilateral triangle pointing inward
+    const tipX = centerX + Math.cos(angle) * radius;
+    const tipY = centerY + Math.sin(angle) * radius;
+
+    const baseX = arrowX;
+    const baseY = arrowY;
+
+    // Perpendicular angle for arrow wings
+    const perpAngle1 = angle + Math.PI / 2;
+    const perpAngle2 = angle - Math.PI / 2;
+
+    const wing1X = baseX + Math.cos(perpAngle1) * (size / 2);
+    const wing1Y = baseY + Math.sin(perpAngle1) * (size / 2);
+    const wing2X = baseX + Math.cos(perpAngle2) * (size / 2);
+    const wing2Y = baseY + Math.sin(perpAngle2) * (size / 2);
+
+    // Create arrow path
+    const arrow = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "polygon"
+    );
+    arrow.setAttribute(
+      "points",
+      `${tipX},${tipY} ${wing1X},${wing1Y} ${wing2X},${wing2Y}`
+    );
+    arrow.setAttribute("fill", color);
+    arrow.setAttribute("stroke", "#ffffff");
+    arrow.setAttribute("stroke-width", "2");
+    arrow.setAttribute("opacity", "0.9");
+    arrow.style.pointerEvents = "none";
+
+    // Add pulse animation if enabled
+    if (pulseAnimation) {
+      const animateOpacity = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "animate"
+      );
+      animateOpacity.setAttribute("attributeName", "opacity");
+      animateOpacity.setAttribute("values", "0.9;0.5;0.9");
+      animateOpacity.setAttribute("dur", "2s");
+      animateOpacity.setAttribute("repeatCount", "indefinite");
+      arrow.appendChild(animateOpacity);
+    }
+
+    arrowGroup.appendChild(arrow);
+    return arrowGroup;
+  };
+
+  /**
    * Create a standardized label element with consistent styling
    */
   private createLabel = (
@@ -1353,7 +1455,8 @@ export class ZoomMode {
       const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
 
       // Apply smooth CSS transition for scale transform (fast and fluid)
-      sectorGroup.style.transition = "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+      sectorGroup.style.transition =
+        "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
       sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
       sectorGroup.style.transform = `scale(${scaleValue})`;
       sectorGroup.setAttribute("data-day", String(day));
@@ -1580,6 +1683,25 @@ export class ZoomMode {
     // Add labels group AFTER all sectors so labels are always on top
     group.appendChild(labelsGroup);
 
+    // Add arrow indicator for current day
+    if (isCurrentMonth) {
+      const baseDayAngle =
+        ((currentDay - 1) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
+      const angle = this.applyDirectionMirroring(baseDayAngle);
+      const arrow = this.createCurrentIndicatorArrow(
+        centerX,
+        centerY,
+        angle,
+        radius,
+        {
+          size: 35,
+          color: "#64c8ff",
+          pulseAnimation: true,
+        }
+      );
+      group.appendChild(arrow);
+    }
+
     // Draw events in center
     if (monthEvents.length > 0) {
       const eventsGroup = document.createElementNS(
@@ -1796,6 +1918,33 @@ export class ZoomMode {
       group.appendChild(sectorGroup);
     }
 
+    // Add arrow indicator for current day in week
+    const currentWeekDay = dayNames.findIndex((_, i) => {
+      const dayDate = new Date(weekStart);
+      dayDate.setDate(dayDate.getDate() + i);
+      return (
+        dayDate.getFullYear() === currentYear &&
+        dayDate.getMonth() === currentMonth &&
+        dayDate.getDate() === currentDay
+      );
+    });
+    if (currentWeekDay !== -1) {
+      const baseAngle = (currentWeekDay / 7) * Math.PI * 2 - Math.PI / 2;
+      const angle = this.applyDirectionMirroring(baseAngle);
+      const arrow = this.createCurrentIndicatorArrow(
+        centerX,
+        centerY,
+        angle,
+        radius,
+        {
+          size: 35,
+          color: "#64c8ff",
+          pulseAnimation: true,
+        }
+      );
+      group.appendChild(arrow);
+    }
+
     // Draw events in center
     if (weekEvents.length > 0) {
       const eventsGroup = document.createElementNS(
@@ -2005,6 +2154,24 @@ export class ZoomMode {
 
       // Append sector group to main group
       group.appendChild(sectorGroup);
+    }
+
+    // Add arrow indicator for current hour
+    if (isCurrentDay) {
+      const baseAngle = ((currentHour12 - 3) / 12) * Math.PI * 2; // 12 at top
+      const angle = this.applyDirectionMirroring(baseAngle);
+      const arrow = this.createCurrentIndicatorArrow(
+        centerX,
+        centerY,
+        angle,
+        radius,
+        {
+          size: 35,
+          color: "#64c8ff",
+          pulseAnimation: true,
+        }
+      );
+      group.appendChild(arrow);
     }
 
     // Draw event dots
