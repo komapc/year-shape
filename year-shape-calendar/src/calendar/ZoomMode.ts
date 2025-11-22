@@ -820,6 +820,7 @@ export class ZoomMode {
       group.appendChild(arrow);
     }
 
+
     // Draw period text in center (year)
     const periodText = document.createElementNS(
       "http://www.w3.org/2000/svg",
