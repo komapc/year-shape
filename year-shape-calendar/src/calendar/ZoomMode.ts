@@ -30,7 +30,7 @@ export type ZoomLevel = "year" | "month" | "week" | "day";
 /**
  * Interface representing the current state of the zoom view
  */
-interface ZoomState {
+export interface ZoomState {
   level: ZoomLevel; // Current zoom level
   year: number; // Current year (e.g., 2025)
   month: number; // Current month (0-11, 0 = January)
@@ -69,6 +69,9 @@ export class ZoomMode {
   // Direction (1 = CW, -1 = CCW)
   private direction: number = 1;
 
+  // Rotation offset (for shifting months in year view)
+  private rotationOffset: number = 0;
+
   // Hover state
   private hoveredMonth: number | null = null;
   private hoveredDay: number | null = null; // For month circle
@@ -78,24 +81,26 @@ export class ZoomMode {
   // Back button
   private backButton: HTMLButtonElement | null = null;
 
-  // Callback for showing event details
+  // Callbacks
   private onShowEvents:
     | ((weekIndex: number, events: CalendarEvent[]) => void)
     | null = null;
+  private onStateChange: ((state: ZoomState) => void) | null = null;
 
   constructor(
     container: HTMLElement,
     initialYear: number = new Date().getFullYear(),
-    onShowEvents?: (weekIndex: number, events: CalendarEvent[]) => void
+    onShowEvents?: (weekIndex: number, events: CalendarEvent[]) => void,
+    initialState?: Partial<ZoomState>
   ) {
     this.container = container;
     this.onShowEvents = onShowEvents || null;
     this.currentState = {
-      level: "year",
-      year: initialYear,
-      month: 0,
-      week: 0,
-      day: 1,
+      level: initialState?.level || "year",
+      year: initialState?.year || initialYear,
+      month: initialState?.month || 0,
+      week: initialState?.week || 0,
+      day: initialState?.day || 1,
     };
 
     this.initializeSVG();
@@ -422,6 +427,11 @@ export class ZoomMode {
       this.updateURLHash();
     }
 
+    // Notify state change callback
+    if (this.onStateChange) {
+      this.onStateChange(this.currentState);
+    }
+    
     // Animate transition
     this.animateTransition(oldState, this.currentState);
   };
@@ -756,6 +766,7 @@ export class ZoomMode {
           : `hsl(${hue}, 70%, 60%)`;
       },
       direction: this.direction,
+      rotationOffset: this.rotationOffset,
       onItemClick: (item) => {
         this.navigateToLevel("month", { month: item.value });
       },
@@ -1008,10 +1019,13 @@ export class ZoomMode {
     // Add arrow indicator for current month
     if (isCurrentYear) {
       // Calculate angle for current month
-      // CircleRenderer uses different mirroring: -angle instead of Math.PI - angle
-      // We need to match CircleRenderer's angle calculation exactly
+      // Must match CircleRenderer's angle calculation exactly (including rotation offset)
       const totalItems = 12;
-      const baseAngle = (currentMonth / totalItems) * Math.PI * 2 - Math.PI / 2;
+      const rotationRadians = (this.rotationOffset * Math.PI) / 180;
+      const baseAngle =
+        (currentMonth / totalItems) * Math.PI * 2 -
+        Math.PI / 2 +
+        rotationRadians;
       // Apply same mirroring as CircleRenderer (from svg.ts applyDirectionMirroring)
       const angle = this.direction === 1 ? baseAngle : -baseAngle;
 
@@ -2548,6 +2562,13 @@ export class ZoomMode {
   };
 
   /**
+   * Set callback for state changes (for persistence)
+   */
+  setOnStateChange = (callback: (state: ZoomState) => void): void => {
+    this.onStateChange = callback;
+  };
+
+  /**
    * Toggle rotation direction (CW/CCW)
    *
    * @returns The new direction value (1 = CW, -1 = CCW)
@@ -2576,6 +2597,31 @@ export class ZoomMode {
     this.direction = direction;
     if (!this.animating) {
       this.render(); // Re-render to apply new direction
+    }
+  };
+
+  /**
+   * Shift seasons (rotate year view by 90 degrees / 3 months)
+   *
+   * @returns The new rotation offset
+   */
+  shiftSeasons = (): number => {
+    this.rotationOffset = (this.rotationOffset + 90) % 360;
+    if (!this.animating) {
+      this.render(); // Re-render to apply new offset
+    }
+    return this.rotationOffset;
+  };
+
+  /**
+   * Set rotation offset
+   *
+   * @param offset - The rotation offset in degrees
+   */
+  setRotationOffset = (offset: number): void => {
+    this.rotationOffset = offset;
+    if (!this.animating) {
+      this.render();
     }
   };
 

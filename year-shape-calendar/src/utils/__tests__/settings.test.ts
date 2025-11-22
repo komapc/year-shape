@@ -42,6 +42,7 @@ describe('Settings Utilities', () => {
         seasons: ['spring', 'summer', 'autumn', 'winter'],
         rotationOffset: 90,
         mode: 'old',
+        currentYear: 2023,
         theme: 'light',
       };
 
@@ -95,6 +96,7 @@ describe('Settings Utilities', () => {
         seasons: ['winter', 'spring', 'summer', 'autumn'],
         rotationOffset: 0,
         mode: 'old',
+        currentYear: 2024,
         theme: 'light',
       };
 
@@ -120,6 +122,7 @@ describe('Settings Utilities', () => {
         seasons: ['winter', 'spring', 'summer', 'autumn'],
         rotationOffset: 0,
         mode: 'old',
+        currentYear: 2025,
         theme: 'dark',
       };
 
@@ -147,6 +150,12 @@ describe('Settings Utilities', () => {
         seasons: ['spring', 'summer', 'autumn', 'winter'],
         rotationOffset: 180,
         mode: 'old',
+        currentYear: 2024,
+        zoomState: {
+          level: 'month',
+          year: 2024,
+          month: 5,
+        },
         theme: 'dark',
         locale: 'en',
       };
@@ -169,6 +178,12 @@ describe('Settings Utilities', () => {
         seasons: ['winter', 'spring', 'summer', 'autumn'],
         rotationOffset: 270,
         mode: 'old',
+        currentYear: 2023,
+        zoomState: {
+          level: 'week',
+          year: 2023,
+          week: 25,
+        },
         theme: 'light',
         locale: 'he',
       };
@@ -179,6 +194,31 @@ describe('Settings Utilities', () => {
       const loaded2 = loadSettings();
       
       expect(loaded2).toEqual(original);
+    });
+    
+    it('should persist zoom state correctly', () => {
+      const settings: AppSettings = {
+        ...loadSettings(),
+        mode: 'zoom',
+        currentYear: 2024,
+        zoomState: {
+          level: 'day',
+          year: 2024,
+          month: 10,
+          week: 45,
+          day: 15,
+        },
+      };
+
+      saveSettings(settings);
+      const loaded = loadSettings();
+      
+      expect(loaded.zoomState).toEqual(settings.zoomState);
+      expect(loaded.zoomState?.level).toBe('day');
+      expect(loaded.zoomState?.year).toBe(2024);
+      expect(loaded.zoomState?.month).toBe(10);
+      expect(loaded.zoomState?.week).toBe(45);
+      expect(loaded.zoomState?.day).toBe(15);
     });
   });
 });
