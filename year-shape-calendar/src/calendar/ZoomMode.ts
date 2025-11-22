@@ -81,19 +81,14 @@ export class ZoomMode {
   private backButton: HTMLButtonElement | null = null;
 
   // Callbacks
-  private onShowEvents:
-    | ((weekIndex: number, events: CalendarEvent[]) => void)
-    | null = null;
   private onStateChange: ((state: ZoomState) => void) | null = null;
 
   constructor(
     container: HTMLElement,
     initialYear: number = new Date().getFullYear(),
-    onShowEvents?: (weekIndex: number, events: CalendarEvent[]) => void,
     initialState?: Partial<ZoomState>
   ) {
     this.container = container;
-    this.onShowEvents = onShowEvents || null;
     this.currentState = {
       level: initialState?.level || "year",
       year: initialState?.year || initialYear,
@@ -104,6 +99,7 @@ export class ZoomMode {
 
     this.initializeSVG();
     this.initializeBackButton();
+    this.initializeKeyboardHandlers();
     this.render();
     this.setupBrowserBackButton();
   }
@@ -339,6 +335,25 @@ export class ZoomMode {
         this.navigateToLevel(e.state.zoomLevel, e.state.params || {}, false);
       }
     });
+  };
+
+  /**
+   * Initialize keyboard event handlers
+   */
+  private initializeKeyboardHandlers = (): void => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      // ESC key - go back one level or close modals
+      if (e.key === "Escape" || e.key === "Esc") {
+        const state = this.currentState;
+        // Only handle if not at year level (top level)
+        if (state.level !== "year") {
+          e.preventDefault();
+          this.handleBack();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
   };
 
   /**
@@ -780,16 +795,15 @@ export class ZoomMode {
 
     // Add arrow indicator for current month
     if (isCurrentYear) {
-      // Calculate angle for current month - must match CircleRenderer's formula exactly
-      // CircleRenderer uses: (index / totalItems) * 2π - π/2 + rotationRadians
+      // Calculate angle for current month - must match sector creation exactly
       const totalItems = 12;
       const rotationRadians = (this.rotationOffset * Math.PI) / 180;
       const baseAngle =
         (currentMonth / totalItems) * Math.PI * 2 -
         Math.PI / 2 +
         rotationRadians;
-      // Apply same mirroring as CircleRenderer
-      const angle = this.direction === 1 ? baseAngle : -baseAngle;
+      // Apply same mirroring as sectors use
+      const angle = this.applyDirectionMirroring(baseAngle);
 
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
@@ -1423,8 +1437,7 @@ export class ZoomMode {
 
     // Add arrow indicator for current day
     if (isCurrentMonth) {
-      // Calculate angle for current day - must match CircleRenderer's formula exactly
-      // CircleRenderer uses: (index / totalItems) * 2π - π/2 + rotationRadians
+      // Calculate angle for current day - must match sector creation exactly
       // Day 1 = index 0, Day 22 = index 21, etc.
       const totalItems = monthDaysCount;
       const rotationRadians = (this.rotationOffset * Math.PI) / 180;
@@ -1432,8 +1445,8 @@ export class ZoomMode {
         ((currentDay - 1) / totalItems) * Math.PI * 2 -
         Math.PI / 2 +
         rotationRadians;
-      // Apply same mirroring as CircleRenderer
-      const angle = this.direction === 1 ? baseDayAngle : -baseDayAngle;
+      // Apply same mirroring as sectors use
+      const angle = this.applyDirectionMirroring(baseDayAngle);
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
         centerY,
@@ -1596,23 +1609,14 @@ export class ZoomMode {
       }
       sector.style.cursor = "pointer";
 
-      // Click handler - show events for this day
+      // Click handler - navigate to day circle (clock view)
       sector.addEventListener("click", () => {
-        if (this.onShowEvents) {
-          // Get events for this specific day from the current week
-          const weekEvents = this.eventsByWeek[week] || [];
-          const dayEvents = weekEvents.filter((e) => {
-            if (!e.start) return false;
-            const eventDate = new Date(e.start);
-            return (
-              eventDate.getFullYear() === year &&
-              eventDate.getMonth() === dayMonth &&
-              eventDate.getDate() === day
-            );
-          });
-          // Show modal with events for this single day (pass week index for Google Calendar link)
-          this.onShowEvents(week, dayEvents);
-        }
+        // Navigate to the day circle showing hours (clock view)
+        this.navigateToLevel("day", { 
+          year: dayYear, 
+          month: dayMonth, 
+          day: day 
+        });
       });
 
       // Add hover handlers

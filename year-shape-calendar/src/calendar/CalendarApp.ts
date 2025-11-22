@@ -730,11 +730,6 @@ export class CalendarApp {
     
     // Initialize zoom mode
     if (!this.zoomMode) {
-      // Create callback to show events modal
-      const onShowEvents = (weekIndex: number, events: CalendarEvent[]) => {
-        this.modal.open(weekIndex, events);
-      };
-      
       // Create callback to save zoom state on navigation
       const onZoomStateChange = (state: any): void => {
         this.settings.zoomState = {
@@ -751,7 +746,6 @@ export class CalendarApp {
       this.zoomMode = new ZoomMode(
         zoomContainer,
         this.currentYear,
-        onShowEvents,
         this.settings.zoomState
       );
       
