@@ -1437,14 +1437,12 @@ export class ZoomMode {
 
     // Add arrow indicator for current day
     if (isCurrentMonth) {
-      // Calculate angle for current day - must match sector creation exactly
+      // Calculate angle for current day - must match the sector loop above exactly
+      // Month circle sectors DON'T use rotationOffset (unlike year circle)
       // Day 1 = index 0, Day 22 = index 21, etc.
       const totalItems = monthDaysCount;
-      const rotationRadians = (this.rotationOffset * Math.PI) / 180;
       const baseDayAngle =
-        ((currentDay - 1) / totalItems) * Math.PI * 2 -
-        Math.PI / 2 +
-        rotationRadians;
+        ((currentDay - 1) / totalItems) * Math.PI * 2 - Math.PI / 2;
       // Apply same mirroring as sectors use
       const angle = this.applyDirectionMirroring(baseDayAngle);
       const arrow = this.createCurrentIndicatorArrow(
@@ -1612,10 +1610,10 @@ export class ZoomMode {
       // Click handler - navigate to day circle (clock view)
       sector.addEventListener("click", () => {
         // Navigate to the day circle showing hours (clock view)
-        this.navigateToLevel("day", { 
-          year: dayYear, 
-          month: dayMonth, 
-          day: day 
+        this.navigateToLevel("day", {
+          year: dayYear,
+          month: dayMonth,
+          day: day,
         });
       });
 
