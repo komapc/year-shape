@@ -30,7 +30,7 @@ export type ZoomLevel = "year" | "month" | "week" | "day";
 /**
  * Interface representing the current state of the zoom view
  */
-interface ZoomState {
+export interface ZoomState {
   level: ZoomLevel; // Current zoom level
   year: number; // Current year (e.g., 2025)
   month: number; // Current month (0-11, 0 = January)
@@ -69,8 +69,10 @@ export class ZoomMode {
   // Direction (1 = CW, -1 = CCW)
   private direction: number = 1;
 
-  // Hover state
-  private hoveredMonth: number | null = null;
+  // Rotation offset (for shifting months in year view)
+  private rotationOffset: number = 0;
+
+  // Hover state (month hover now handled by CircleRenderer)
   private hoveredDay: number | null = null; // For month circle
   private hoveredWeekDay: number | null = null; // For week circle (0-6)
   private hoveredHour: number | null = null; // For day circle (1-12)
@@ -78,28 +80,26 @@ export class ZoomMode {
   // Back button
   private backButton: HTMLButtonElement | null = null;
 
-  // Callback for showing event details
-  private onShowEvents:
-    | ((weekIndex: number, events: CalendarEvent[]) => void)
-    | null = null;
+  // Callbacks
+  private onStateChange: ((state: ZoomState) => void) | null = null;
 
   constructor(
     container: HTMLElement,
     initialYear: number = new Date().getFullYear(),
-    onShowEvents?: (weekIndex: number, events: CalendarEvent[]) => void
+    initialState?: Partial<ZoomState>
   ) {
     this.container = container;
-    this.onShowEvents = onShowEvents || null;
     this.currentState = {
-      level: "year",
-      year: initialYear,
-      month: 0,
-      week: 0,
-      day: 1,
+      level: initialState?.level || "year",
+      year: initialState?.year || initialYear,
+      month: initialState?.month || 0,
+      week: initialState?.week || 0,
+      day: initialState?.day || 1,
     };
 
     this.initializeSVG();
     this.initializeBackButton();
+    this.initializeKeyboardHandlers();
     this.render();
     this.setupBrowserBackButton();
   }
@@ -136,8 +136,6 @@ export class ZoomMode {
           );
           e.stopPropagation();
           e.preventDefault();
-          // Cancel any pending hover updates
-          this.hoveredMonth = null;
           this.navigateToLevel("month", { month: monthIndex });
           return;
         }
@@ -340,6 +338,25 @@ export class ZoomMode {
   };
 
   /**
+   * Initialize keyboard event handlers
+   */
+  private initializeKeyboardHandlers = (): void => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      // ESC key - go back one level or close modals
+      if (e.key === "Escape" || e.key === "Esc") {
+        const state = this.currentState;
+        // Only handle if not at year level (top level)
+        if (state.level !== "year") {
+          e.preventDefault();
+          this.handleBack();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+  };
+
+  /**
    * Update events data
    */
   updateEvents = (eventsByWeek: Record<number, CalendarEvent[]>): void => {
@@ -420,6 +437,11 @@ export class ZoomMode {
     // Update URL hash
     if (pushState) {
       this.updateURLHash();
+    }
+
+    // Notify state change callback
+    if (this.onStateChange) {
+      this.onStateChange(this.currentState);
     }
 
     // Animate transition
@@ -756,11 +778,12 @@ export class ZoomMode {
           : `hsl(${hue}, 70%, 60%)`;
       },
       direction: this.direction,
+      rotationOffset: this.rotationOffset,
       onItemClick: (item) => {
         this.navigateToLevel("month", { month: item.value });
       },
-      onItemHover: (item) => {
-        this.hoveredMonth = item ? item.value : null;
+      onItemHover: () => {
+        // Hover state is managed internally by CircleRenderer
       },
       labelFontSize: 24,
       labelFontWeight: "bold",
@@ -770,249 +793,17 @@ export class ZoomMode {
       sectorClass: "month-sector",
     });
 
-    // OLD CODE BELOW - To be replaced/removed
-    if (false) {
-      // Draw months
-      months.forEach((monthName, index) => {
-        const baseAngle = (index / 12) * Math.PI * 2 - Math.PI / 2;
-        const angle = this.applyDirectionMirroring(baseAngle);
-        const startAngle = angle - Math.PI / 12;
-        const endAngle = angle + Math.PI / 12;
-
-        // Check if this is the current month
-        const isCurrent = isCurrentYear && index === currentMonth;
-
-        // Calculate scale based on hover (use CSS transform for smooth transitions)
-        let scaleValue = 1;
-        if (this.hoveredMonth === index) {
-          scaleValue = 1.5; // Larger hovered month
-        } else if (this.hoveredMonth !== null) {
-          const hoverDist = Math.min(
-            Math.abs(index - this.hoveredMonth),
-            Math.abs(index - this.hoveredMonth + 12),
-            Math.abs(index - this.hoveredMonth - 12)
-          );
-          if (hoverDist === 1) {
-            scaleValue = 1.1; // Slightly enlarged adjacent months
-          }
-        }
-
-        // Create a group for this sector with transform origin at center
-        const sectorGroup = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "g"
-        );
-        const midAngle = (startAngle + endAngle) / 2;
-        const midRadius = (radius * 0.7 + radius) / 2;
-        const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
-        const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
-
-        // Use CSS classes instead of inline styles
-        sectorGroup.classList.add("sector-group");
-        sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
-        sectorGroup.style.transform = `scale(${scaleValue})`;
-        sectorGroup.setAttribute("data-month", String(index));
-        sectorGroup.setAttribute("data-hover-type", "month");
-
-        // Draw sector at base size (always use radius * 1.0, scale via transform)
-        const baseColor = isCurrent
-          ? `hsl(${(index * 30) % 360}, 80%, 50%)` // Brighter for current
-          : `hsl(${(index * 30) % 360}, 70%, 60%)`;
-        const sector = this.createSector(
-          centerX,
-          centerY,
-          radius * 0.7,
-          radius, // Always base radius, scale via CSS transform
-          startAngle,
-          endAngle,
-          baseColor
-        );
-
-        sector.setAttribute("class", "month-sector");
-        sector.setAttribute("data-month", String(index));
-        sector.setAttribute("data-test", "month-" + index);
-        sector.setAttribute("data-month-name", monthName);
-        if (isCurrent) {
-          sector.setAttribute("data-current", "true");
-          sector.setAttribute("stroke", "rgba(255, 255, 255, 0.6)");
-          sector.setAttribute("stroke-width", "2");
-        }
-        sector.style.cursor = "pointer";
-        sector.style.pointerEvents = "all";
-        sector.style.touchAction = "manipulation";
-        (sector.style as any).webkitTouchCallout = "none";
-        sector.style.userSelect = "none";
-        // Ensure the path itself can receive clicks
-        (sector as any).setAttribute("pointer-events", "all");
-
-        // Add sector to group
-        sectorGroup.appendChild(sector);
-
-        // Store month index for event handlers
-        const monthIndex = index;
-
-        // Handle navigation on tap/click
-        const handleMonthNavigation = (e: Event): void => {
-          // CRITICAL: Cancel any pending hover updates IMMEDIATELY
-          if (hoverTimeout) {
-            if (typeof hoverTimeout === "number") {
-              clearTimeout(hoverTimeout);
-            } else {
-              cancelAnimationFrame(hoverTimeout);
-            }
-          }
-
-          // Cancel hover state
-          this.hoveredMonth = null;
-
-          e.stopPropagation();
-          e.preventDefault();
-
-          this.navigateToLevel("month", { month: monthIndex });
-        };
-
-        // Click handler for desktop
-        sector.addEventListener("click", handleMonthNavigation, true);
-
-        // Touch handlers for mobile (prevent zoom, handle tap)
-        let touchStartTime = 0;
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        sector.addEventListener(
-          "touchstart",
-          (e: TouchEvent) => {
-            // Cancel hover updates on touch
-            if (hoverTimeout) {
-              if (typeof hoverTimeout === "number") {
-                clearTimeout(hoverTimeout);
-              } else {
-                cancelAnimationFrame(hoverTimeout);
-              }
-            }
-
-            // Store touch start info
-            if (e.touches.length === 1) {
-              touchStartTime = Date.now();
-              touchStartX = e.touches[0].clientX;
-              touchStartY = e.touches[0].clientY;
-            } else {
-              // Multiple touches = pinch zoom, prevent it
-              e.preventDefault();
-            }
-          },
-          { passive: false }
-        );
-
-        sector.addEventListener(
-          "touchend",
-          (e: TouchEvent) => {
-            // Only handle single tap (not pinch)
-            if (e.changedTouches.length !== 1) {
-              return;
-            }
-
-            const touchEnd = e.changedTouches[0];
-            const touchDuration = Date.now() - touchStartTime;
-            const touchDistance = Math.sqrt(
-              Math.pow(touchEnd.clientX - touchStartX, 2) +
-                Math.pow(touchEnd.clientY - touchStartY, 2)
-            );
-
-            // If it's a quick tap (not a drag or long press), navigate
-            if (touchDuration < 300 && touchDistance < 10) {
-              e.preventDefault();
-              e.stopPropagation();
-              handleMonthNavigation(e);
-            }
-          },
-          { passive: false }
-        );
-
-        // Also add mousedown handler for faster response
-        sector.addEventListener("mousedown", () => {
-          // Cancel hover updates on mousedown
-          if (hoverTimeout) {
-            if (typeof hoverTimeout === "number") {
-              clearTimeout(hoverTimeout);
-            } else {
-              cancelAnimationFrame(hoverTimeout);
-            }
-          }
-        });
-
-        // Hover handlers with smooth animation
-        // Use a longer delay to ensure clicks fire first
-        const hoverTimeout: number | ReturnType<typeof setTimeout> | null =
-          null;
-
-        sector.addEventListener("mouseenter", () => {
-          // Cancel any pending hover updates
-          if (hoverTimeout) {
-            if (typeof hoverTimeout === "number") {
-              clearTimeout(hoverTimeout);
-            } else {
-              cancelAnimationFrame(hoverTimeout);
-            }
-          }
-          this.hoveredMonth = monthIndex;
-          // Update all sector group scales for smooth transition
-          if (this.currentState.level === "year" && !this.animating) {
-            this.updateMonthScales();
-            // Move hovered sector group to end so it renders on top
-            const parent = sectorGroup.parentElement;
-            if (parent) {
-              parent.appendChild(sectorGroup);
-            }
-          }
-        });
-
-        sector.addEventListener("mouseleave", () => {
-          // Cancel any pending hover updates
-          if (hoverTimeout) {
-            if (typeof hoverTimeout === "number") {
-              clearTimeout(hoverTimeout);
-            } else {
-              cancelAnimationFrame(hoverTimeout);
-            }
-          }
-          this.hoveredMonth = null;
-          // Update all sector group scales for smooth transition
-          if (this.currentState.level === "year" && !this.animating) {
-            this.updateMonthScales();
-          }
-        });
-
-        // Draw month label (inside the sector group so it scales with the sector)
-        const labelAngle = angle;
-        const labelRadius = radius * 0.85;
-        const labelX = centerX + Math.cos(labelAngle) * labelRadius;
-        const labelY = centerY + Math.sin(labelAngle) * labelRadius;
-
-        // Use standardized label creation
-        const { label } = this.createLabel(labelX, labelY, monthName, {
-          fontSize: isCurrent ? "28px" : "24px",
-          fontWeight: "bold",
-          fill: "#fff",
-          className: "month-label",
-        });
-
-        // Add label to sector group so it scales with the sector
-        sectorGroup.appendChild(label);
-
-        // Add sector group to main group (not sector directly)
-        group.appendChild(sectorGroup);
-      });
-    } // End if (false) - old code disabled
-
     // Add arrow indicator for current month
     if (isCurrentYear) {
-      // Calculate angle for current month
-      // CircleRenderer uses different mirroring: -angle instead of Math.PI - angle
-      // We need to match CircleRenderer's angle calculation exactly
+      // Calculate angle for current month - must match CircleRenderer exactly!
+      // CircleRenderer uses svg.ts applyDirectionMirroring(angle, direction)
       const totalItems = 12;
-      const baseAngle = (currentMonth / totalItems) * Math.PI * 2 - Math.PI / 2;
-      // Apply same mirroring as CircleRenderer (from svg.ts applyDirectionMirroring)
+      const rotationRadians = (this.rotationOffset * Math.PI) / 180;
+      const baseAngle =
+        (currentMonth / totalItems) * Math.PI * 2 -
+        Math.PI / 2 +
+        rotationRadians;
+      // Use svg.ts formula: direction === 1 ? angle : -angle
       const angle = this.direction === 1 ? baseAngle : -baseAngle;
 
       const arrow = this.createCurrentIndicatorArrow(
@@ -1028,6 +819,7 @@ export class ZoomMode {
       );
       group.appendChild(arrow);
     }
+
 
     // Draw period text in center (year)
     const periodText = document.createElementNS(
@@ -1122,44 +914,6 @@ export class ZoomMode {
       circleEl.style.opacity = "1";
       circleEl.style.display = "block";
       circleEl.style.pointerEvents = "none";
-    });
-  };
-
-  /**
-   * Update month sector scales based on hover state (for smooth CSS transitions)
-   *
-   * Structure: yearGroup > sectorGroups[data-month] > sector + label
-   */
-  private updateMonthScales = (): void => {
-    if (this.currentState.level !== "year") return;
-
-    const yearGroup = this.findWrapperGroup();
-    if (!yearGroup) return;
-
-    const sectorGroups = yearGroup.querySelectorAll("g[data-month]");
-    sectorGroups.forEach((g) => {
-      const monthIndex = parseInt(
-        (g as SVGGElement).getAttribute("data-month") || "0",
-        10
-      );
-
-      let scaleValue = 1;
-      if (this.hoveredMonth === monthIndex) {
-        scaleValue = 1.5; // Larger hovered month
-      } else if (this.hoveredMonth !== null) {
-        const hoverDist = Math.min(
-          Math.abs(monthIndex - this.hoveredMonth),
-          Math.abs(monthIndex - this.hoveredMonth + 12),
-          Math.abs(monthIndex - this.hoveredMonth - 12)
-        );
-        if (hoverDist === 1) {
-          scaleValue = 1.1; // Slightly enlarged adjacent months
-        }
-      }
-
-      // Update transform for smooth CSS transition
-      const sectorGroup = g as SVGGElement;
-      sectorGroup.style.transform = `scale(${scaleValue})`;
     });
   };
 
@@ -1685,8 +1439,14 @@ export class ZoomMode {
 
     // Add arrow indicator for current day
     if (isCurrentMonth) {
+      // Calculate angle for current day - point to CENTER of sector
+      // baseAngle = (day-1)/total gives START of sector
+      // Sectors span from (angle - halfSector) to (angle + halfSector)
+      // So CENTER is at START + halfSector = (day - 1 + 0.5)/total = (day - 0.5)/total
+      const totalItems = monthDaysCount;
       const baseDayAngle =
-        ((currentDay - 1) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
+        ((currentDay - 0.5) / totalItems) * Math.PI * 2 - Math.PI / 2;
+      // Apply same mirroring as sectors use
       const angle = this.applyDirectionMirroring(baseDayAngle);
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
@@ -1850,23 +1610,14 @@ export class ZoomMode {
       }
       sector.style.cursor = "pointer";
 
-      // Click handler - show events for this day
+      // Click handler - navigate to day circle (clock view)
       sector.addEventListener("click", () => {
-        if (this.onShowEvents) {
-          // Get events for this specific day from the current week
-          const weekEvents = this.eventsByWeek[week] || [];
-          const dayEvents = weekEvents.filter((e) => {
-            if (!e.start) return false;
-            const eventDate = new Date(e.start);
-            return (
-              eventDate.getFullYear() === year &&
-              eventDate.getMonth() === dayMonth &&
-              eventDate.getDate() === day
-            );
-          });
-          // Show modal with events for this single day (pass week index for Google Calendar link)
-          this.onShowEvents(week, dayEvents);
-        }
+        // Navigate to the day circle showing hours (clock view)
+        this.navigateToLevel("day", {
+          year: dayYear,
+          month: dayMonth,
+          day: day,
+        });
       });
 
       // Add hover handlers
@@ -1929,6 +1680,8 @@ export class ZoomMode {
       );
     });
     if (currentWeekDay !== -1) {
+      // Calculate angle - week view doesn't use CircleRenderer but should use same formula
+      // (index / totalItems) * 2π - π/2 where currentWeekDay is already 0-based index
       const baseAngle = (currentWeekDay / 7) * Math.PI * 2 - Math.PI / 2;
       const angle = this.applyDirectionMirroring(baseAngle);
       const arrow = this.createCurrentIndicatorArrow(
@@ -2158,7 +1911,11 @@ export class ZoomMode {
 
     // Add arrow indicator for current hour
     if (isCurrentDay) {
-      const baseAngle = ((currentHour12 - 3) / 12) * Math.PI * 2; // 12 at top
+      // Calculate angle for current hour - must use same formula as other views
+      // currentHour12 is 1-12, so convert to 0-based index (12->0, 1->1, 2->2, ..., 11->11)
+      // Then adjust by -3 to put 12 at top (-π/2) instead of 0 at top
+      const hourIndex = currentHour12 === 12 ? 0 : currentHour12;
+      const baseAngle = ((hourIndex - 3) / 12) * Math.PI * 2; // Shift by 3 to put 12 at top
       const angle = this.applyDirectionMirroring(baseAngle);
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
@@ -2361,16 +2118,20 @@ export class ZoomMode {
   };
 
   /**
-   * Get week start date (Sunday)
+   * Get week start date (Sunday) for a given week number
+   * Uses the same logic as getWeekForDay to ensure consistency:
+   * Week 0 starts on the Sunday on or before January 1st
    */
   private getWeekStartDate = (year: number, week: number): Date => {
+    // Find the first Sunday on or before January 1st of this year
     const startOfYear = new Date(year, 0, 1);
-    const weekStart = new Date(startOfYear);
-    weekStart.setDate(weekStart.getDate() + week * 7);
+    const startDayOfWeek = startOfYear.getDay();
+    const firstSunday = new Date(startOfYear);
+    firstSunday.setDate(1 - startDayOfWeek);
 
-    // Adjust to Sunday
-    const dayOfWeek = weekStart.getDay();
-    weekStart.setDate(weekStart.getDate() - dayOfWeek);
+    // Add the appropriate number of weeks
+    const weekStart = new Date(firstSunday);
+    weekStart.setDate(firstSunday.getDate() + week * 7);
 
     return weekStart;
   };
@@ -2548,6 +2309,13 @@ export class ZoomMode {
   };
 
   /**
+   * Set callback for state changes (for persistence)
+   */
+  setOnStateChange = (callback: (state: ZoomState) => void): void => {
+    this.onStateChange = callback;
+  };
+
+  /**
    * Toggle rotation direction (CW/CCW)
    *
    * @returns The new direction value (1 = CW, -1 = CCW)
@@ -2576,6 +2344,31 @@ export class ZoomMode {
     this.direction = direction;
     if (!this.animating) {
       this.render(); // Re-render to apply new direction
+    }
+  };
+
+  /**
+   * Shift seasons (rotate year view by 90 degrees / 3 months)
+   *
+   * @returns The new rotation offset
+   */
+  shiftSeasons = (): number => {
+    this.rotationOffset = (this.rotationOffset + 90) % 360;
+    if (!this.animating) {
+      this.render(); // Re-render to apply new offset
+    }
+    return this.rotationOffset;
+  };
+
+  /**
+   * Set rotation offset
+   *
+   * @param offset - The rotation offset in degrees
+   */
+  setRotationOffset = (offset: number): void => {
+    this.rotationOffset = offset;
+    if (!this.animating) {
+      this.render();
     }
   };
 

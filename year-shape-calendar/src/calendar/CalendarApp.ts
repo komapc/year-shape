@@ -241,7 +241,7 @@ export class CalendarApp {
     // 2. Load Persisted Settings and Initialize Year
     // ========================================
     this.settings = loadSettings();
-    this.currentYear = new Date().getFullYear();
+    this.currentYear = this.settings.currentYear || new Date().getFullYear();
     
     // Initialize internationalization
     initializeLocale();
@@ -316,6 +316,9 @@ export class CalendarApp {
     
     // Initialize mode-specific renderer
     this.initializeMode();
+    
+    // Update UI elements visibility based on current mode
+    this.updateUIForMode(this.currentMode);
 
     // ========================================
     // 5. Setup Event Handlers
@@ -536,14 +539,24 @@ export class CalendarApp {
    * Register hash routes for SPA navigation
    */
   private registerRoutes = (): void => {
-    // #settings - Open settings panel
+    // #settings or #mode/settings - Open settings panel
     router.register('settings', () => {
       this.settingsPanel.classList.remove('hidden');
       this.aboutPanel.classList.add('hidden');
     });
+    
+    router.register(':mode/settings', () => {
+      this.settingsPanel.classList.remove('hidden');
+      this.aboutPanel.classList.add('hidden');
+    });
 
-    // #about - Open about panel  
+    // #about or #mode/about - Open about panel  
     router.register('about', () => {
+      this.aboutPanel.classList.remove('hidden');
+      this.settingsPanel.classList.add('hidden');
+    });
+    
+    router.register(':mode/about', () => {
       this.aboutPanel.classList.remove('hidden');
       this.settingsPanel.classList.add('hidden');
     });
@@ -717,14 +730,31 @@ export class CalendarApp {
     
     // Initialize zoom mode
     if (!this.zoomMode) {
-      // Create callback to show events modal
-      const onShowEvents = (weekIndex: number, events: CalendarEvent[]) => {
-        this.modal.open(weekIndex, events);
+      // Create callback to save zoom state on navigation
+      const onZoomStateChange = (state: any): void => {
+        this.settings.zoomState = {
+          level: state.level,
+          year: state.year,
+          month: state.month,
+          week: state.week,
+          day: state.day,
+        };
+        this.settings.currentYear = state.year;
+        saveSettings(this.settings);
       };
       
-      this.zoomMode = new ZoomMode(zoomContainer, this.currentYear, onShowEvents);
-      // Apply saved direction setting
+      this.zoomMode = new ZoomMode(
+        zoomContainer,
+        this.currentYear,
+        this.settings.zoomState
+      );
+      
+      // Apply saved settings
       this.zoomMode.setDirection(this.settings.direction);
+      this.zoomMode.setRotationOffset(this.settings.rotationOffset);
+      
+      // Set state change callback
+      this.zoomMode.setOnStateChange(onZoomStateChange);
     }
     
     // Update events if available
@@ -765,6 +795,9 @@ export class CalendarApp {
     // Initialize mode
     this.initializeMode();
     
+    // Update UI elements visibility based on mode
+    this.updateUIForMode(mode);
+    
     // Update URL and navigate using shared utilities
     if (mode === 'zoom') {
       router.navigate(`zoom/year/${this.currentYear}`);
@@ -774,6 +807,54 @@ export class CalendarApp {
     } else {
       // Stay on index.html for old mode
       router.navigate('old');
+    }
+  };
+
+  /**
+   * Update UI elements visibility based on current mode
+   */
+  private updateUIForMode = (mode: CalendarMode): void => {
+    // Get container elements
+    const cornerRadiusContainer = this.radiusInput.closest('.flex') as HTMLElement;
+    const moonPhaseContainer = this.showMoonPhaseCheckbox.closest('label') as HTMLElement;
+    const zodiacContainer = this.showZodiacCheckbox.closest('label') as HTMLElement;
+    const hebrewMonthContainer = this.showHebrewMonthCheckbox.closest('label') as HTMLElement;
+    
+    if (mode === 'zoom') {
+      // Hide settings that don't apply to zoom mode
+      if (cornerRadiusContainer) {
+        cornerRadiusContainer.style.display = 'none';
+      }
+      // Show shift seasons button in zoom mode (rotates year view)
+      this.shiftSeasonsBtn.style.display = 'flex';
+      
+      // Hide tooltip-related toggles (don't apply to zoom mode)
+      if (moonPhaseContainer) {
+        moonPhaseContainer.style.display = 'none';
+      }
+      if (zodiacContainer) {
+        zodiacContainer.style.display = 'none';
+      }
+      if (hebrewMonthContainer) {
+        hebrewMonthContainer.style.display = 'none';
+      }
+    } else if (mode === 'old') {
+      // Show all settings in classic mode
+      if (cornerRadiusContainer) {
+        cornerRadiusContainer.style.display = 'flex';
+      }
+      this.shiftSeasonsBtn.style.display = 'flex';
+      
+      // Show tooltip-related toggles
+      if (moonPhaseContainer) {
+        moonPhaseContainer.style.display = 'flex';
+      }
+      if (zodiacContainer) {
+        zodiacContainer.style.display = 'flex';
+      }
+      if (hebrewMonthContainer) {
+        hebrewMonthContainer.style.display = 'flex';
+      }
     }
   };
   
@@ -846,9 +927,15 @@ export class CalendarApp {
    * Handle shift seasons (rotate clockwise)
    */
   private handleShiftSeasons = (): void => {
-    if (!this.renderer) return;
+    let newOffset: number;
     
-    const newOffset = this.renderer.shiftSeasons();
+    if (this.currentMode === 'zoom' && this.zoomMode) {
+      newOffset = this.zoomMode.shiftSeasons();
+    } else if (this.renderer) {
+      newOffset = this.renderer.shiftSeasons();
+    } else {
+      return;
+    }
     
     // Save to settings
     this.settings.rotationOffset = newOffset;
@@ -988,9 +1075,9 @@ export class CalendarApp {
   private handleToggleAbout = (): void => {
     const isHidden = this.aboutPanel.classList.contains('hidden');
     if (isHidden) {
-      router.navigate('about');
+      router.navigate(`${this.currentMode}/about`);
     } else {
-      router.navigate('');
+      router.navigate(this.currentMode);
     }
   };
 
@@ -1000,9 +1087,9 @@ export class CalendarApp {
   private handleToggleSettings = (): void => {
     const isHidden = this.settingsPanel.classList.contains('hidden');
     if (isHidden) {
-      router.navigate('settings');
+      router.navigate(`${this.currentMode}/settings`);
     } else {
-      router.navigate('');
+      router.navigate(this.currentMode);
     }
   };
 
@@ -1010,7 +1097,7 @@ export class CalendarApp {
    * Handle close settings panel (mobile)
    */
   private handleCloseSettings = (): void => {
-    router.navigate('');
+    router.navigate(this.currentMode);
   };
 
   /**
@@ -1019,6 +1106,10 @@ export class CalendarApp {
   private handlePrevYear = (): void => {
     this.currentYear--;
     this.updateYearDisplay();
+    
+    // Save to settings
+    this.settings.currentYear = this.currentYear;
+    saveSettings(this.settings);
     
     // Update based on current mode
     if (this.renderer) {
@@ -1040,6 +1131,10 @@ export class CalendarApp {
   private handleNextYear = (): void => {
     this.currentYear++;
     this.updateYearDisplay();
+    
+    // Save to settings
+    this.settings.currentYear = this.currentYear;
+    saveSettings(this.settings);
     
     // Update based on current mode
     if (this.renderer) {
@@ -1077,7 +1172,7 @@ export class CalendarApp {
     return this.currentMode;
   };
 
-  public getZoomMode = (): any => {
+  public getZoomMode = (): ZoomMode | null => {
     return this.zoomMode;
   };
 

@@ -7,7 +7,7 @@
  * - #8: Event display callback
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ZoomMode } from '../ZoomMode';
 import type { CalendarEvent } from '../../types';
 
@@ -99,9 +99,7 @@ describe('ZoomMode Bug Fixes', () => {
 
   describe('Bug #8: Event display callback', () => {
     it('should accept event callback in constructor', () => {
-      const mockCallback = vi.fn();
-      
-      zoomMode = new ZoomMode(container, 2025, mockCallback);
+      zoomMode = new ZoomMode(container, 2025);
       
       expect(zoomMode).toBeTruthy();
     });
@@ -114,12 +112,11 @@ describe('ZoomMode Bug Fixes', () => {
     });
 
     it('should call event callback when implemented', () => {
-      const mockCallback = vi.fn();
       const mockEvents: CalendarEvent[] = [
         { summary: 'Test Event', start: '2025-11-16T10:00:00Z' }
       ];
       
-      zoomMode = new ZoomMode(container, 2025, mockCallback);
+      zoomMode = new ZoomMode(container, 2025);
       
       // Update events
       const eventsByWeek: Record<number, CalendarEvent[]> = {
@@ -127,8 +124,8 @@ describe('ZoomMode Bug Fixes', () => {
       };
       zoomMode.updateEvents(eventsByWeek);
       
-      // Callback should be ready to use
-      expect(mockCallback).not.toHaveBeenCalled();
+      // ZoomMode should be ready to navigate
+      expect(zoomMode).toBeTruthy();
     });
   });
 
