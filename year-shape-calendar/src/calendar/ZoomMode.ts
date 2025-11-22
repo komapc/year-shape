@@ -795,15 +795,16 @@ export class ZoomMode {
 
     // Add arrow indicator for current month
     if (isCurrentYear) {
-      // Calculate angle for current month - must match sector creation exactly
+      // Calculate angle for current month - must match CircleRenderer exactly!
+      // CircleRenderer uses svg.ts applyDirectionMirroring(angle, direction)
       const totalItems = 12;
       const rotationRadians = (this.rotationOffset * Math.PI) / 180;
       const baseAngle =
         (currentMonth / totalItems) * Math.PI * 2 -
         Math.PI / 2 +
         rotationRadians;
-      // Apply same mirroring as sectors use
-      const angle = this.applyDirectionMirroring(baseAngle);
+      // Use svg.ts formula: direction === 1 ? angle : -angle
+      const angle = this.direction === 1 ? baseAngle : -baseAngle;
 
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
