@@ -83,6 +83,8 @@ export interface CircleConfig {
   sectorClass?: string;
   /** Additional CSS classes for labels */
   labelClass?: string;
+  /** Rotation offset in degrees (default: 0) */
+  rotationOffset?: number;
 }
 
 /**
@@ -196,7 +198,8 @@ export class CircleRenderer {
     const { startAngle, endAngle, midAngle } = this.calculateAngles(
       item.index,
       totalItems,
-      direction
+      direction,
+      config.rotationOffset || 0
     );
 
     // Calculate scale based on hover state
@@ -442,9 +445,11 @@ export class CircleRenderer {
   private calculateAngles(
     index: number,
     totalItems: number,
-    direction: number
+    direction: number,
+    rotationOffset: number = 0
   ): { startAngle: number; endAngle: number; midAngle: number } {
-    const baseAngle = (index / totalItems) * Math.PI * 2 - Math.PI / 2;
+    const rotationRadians = (rotationOffset * Math.PI) / 180;
+    const baseAngle = (index / totalItems) * Math.PI * 2 - Math.PI / 2 + rotationRadians;
     const angle = applyDirectionMirroring(baseAngle, direction);
     const angleSpan = Math.PI / totalItems;
 
