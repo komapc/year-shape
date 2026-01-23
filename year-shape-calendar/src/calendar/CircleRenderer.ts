@@ -65,6 +65,8 @@ export interface CircleConfig {
   direction: number;
   /** Callback when item is clicked */
   onItemClick: (item: CircleItem, event: Event) => void;
+  /** Callback when item receives wheel event */
+  onItemWheel?: (item: CircleItem, event: WheelEvent) => void;
   /** Callback when item is hovered (null when no hover) */
   onItemHover?: (item: CircleItem | null) => void;
   /** Label font size (default: 16) */
@@ -387,6 +389,21 @@ export class CircleRenderer {
       },
       { passive: false }
     );
+
+    // Wheel handler for zoom interaction
+    if (config.onItemWheel) {
+      sector.addEventListener(
+        "wheel",
+        (e: WheelEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (config.onItemWheel) {
+            config.onItemWheel(item, e);
+          }
+        },
+        { passive: false }
+      );
+    }
   }
 
   /**
