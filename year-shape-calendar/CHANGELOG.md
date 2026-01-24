@@ -5,51 +5,25 @@ All notable changes to YearWheel will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.13.0] - 2026-01-24
 
 ### Fixed
-- **Rings Mode Syntax Error**: Fixed "Unexpected token '*'" error in rings.html
-  - Removed ~1,300 lines of commented-out JavaScript code
-  - Cleaned up empty script tag structure
-  - All code properly moved to TypeScript modules
-- **Rings Mode Selector**: Fixed mode selector to use radio buttons instead of deprecated select element
-  - Updated `rings.ts` to handle header radio buttons (`headerModeOld`, `headerModeRings`, `headerModeZoom`)
-  - Consistent with `index.html` and `CalendarApp.ts` implementation
-  - Properly loads and saves mode preferences
-- **Rings Mode Ring Width**: Limited ring width to ensure inner space never disappears
-  - Added minimum inner radius (50px) to always preserve center space
-  - Dynamic max width calculation based on visible rings
-  - Prevents rings from filling entire circle
-- **Mobile Page Zoom**: Prevented browser zoom when tapping on month sectors in zoom mode
-  - Added `touch-action: manipulation` to prevent double-tap zoom
-  - Added touch event handlers for proper mobile interaction
-  - Updated viewport meta tag to disable zooming
-- **Dates Visibility in Month Circle**: Fixed dates not being visible initially in zoom mode
-  - Fixed SVG defs element preservation when clearing SVG
-  - Fixed filter creation to use correct SVG querying
-  - Dates now visible immediately on initial load
+- **Mobile Layout**: Fixed vertical layout issues on mobile devices to prevent scrolling and ensure fit.
+- **Rings Mode Settings**: Made settings panel collapsible on mobile devices.
+- **Zoom Mode Arrow**: Corrected "Current Time" arrow direction calculation in all zoom views (Year, Month, Week, Day) to consistently respect CW/CCW flow.
+- **Rings Authentication**: Fixed issue where Google session was lost when switching to Rings mode.
+- **Zoom Mode Navigation**: Fixed wheel zoom behavior to zoom into the specific item under cursor instead of current date.
 
-### Changed
-- **Mobile Layout**: Improved mobile responsiveness across all modes
-  - Made rings larger on mobile (95vw/95vh, removed 500px max constraint)
-  - Split header into multiple lines on mobile (logo, mode selector, settings on separate lines)
-  - Prevented horizontal scrolling globally
-  - Reduced body padding on mobile (5px instead of 10px)
-- **Header Layout**: Responsive header that adapts to mobile screens
-  - Logo on first line, mode selector on second, settings buttons on third
-  - Applied consistently across all calendar modes
+### Added
+- **Staging Indicator**: Visual "Staging" badge when running in staging environment.
+- **Event Indicators**: Added dot indicators for event density in Year View (Zoom Mode).
+- **Responsiveness**: Improved Zoom Mode container sizing for landscape mobile screens.
 
 ### Technical
-- Build passes successfully
-- All TypeScript modules compile correctly
-- Zero linter errors
+- Updated CI build configuration to fix TypeScript errors in tests.
+- Unified angle calculation logic across Zoom Mode views.
 
-### Pending
-- Google OAuth production publishing
-- Server-side settings sync
-- Complete Russian, Spanish, French, German translations
-
-## [0.10.0] - 2025-11-13
+## [0.12.0] - 2025-11-14
 
 ### 🌍 Major Feature: Complete Internationalization
 

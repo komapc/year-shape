@@ -32,6 +32,13 @@ const initApp = (): void => {
     // Initialize PWA install manager
     console.log('PWA Install Manager initialized:', pwaInstallManager);
     
+    // Setup Staging Indicator
+    const isStaging = window.location.hostname.includes('staging') || window.location.hostname.includes('localhost');
+    const stagingBadge = document.getElementById('stagingBadge');
+    if (isStaging && stagingBadge) {
+      stagingBadge.classList.remove('hidden');
+    }
+    
     console.log('Year Shape Calendar initialized successfully');
   } catch (error) {
     console.error('Failed to initialize application:', error);

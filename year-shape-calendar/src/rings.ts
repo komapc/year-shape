@@ -197,6 +197,47 @@ const setupUIControls = (ringsMode: RingsMode): void => {
 
   // Setup login status for rings mode
   setupLoginStatus();
+
+  // Setup staging indicator
+  setupStagingIndicator();
+
+  // Setup settings toggle
+  setupSettingsToggle();
+};
+
+/**
+ * Setup settings toggle
+ */
+const setupSettingsToggle = (): void => {
+  const toggleBtn = document.getElementById('toggleSettingsRings');
+  const settingsContainer = document.getElementById('settingsContainerRings');
+  const closeBtn = document.getElementById('closeSettingsRings');
+
+  if (toggleBtn && settingsContainer) {
+    toggleBtn.addEventListener('click', () => {
+      settingsContainer.classList.toggle('hidden');
+      settingsContainer.classList.toggle('flex');
+    });
+  }
+
+  if (closeBtn && settingsContainer) {
+    closeBtn.addEventListener('click', () => {
+      settingsContainer.classList.add('hidden');
+      settingsContainer.classList.remove('flex');
+    });
+  }
+};
+
+/**
+ * Setup staging indicator
+ */
+const setupStagingIndicator = (): void => {
+  const isStaging = window.location.hostname.includes('staging') || window.location.hostname.includes('localhost');
+  const badge = document.getElementById('stagingBadgeRings');
+  
+  if (isStaging && badge) {
+    badge.classList.remove('hidden');
+  }
 };
 
 /**
