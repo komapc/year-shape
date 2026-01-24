@@ -20,7 +20,7 @@ describe('GoogleCalendarService Integration Support', () => {
     });
 
     // Mock gapi
-    global.gapi = {
+    (window as any).gapi = {
       client: {
         setToken: vi.fn(),
         getToken: vi.fn().mockReturnValue({ access_token: 'test-token' }),
