@@ -87,6 +87,8 @@ export interface CircleConfig {
   labelClass?: string;
   /** Rotation offset in degrees (default: 0) */
   rotationOffset?: number;
+  /** Optional callback to render custom content (icons, dots) inside the sector group */
+  renderCustomContent?: (container: SVGGElement, item: CircleItem, context: { centerX: number; centerY: number; midAngle: number; innerRadius: number; outerRadius: number }) => void;
 }
 
 /**
@@ -296,6 +298,17 @@ export class CircleRenderer {
     };
 
     const label = createLabel(labelConfig);
+
+    // Render custom content if provided
+    if (config.renderCustomContent) {
+      config.renderCustomContent(sectorGroup, item, {
+        centerX,
+        centerY,
+        midAngle,
+        innerRadius,
+        outerRadius: radius,
+      });
+    }
 
     return { sectorGroup, label };
   }
