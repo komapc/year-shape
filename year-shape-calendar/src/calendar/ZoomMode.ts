@@ -235,7 +235,11 @@ export class ZoomMode {
         const target = e.target as SVGElement;
         if (
           target.hasAttribute &&
-          (target.hasAttribute("data-day") || target.hasAttribute("data-month"))
+          (target.hasAttribute("data-day") ||
+            target.hasAttribute("data-month") ||
+            target.hasAttribute("data-week-day") ||
+            target.hasAttribute("data-hour") ||
+            target.hasAttribute("data-index"))
         ) {
           return; // Let sector handlers deal with it
         }
@@ -764,6 +768,10 @@ export class ZoomMode {
       isCurrent: isCurrentYear && index === currentMonth,
     }));
 
+    // Shared wheel state for month sectors
+    let wheelDelta = 0;
+    let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
+
     // Use CircleRenderer for unified rendering
     this.circleRenderer.render(group, {
       centerX,
@@ -781,6 +789,34 @@ export class ZoomMode {
       rotationOffset: this.rotationOffset,
       onItemClick: (item) => {
         this.navigateToLevel("month", { month: item.value });
+      },
+      onItemWheel: (item, e) => {
+        // Reset timeout on each wheel event
+        if (wheelTimeout) {
+          clearTimeout(wheelTimeout);
+        }
+
+        // Accumulate delta
+        wheelDelta += e.deltaY;
+
+        // Set timeout to reset after wheel stops
+        wheelTimeout = setTimeout(() => {
+          wheelDelta = 0;
+        }, 200);
+
+        if (Math.abs(wheelDelta) >= 100) {
+          if (wheelDelta > 0) {
+            // Scroll down = zoom in -> Go to specific month
+            this.navigateToLevel("month", { month: item.value });
+          }
+          // Scroll up (negative) = zoom out (already at top, do nothing or maybe loop?)
+          
+          wheelDelta = 0;
+          if (wheelTimeout) {
+            clearTimeout(wheelTimeout);
+            wheelTimeout = null;
+          }
+        }
       },
       onItemHover: () => {
         // Hover state is managed internally by CircleRenderer
@@ -1297,6 +1333,7 @@ export class ZoomMode {
       let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
       sector.addEventListener("wheel", (e) => {
         e.preventDefault();
+        e.stopPropagation();
 
         // Reset timeout on each wheel event
         if (wheelTimeout) {
@@ -1620,6 +1657,50 @@ export class ZoomMode {
         });
       });
 
+      // Wheel handler for zoom interaction
+      let wheelDelta = 0;
+      let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
+      sector.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Reset timeout on each wheel event
+          if (wheelTimeout) {
+            clearTimeout(wheelTimeout);
+          }
+
+          // Accumulate delta
+          wheelDelta += e.deltaY;
+
+          // Set timeout to reset after wheel stops
+          wheelTimeout = setTimeout(() => {
+            wheelDelta = 0;
+          }, 200);
+
+          if (Math.abs(wheelDelta) >= 100) {
+            if (wheelDelta < 0) {
+              // Scroll up = zoom out -> Go back to month view
+              this.navigateToLevel("month", { month: dayMonth });
+            } else {
+              // Scroll down = zoom in -> Go to day view (clock)
+              this.navigateToLevel("day", {
+                year: dayYear,
+                month: dayMonth,
+                day: day,
+              });
+            }
+            wheelDelta = 0;
+            if (wheelTimeout) {
+              clearTimeout(wheelTimeout);
+              wheelTimeout = null;
+            }
+          }
+        },
+        { passive: false }
+      );
+
       // Add hover handlers
       sector.addEventListener("mouseenter", () => {
         this.hoveredWeekDay = i;
@@ -1865,6 +1946,45 @@ export class ZoomMode {
         sector.setAttribute("stroke-width", "2");
       }
       // Pointer events handled by CSS class
+      sector.style.cursor = "pointer";
+
+      // Wheel handler for zoom interaction
+      let wheelDelta = 0;
+      let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
+      sector.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Reset timeout on each wheel event
+          if (wheelTimeout) {
+            clearTimeout(wheelTimeout);
+          }
+
+          // Accumulate delta
+          wheelDelta += e.deltaY;
+
+          // Set timeout to reset after wheel stops
+          wheelTimeout = setTimeout(() => {
+            wheelDelta = 0;
+          }, 200);
+
+          if (Math.abs(wheelDelta) >= 100) {
+            if (wheelDelta < 0) {
+              // Scroll up = zoom out -> Go back to week view
+              this.handleBack();
+            }
+            // Scroll down = zoom in (nothing deeper for now)
+            wheelDelta = 0;
+            if (wheelTimeout) {
+              clearTimeout(wheelTimeout);
+              wheelTimeout = null;
+            }
+          }
+        },
+        { passive: false }
+      );
 
       // Add hover handlers
       sector.addEventListener("mouseenter", () => {
