@@ -270,13 +270,40 @@ const setupLoginStatus = (): void => {
   // Initialize login status on page load
   const initLoginStatus = async (): Promise<void> => {
     try {
-      // Wait a bit for the service to be initialized from the main app
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for Google Scripts to load
+      const waitForScripts = (): Promise<void> => {
+        return new Promise((resolve) => {
+          const checkInterval = setInterval(() => {
+            if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 100);
+          // Timeout after 10 seconds
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            resolve();
+          }, 10000);
+        });
+      };
+
+      await waitForScripts();
+
+      // Initialize Google Calendar Service
+      if (!googleCalendarService.isReady()) {
+        try {
+          await googleCalendarService.initializeGapi();
+          googleCalendarService.initializeGis();
+        } catch (e) {
+          console.warn('Google services initialization failed:', e);
+          return;
+        }
+      }
+
+      // Restore session
+      const sessionRestored = await googleCalendarService.restoreSession();
       
-      // Check if user is already authenticated
-      const isLoggedIn = googleCalendarService.getAuthStatus();
-      
-      if (isLoggedIn) {
+      if (sessionRestored) {
         await updateLoginStatus(true);
         // Fetch user info if not already available
         let userInfo = googleCalendarService.getUserInfo();
