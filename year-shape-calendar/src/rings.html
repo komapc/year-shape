@@ -515,6 +515,14 @@
 
           <!-- Login Status / Sign In Button -->
           <div id="headerAuthRings" class="flex items-center gap-2">
+            <!-- Staging Badge -->
+            <div
+              id="stagingBadgeRings"
+              class="hidden px-2 py-0.5 rounded text-xs font-bold bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 uppercase tracking-wider"
+            >
+              Staging
+            </div>
+
             <!-- Logged In Status (shown when authenticated) -->
             <div
               id="loginStatusRings"
@@ -702,9 +710,12 @@
             </div>
           </div>
 
-          <!-- Settings Panel (Sidebar on Desktop) -->
-          <div class="space-y-4">
-            <aside id="settingsPanelRings" class="glass rounded-xl border border-dark-border p-6">
+          <!-- Settings Panel (Sidebar on Desktop, Modal/Drawer on Mobile) -->
+          <div id="settingsContainerRings" class="hidden lg:block space-y-4 fixed lg:static inset-0 z-50 lg:z-auto bg-black/80 lg:bg-transparent p-4 lg:p-0 flex items-center justify-center lg:block">
+            <aside id="settingsPanelRings" class="glass rounded-xl border border-dark-border p-6 w-full max-w-sm lg:w-auto max-h-[90vh] overflow-y-auto lg:max-h-none lg:overflow-visible relative">
+              <button id="closeSettingsRings" class="lg:hidden absolute top-4 right-4 text-gray-400 hover:text-white">
+                ✕
+              </button>
               <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-200">Settings</h2>
               </div>
