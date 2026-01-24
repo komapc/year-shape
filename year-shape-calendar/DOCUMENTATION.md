@@ -83,7 +83,34 @@ where `n` varies from 2 (circle) to higher values (square).
 
 ---
 
-### 5. **GoogleCalendarService** (`src/services/googleCalendar.ts`)
+### 5. **ZoomMode** (`src/calendar/ZoomMode.ts`)
+**Hierarchical calendar view** - allows zooming from Year → Month → Week → Day.
+
+**Responsibilities:**
+- Render interactive nested circles (Year, Month, Week, Day)
+- Handle smooth zoom transitions
+- Manage navigation state and URL hash
+- Support wheel/scroll zoom on specific items (hover-aware)
+
+**Navigation:**
+- Click: Zoom in to clicked item
+- Scroll Down: Zoom in to hovered item (or current date if global)
+- Scroll Up / Back Button: Zoom out to parent level
+
+---
+
+### 6. **RingsMode** (`src/calendar/RingsMode.ts`)
+**Concentric rings visualization** - maps time to distance from center.
+
+**Responsibilities:**
+- Render events as continuous rings or segments
+- Handle multiple layers (Sun, Moon, Events, etc.)
+- Support drag-and-drop layer reordering
+- Manage authentication state independently
+
+---
+
+### 7. **GoogleCalendarService** (`src/services/googleCalendar.ts`)
 **Google Calendar API integration** - handles authentication and data fetching.
 
 **Responsibilities:**

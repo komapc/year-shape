@@ -298,12 +298,14 @@ export class ZoomMode {
 
     this.container.appendChild(this.svg);
 
-    // Style container
+    // Style container - use 100% dimensions to fit parent's constrained size
     this.container.style.cssText = `
       position: relative;
       width: 100%;
       height: 100%;
-      min-height: 600px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       pointer-events: auto;
     `;
   };
@@ -766,6 +768,7 @@ export class ZoomMode {
       label: monthName,
       value: index,
       isCurrent: isCurrentYear && index === currentMonth,
+      events: this.eventsByYear[state.year]?.[index] || [],
     }));
 
     // Shared wheel state for month sectors
@@ -820,6 +823,51 @@ export class ZoomMode {
       },
       onItemHover: () => {
         // Hover state is managed internally by CircleRenderer
+      },
+      // Render event dots
+      renderCustomContent: (container, item, ctx) => {
+        if (!item.events || item.events.length === 0) return;
+
+        const eventCount = item.events.length;
+        // Limit dots to avoid clutter (max 5)
+        const dotCount = Math.min(eventCount, 5);
+        
+        // Calculate position: Just below the label
+        // Label is at midAngle, midRadius ((inner+outer)/2)
+        // We want dots slightly further out or in?
+        // Label is centered. Let's put dots at a slightly smaller radius (closer to center)
+        // or larger radius?
+        // innerRadius is 0.7 * 320 = 224
+        // outerRadius is 320
+        // midRadius is 272
+        // Label is at 272.
+        // Let's put dots at radius 250 (below label, closer to center)
+        
+        const dotRadiusBase = ctx.innerRadius + (ctx.outerRadius - ctx.innerRadius) * 0.25;
+        const dotSpacing = 0.06; // radians spacing between dots
+        
+        const dotsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        dotsGroup.classList.add("event-dots");
+        
+        // Center dots around midAngle
+        const startAngle = ctx.midAngle - ((dotCount - 1) * dotSpacing) / 2;
+        
+        for (let i = 0; i < dotCount; i++) {
+          const angle = startAngle + i * dotSpacing;
+          const cx = ctx.centerX + Math.cos(angle) * dotRadiusBase;
+          const cy = ctx.centerY + Math.sin(angle) * dotRadiusBase;
+          
+          const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          dot.setAttribute("cx", String(cx));
+          dot.setAttribute("cy", String(cy));
+          dot.setAttribute("r", "3");
+          dot.setAttribute("fill", "rgba(255, 255, 255, 0.7)");
+          dot.setAttribute("stroke", "none");
+          
+          dotsGroup.appendChild(dot);
+        }
+        
+        container.appendChild(dotsGroup);
       },
       labelFontSize: 24,
       labelFontWeight: "bold",
