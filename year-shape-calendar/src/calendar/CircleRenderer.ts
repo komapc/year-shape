@@ -89,6 +89,8 @@ export interface CircleConfig {
   rotationOffset?: number;
   /** Optional callback to render custom content (icons, dots) inside the sector group */
   renderCustomContent?: (container: SVGGElement, item: CircleItem, context: { centerX: number; centerY: number; midAngle: number; innerRadius: number; outerRadius: number }) => void;
+  /** Optional callback to render custom label (replaces default label) */
+  renderCustomLabel?: (container: SVGGElement, item: CircleItem, context: { x: number; y: number; midAngle: number; innerRadius: number; outerRadius: number }) => void;
 }
 
 /**
@@ -279,25 +281,42 @@ export class CircleRenderer {
 
     sectorGroup.appendChild(sector);
 
-    // Create label
+    // Calculate label position
     const labelRadius = (innerRadius + radius) / 2;
     const labelX = centerX + Math.cos(midAngle) * labelRadius;
     const labelY = centerY + Math.sin(midAngle) * labelRadius;
 
-    const labelConfig: LabelConfig = {
-      x: labelX,
-      y: labelY,
-      text: item.label,
-      fontSize: labelFontSize,
-      fontWeight: item.isCurrent ? "bold" : labelFontWeight,
-      fill: item.isCurrent ? "white" : "rgba(255, 255, 255, 0.9)",
-      classList: [labelClass],
-      dataAttributes: {
-        index: String(item.index),
-      },
-    };
+    let label: SVGElement | null = null;
 
-    const label = createLabel(labelConfig);
+    if (config.renderCustomLabel) {
+      // Create a group for the custom label to ensure it can be appended to the label layer
+      const labelGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      config.renderCustomLabel(labelGroup, item, {
+        x: labelX,
+        y: labelY,
+        midAngle,
+        innerRadius,
+        outerRadius: radius,
+      });
+      if (labelGroup.hasChildNodes()) {
+        label = labelGroup;
+      }
+    } else {
+      // Default label rendering
+      const labelConfig: LabelConfig = {
+        x: labelX,
+        y: labelY,
+        text: item.label,
+        fontSize: labelFontSize,
+        fontWeight: item.isCurrent ? "bold" : labelFontWeight,
+        fill: item.isCurrent ? "white" : "rgba(255, 255, 255, 0.9)",
+        classList: [labelClass],
+        dataAttributes: {
+          index: String(item.index),
+        },
+      };
+      label = createLabel(labelConfig);
+    }
 
     // Render custom content if provided
     if (config.renderCustomContent) {
@@ -310,7 +329,7 @@ export class CircleRenderer {
       });
     }
 
-    return { sectorGroup, label };
+    return { sectorGroup, label: label as SVGTextElement };
   }
 
   /**

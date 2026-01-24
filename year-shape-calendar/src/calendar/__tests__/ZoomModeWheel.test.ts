@@ -55,7 +55,8 @@ describe('ZoomMode Wheel Navigation Bug', () => {
     zoomMode = new ZoomMode(container, 2025, { level: 'month', month: 2 });
     
     // Find sector for March 15th
-    const day15Sector = container.querySelector('path[data-day="15"]');
+    // CircleRenderer uses data-value for the item value (day number)
+    const day15Sector = container.querySelector('path[data-value="15"]');
     expect(day15Sector).toBeTruthy();
 
     if (!day15Sector) return;
