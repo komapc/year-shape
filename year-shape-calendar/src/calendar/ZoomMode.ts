@@ -2542,13 +2542,13 @@ export class ZoomMode {
 
   /**
    * Apply direction mirroring to an angle
-   * Matches svg.ts applyDirectionMirroring: direction === 1 ? angle : -angle
+   * Matches svg.ts applyDirectionMirroring: direction === 1 ? angle : Math.PI - angle
    *
    * @param angle - The angle in radians
    * @returns The mirrored angle
    */
   private applyDirectionMirroring = (angle: number): number => {
-    return this.direction === 1 ? angle : -angle;
+    return this.direction === 1 ? angle : Math.PI - angle;
   };
 
   /**
