@@ -45,21 +45,18 @@ const initRingsMode = (): void => {
 const setupUIControls = (ringsMode: RingsMode): void => {
   // Corner radius slider
   const cornerInput = document.getElementById('cornerRadius') as HTMLInputElement;
-  const cornerValue = document.getElementById('cornerValue') as HTMLElement;
 
-  if (cornerInput && cornerValue) {
+  if (cornerInput) {
     cornerInput.addEventListener('input', (e) => {
       const value = parseInt((e.target as HTMLInputElement).value);
-      cornerValue.textContent = `${value}%`;
       ringsMode.setCornerRadius(value / 100);
     });
   }
 
   // Ring width slider
   const widthInput = document.getElementById('ringWidth') as HTMLInputElement;
-  const widthValue = document.getElementById('widthValue') as HTMLElement;
 
-  if (widthInput && widthValue) {
+  if (widthInput) {
     // Update max value based on current visible rings
     const updateMaxWidth = (): void => {
       const maxWidth = Math.floor(ringsMode.getMaxRingWidth());
@@ -68,7 +65,6 @@ const setupUIControls = (ringsMode: RingsMode): void => {
       // Clamp current value if it exceeds new max
       if (currentValue > maxWidth) {
         widthInput.value = maxWidth.toString();
-        widthValue.textContent = `${maxWidth}px`;
         ringsMode.setRingWidth(maxWidth);
       }
     };
@@ -80,7 +76,6 @@ const setupUIControls = (ringsMode: RingsMode): void => {
       const value = parseInt((e.target as HTMLInputElement).value);
       const maxWidth = Math.floor(ringsMode.getMaxRingWidth());
       const clampedValue = Math.min(value, maxWidth);
-      widthValue.textContent = `${clampedValue}px`;
       ringsMode.setRingWidth(clampedValue);
       // Update max in case visibility changed
       updateMaxWidth();
@@ -103,9 +98,13 @@ const setupUIControls = (ringsMode: RingsMode): void => {
       const newDirection = ringsMode.toggleDirection();
       const directionText = newDirection === 1 ? 'CW' : 'CCW';
       const directionIcon = newDirection === 1 ? '↻' : '↺';
-      directionToggle.innerHTML = `${directionIcon} ${directionText}`;
-      directionToggle.style.background =
-        newDirection === 1 ? 'rgba(255,255,255,0.2)' : 'rgba(100,200,255,0.3)';
+      directionToggle.innerHTML = `
+        <span class="text-sm">Time flow</span>
+        <div class="flex items-center gap-2">
+          <span class="direction-icon text-lg">${directionIcon}</span>
+          <span class="text-xs">${directionText}</span>
+        </div>
+      `;
     });
   }
 
@@ -126,17 +125,17 @@ const setupUIControls = (ringsMode: RingsMode): void => {
   const toggleLayerControls = document.getElementById('toggleLayerControls');
   const layerControlsContent = document.getElementById('layerControlsContent');
   const layerControlsToggleText = document.getElementById('layerControlsToggleText');
-  let layerControlsVisible = false; // Hidden by default
+  let layerControlsVisible = true; // Visible by default in sidebar
 
   if (toggleLayerControls && layerControlsContent && layerControlsToggleText) {
     toggleLayerControls.addEventListener('click', () => {
       layerControlsVisible = !layerControlsVisible;
       if (layerControlsVisible) {
         layerControlsContent.style.display = 'block';
-        layerControlsToggleText.textContent = '▼ Hide';
+        layerControlsToggleText.textContent = '▼';
       } else {
         layerControlsContent.style.display = 'none';
-        layerControlsToggleText.textContent = '▶ Show';
+        layerControlsToggleText.textContent = '▶';
       }
     });
   }

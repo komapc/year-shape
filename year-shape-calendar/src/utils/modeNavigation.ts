@@ -46,7 +46,7 @@ export const buildModeUrl = (mode: CalendarMode, year?: number): string => {
     case 'old':
       return `${basePath}/index.html#old`;
     case 'rings':
-      return `${basePath}/rings.html`;
+      return `${basePath}/rings.html#rings`;
     case 'zoom':
       const currentYear = year || new Date().getFullYear();
       return `${basePath}/index.html#zoom/year/${currentYear}`;
@@ -63,12 +63,12 @@ export const buildModeUrl = (mode: CalendarMode, year?: number): string => {
 export const getModeFromHash = (): CalendarMode | null => {
   const hash = window.location.hash;
   
-  if (hash.startsWith('#zoom/')) {
+  if (hash.startsWith('#zoom/') || hash.startsWith('#zoom')) {
     return 'zoom';
+  } else if (hash.startsWith('#rings/') || hash === '#rings') {
+    return 'rings';
   } else if (hash === '#old' || hash === '') {
     return 'old';
-  } else if (window.location.pathname.includes('rings.html')) {
-    return 'rings';
   }
   
   return null;

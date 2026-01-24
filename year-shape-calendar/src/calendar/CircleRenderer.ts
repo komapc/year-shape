@@ -65,6 +65,8 @@ export interface CircleConfig {
   direction: number;
   /** Callback when item is clicked */
   onItemClick: (item: CircleItem, event: Event) => void;
+  /** Callback when item receives wheel event */
+  onItemWheel?: (item: CircleItem, event: WheelEvent) => void;
   /** Callback when item is hovered (null when no hover) */
   onItemHover?: (item: CircleItem | null) => void;
   /** Label font size (default: 16) */
@@ -83,6 +85,8 @@ export interface CircleConfig {
   sectorClass?: string;
   /** Additional CSS classes for labels */
   labelClass?: string;
+  /** Rotation offset in degrees (default: 0) */
+  rotationOffset?: number;
 }
 
 /**
@@ -196,7 +200,8 @@ export class CircleRenderer {
     const { startAngle, endAngle, midAngle } = this.calculateAngles(
       item.index,
       totalItems,
-      direction
+      direction,
+      config.rotationOffset || 0
     );
 
     // Calculate scale based on hover state
@@ -384,6 +389,21 @@ export class CircleRenderer {
       },
       { passive: false }
     );
+
+    // Wheel handler for zoom interaction
+    if (config.onItemWheel) {
+      sector.addEventListener(
+        "wheel",
+        (e: WheelEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (config.onItemWheel) {
+            config.onItemWheel(item, e);
+          }
+        },
+        { passive: false }
+      );
+    }
   }
 
   /**
@@ -442,9 +462,11 @@ export class CircleRenderer {
   private calculateAngles(
     index: number,
     totalItems: number,
-    direction: number
+    direction: number,
+    rotationOffset: number = 0
   ): { startAngle: number; endAngle: number; midAngle: number } {
-    const baseAngle = (index / totalItems) * Math.PI * 2 - Math.PI / 2;
+    const rotationRadians = (rotationOffset * Math.PI) / 180;
+    const baseAngle = (index / totalItems) * Math.PI * 2 - Math.PI / 2 + rotationRadians;
     const angle = applyDirectionMirroring(baseAngle, direction);
     const angleSpan = Math.PI / totalItems;
 

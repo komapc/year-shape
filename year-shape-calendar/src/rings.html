@@ -50,129 +50,24 @@
         font-size: 0.9rem;
       }
 
-      .controls {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        padding: 20px;
-        border-radius: 15px;
-        margin-bottom: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        width: 600px;
-        max-width: 90vw;
-        transition: background 0.3s ease, box-shadow 0.3s ease;
-      }
-
-      .light-theme .controls {
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      }
-
-      .control-group {
-        margin-bottom: 15px;
-      }
-
-      .control-group:last-child {
-        margin-bottom: 0;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 500;
-        font-size: 0.9rem;
-      }
-
-      input[type="range"] {
-        width: 100%;
-        height: 6px;
-        border-radius: 3px;
-        background: rgba(255, 255, 255, 0.2);
-        outline: none;
-        -webkit-appearance: none;
-      }
-
-      input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: white;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      }
-
-      input[type="range"]::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: white;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        border: none;
-      }
-
-      .value-display {
-        display: inline-block;
-        background: rgba(255, 255, 255, 0.2);
-        padding: 3px 10px;
-        border-radius: 5px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        margin-left: 10px;
-      }
-
-      .main-content {
-        display: flex;
-        gap: 20px;
-        align-items: flex-start;
-        justify-content: center;
-        max-width: 1200px;
-        width: 100%;
-        margin: 0 auto;
-        padding: 20px;
-      }
 
       #canvas-container {
         position: relative;
-        width: 700px;
-        height: 700px;
-        max-width: 90vw;
-        max-height: 90vw;
+        width: 100%;
+        max-width: 700px;
+        aspect-ratio: 1;
         background: rgba(30, 30, 40, 0.95); /* Dark background for dark theme */
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         overflow: hidden;
-        flex-shrink: 0;
         box-sizing: border-box;
         transition: background 0.3s ease, box-shadow 0.3s ease;
+        margin: 0 auto;
       }
 
       .light-theme #canvas-container {
         background: rgba(255, 255, 255, 1);
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-      }
-
-      .layer-controls {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        min-width: 250px;
-        max-width: 300px;
-        transition: background 0.3s ease, box-shadow 0.3s ease;
-      }
-
-      .light-theme .layer-controls {
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      }
-
-      .layer-controls h3 {
-        margin: 0 0 15px 0;
-        font-size: 1.1rem;
-        font-weight: 600;
       }
 
       .layer-list {
@@ -655,13 +550,17 @@
         </div>
       </header>
 
-      <div class="main-content flex-1">
-        <div id="canvas-container">
-          <svg
-            id="calendar-svg"
-            viewBox="0 0 700 700"
-            preserveAspectRatio="xMidYMid meet"
-          >
+      <!-- Main Content -->
+      <main class="flex-1 w-full max-w-7xl mx-auto px-6 py-8">
+        <div class="grid lg:grid-cols-[1fr_280px] gap-8">
+          <!-- Calendar Visualization -->
+          <div class="flex flex-col items-center gap-6">
+            <div id="canvas-container">
+              <svg
+                id="calendar-svg"
+                viewBox="0 0 700 700"
+                preserveAspectRatio="xMidYMid meet"
+              >
             <defs>
               <!-- Gradients for each ring -->
               <linearGradient
@@ -800,128 +699,118 @@
               2025
             </text>
           </svg>
-        </div>
-      </div>
+            </div>
+          </div>
 
-      <!-- Controls at bottom -->
-      <div class="controls" style="margin-top: 20px; margin-bottom: 0">
-        <div class="control-group">
-          <label>
-            Shape (Square ↔ Circle)
-            <span class="value-display" id="cornerValue">50%</span>
-          </label>
-          <input type="range" id="cornerRadius" min="0" max="100" value="50" />
-        </div>
+          <!-- Settings Panel (Sidebar on Desktop) -->
+          <div class="space-y-4">
+            <aside id="settingsPanelRings" class="glass rounded-xl border border-dark-border p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-200">Settings</h2>
+              </div>
+              
+              <div class="space-y-6">
+                <!-- Shape Controls -->
+                <div class="space-y-3">
+                  <h3 class="text-sm font-medium text-gray-300 border-b border-dark-border pb-2">Shape</h3>
+                  
+                  <!-- Corner Radius -->
+                  <div class="flex items-center justify-between">
+                    <label for="cornerRadius" class="text-sm text-dark-muted">
+                      Corner Radius
+                    </label>
+                    <input 
+                      id="cornerRadius" 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value="50"
+                      class="w-32 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer
+                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+                             [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary-500 
+                             [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
+                             [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 
+                             [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:rounded-full
+                             [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                      aria-label="Adjust corner radius to morph between circle and square"
+                    />
+                  </div>
 
-        <div class="control-group">
-          <label>
-            Ring Width
-            <span class="value-display" id="widthValue">50px</span>
-          </label>
-          <input type="range" id="ringWidth" min="30" max="80" value="50" />
-        </div>
+                  <!-- Ring Width -->
+                  <div class="flex items-center justify-between">
+                    <label for="ringWidth" class="text-sm text-dark-muted">
+                      Ring Width
+                    </label>
+                    <input 
+                      id="ringWidth" 
+                      type="range" 
+                      min="30" 
+                      max="80" 
+                      value="50"
+                      class="w-32 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer
+                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
+                             [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary-500 
+                             [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
+                             [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 
+                             [&::-moz-range-thumb]:bg-primary-500 [&::-moz-range-thumb]:rounded-full
+                             [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                      aria-label="Adjust ring width"
+                    />
+                  </div>
+                  
+                  <!-- Direction Toggle -->
+                  <button 
+                    id="directionToggle" 
+                    class="w-full btn flex items-center justify-between gap-2"
+                    aria-label="Toggle time flow direction"
+                  >
+                    <span class="text-sm">Time flow</span>
+                    <div class="flex items-center gap-2">
+                      <span class="direction-icon text-lg">↻</span>
+                      <span class="text-xs">CW</span>
+                    </div>
+                  </button>
 
-        <div class="control-group">
-          <label>Direction & Rotation</label>
-          <div style="display: flex; gap: 10px; margin-top: 8px">
-            <button
-              id="directionToggle"
-              style="
-                flex: 1;
-                padding: 8px;
-                background: rgba(255, 255, 255, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 6px;
-                color: white;
-                cursor: pointer;
-                font-weight: 600;
-                transition: all 0.2s;
-              "
-            >
-              ↻ CW
-            </button>
-            <button
-              id="rotateYear"
-              style="
-                flex: 1;
-                padding: 8px;
-                background: rgba(255, 255, 255, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 6px;
-                color: white;
-                cursor: pointer;
-                font-weight: 600;
-                transition: all 0.2s;
-              "
-            >
-              🔄 Rotate 90°
-            </button>
+                  <!-- Shift Seasons -->
+                  <button 
+                    id="rotateYear" 
+                    class="w-full btn flex items-center justify-center gap-2"
+                    aria-label="Shift seasons clockwise"
+                  >
+                    <span class="text-lg">↻</span>
+                    <span class="text-sm">Shift Seasons</span>
+                  </button>
+                </div>
+
+                <!-- Layer Controls -->
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-medium text-gray-300 border-b border-dark-border pb-2 flex-1">Layer Controls</h3>
+                    <button
+                      id="toggleLayerControls"
+                      class="btn text-xs ml-2"
+                      title="Toggle Layer Controls"
+                    >
+                      <span id="layerControlsToggleText">▼</span>
+                    </button>
+                  </div>
+                  <div id="layerControlsContent">
+                    <p class="text-xs text-dark-muted mb-3">
+                      Drag to reorder • Click checkbox to show/hide
+                    </p>
+                    <ul class="layer-list space-y-2" id="layerList">
+                      <!-- Populated by JavaScript -->
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
-      </div>
-
-      <!-- OLD INLINE SCRIPT - MOVED TO TypeScript MODULES
-    All JavaScript has been extracted to:
-    - src/calendar/rings/constants.ts (constants)
-    - src/calendar/rings/Ring.ts (base class)
-    - src/calendar/rings/ringImplementations.ts (ring implementations)
-    - src/calendar/rings/RingSystem.ts (ring system manager)
-    - src/calendar/RingsMode.ts (main mode class)
-    - src/rings.ts (entry point)
-    -->
-      <!-- Script block removed - all code moved to TypeScript modules -->
-      <!-- All JavaScript code has been moved to TypeScript modules (src/rings.ts and related files) -->
+      </main>
 
       <!-- Use TypeScript module for rings mode -->
       <script type="module" src="/rings.ts"></script>
-
-      <!-- Layer Controls at bottom (hideable) -->
-      <div
-        class="layer-controls"
-        id="layerControls"
-        style="
-          margin-top: 20px;
-          margin-bottom: 20px;
-          position: relative;
-          z-index: 10;
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-          "
-        >
-          <h3 style="margin: 0">📚 Layer Controls</h3>
-          <button
-            id="toggleLayerControls"
-            style="
-              padding: 6px 12px;
-              background: rgba(255, 255, 255, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              border-radius: 6px;
-              color: white;
-              cursor: pointer;
-              font-weight: 600;
-              font-size: 0.85rem;
-              transition: all 0.2s;
-            "
-            title="Toggle Layer Controls"
-          >
-            <span id="layerControlsToggleText">▶ Show</span>
-          </button>
-        </div>
-        <div id="layerControlsContent" style="display: none">
-          <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px">
-            Drag to reorder • Click checkbox to show/hide
-          </p>
-          <ul class="layer-list" id="layerList">
-            <!-- Populated by JavaScript -->
-          </ul>
-        </div>
-      </div>
 
       <!-- Footer -->
       <footer
