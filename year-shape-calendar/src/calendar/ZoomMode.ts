@@ -887,8 +887,8 @@ export class ZoomMode {
         (currentMonth / totalItems) * Math.PI * 2 -
         Math.PI / 2 +
         rotationRadians;
-      // Use svg.ts formula: direction === 1 ? angle : -angle
-      const angle = this.direction === 1 ? baseAngle : -baseAngle;
+      // Use consistent mirroring logic
+      const angle = this.applyDirectionMirroring(baseAngle);
 
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
