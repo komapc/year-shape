@@ -31,14 +31,27 @@ interface SwipeState {
 }
 
 /**
+ * Minimal interface for an app instance that supports swipe-driven navigation.
+ * CalendarApp satisfies this structurally without an explicit import.
+ */
+interface NavigableApp {
+  getCurrentMode(): string;
+  getZoomMode(): { navigatePrev(): void; navigateNext(): void } | null;
+  navigatePrev(): void;
+  navigateNext(): void;
+}
+
+/**
  * Initialize swipe navigation for context-aware year/month/week/day navigation
- * 
+ *
  * Attaches global touch event listeners to detect and handle swipe gestures.
- * Requires CalendarApp instance to be available at `window.__calendarApp`.
- * 
+ *
+ * @param app - The calendar app instance used to dispatch navigation actions.
+ *              Pass `undefined` (or omit) when no navigable app is present
+ *              (e.g. the standalone rings page).
  * @returns void
  */
-export const initializeSwipeNavigation = (): void => {
+export const initializeSwipeNavigation = (app?: NavigableApp): void => {
   let swipeState: SwipeState | null = null;
   const SWIPE_THRESHOLD = 50; // Minimum distance in pixels
   const SWIPE_MAX_VERTICAL = 100; // Maximum vertical movement to be considered horizontal swipe
@@ -89,38 +102,34 @@ export const initializeSwipeNavigation = (): void => {
 
     // Check if it's a valid horizontal swipe
     if (
+      app &&
       swipeState.isSwipe &&
       Math.abs(deltaX) > SWIPE_THRESHOLD &&
       deltaY < SWIPE_MAX_VERTICAL &&
       deltaTime < SWIPE_MAX_TIME
     ) {
-      // Get app instance from global scope
-      const app = (window as any).__calendarApp;
-      
-      if (app) {
-        const currentMode = app.getCurrentMode();
-        
-        if (currentMode === 'zoom') {
-          // In zoom mode, navigate through year/month/week/day
-          const zoomMode = app.getZoomMode();
-          if (zoomMode) {
-            if (deltaX > 0) {
-              // Swipe right - go to previous
-              zoomMode.navigatePrev();
-            } else {
-              // Swipe left - go to next
-              zoomMode.navigateNext();
-            }
+      const currentMode = app.getCurrentMode();
+
+      if (currentMode === 'zoom') {
+        // In zoom mode, navigate through year/month/week/day
+        const zoomMode = app.getZoomMode();
+        if (zoomMode) {
+          if (deltaX > 0) {
+            // Swipe right - go to previous
+            zoomMode.navigatePrev();
+          } else {
+            // Swipe left - go to next
+            zoomMode.navigateNext();
           }
-        } else {
-          // In old/rings mode, navigate through years
-      if (deltaX > 0) {
-            // Swipe right - go to previous year
-            app.navigatePrev();
+        }
       } else {
-            // Swipe left - go to next year
-            app.navigateNext();
-          }
+        // In old/rings mode, navigate through years
+        if (deltaX > 0) {
+          // Swipe right - go to previous year
+          app.navigatePrev();
+        } else {
+          // Swipe left - go to next year
+          app.navigateNext();
         }
       }
     }

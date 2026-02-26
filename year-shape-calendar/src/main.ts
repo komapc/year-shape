@@ -17,17 +17,9 @@ const initApp = (): void => {
 
   try {
     const app = new CalendarApp();
-    // Store app instance globally for swipe navigation
-    (window as any).__calendarApp = app;
-    
-    // Initialize swipe navigation for year/month/week/day navigation
-    initializeSwipeNavigation();
-    
-    // Initialize swipe navigation for mode switching
-    initializeSwipeNavigation();
-    
-    // Initialize swipe navigation for mode switching
-    initializeSwipeNavigation();
+
+    // Initialize swipe navigation for year/month/week/day/mode navigation
+    initializeSwipeNavigation(app);
     
     // Initialize PWA install manager
     console.log('PWA Install Manager initialized:', pwaInstallManager);
@@ -49,11 +41,9 @@ const initApp = (): void => {
         <div class="glass rounded-xl border border-red-500/50 p-8 max-w-md text-center">
           <div class="text-6xl mb-4">⚠️</div>
           <h1 class="text-2xl font-bold text-red-400 mb-4">Failed to Load YearWheel</h1>
-          <p class="text-gray-300 mb-6">
-            ${error instanceof Error ? error.message : 'Unknown error occurred'}
-          </p>
-          <button 
-            onclick="location.reload()" 
+          <p id="errorMessage" class="text-gray-300 mb-6"></p>
+          <button
+            onclick="location.reload()"
             class="btn primary px-6 py-3"
           >
             ↻ Retry
@@ -61,6 +51,10 @@ const initApp = (): void => {
         </div>
       </div>
     `;
+    const errorEl = document.getElementById('errorMessage');
+    if (errorEl) {
+      errorEl.textContent = error instanceof Error ? error.message : 'Unknown error occurred';
+    }
   }
 };
 
