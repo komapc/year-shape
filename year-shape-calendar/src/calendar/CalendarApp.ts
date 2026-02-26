@@ -120,19 +120,19 @@ export class CalendarApp {
   private headerModeRingsRadio: HTMLInputElement;
   private headerModeZoomRadio: HTMLInputElement;
   
-  /** Mode radio buttons (settings) */
-  private modeOldRadio: HTMLInputElement;
-  private modeRingsRadio: HTMLInputElement;
-  private modeZoomRadio: HTMLInputElement;
+  /** Mode radio buttons (settings) — absent on rings.html */
+  private modeOldRadio: HTMLInputElement | null = null;
+  private modeRingsRadio: HTMLInputElement | null = null;
+  private modeZoomRadio: HTMLInputElement | null = null;
   
   /** System theme change cleanup function */
   private cleanupSystemThemeWatch: (() => void) | null = null;
   
-  /** Login status indicator element */
-  private loginStatus: HTMLElement;
-  
-  /** Header sign-in button (shown when not logged in) */
-  private headerSignInBtn: HTMLButtonElement;
+  /** Login status indicator element — absent on rings.html */
+  private loginStatus: HTMLElement | null = null;
+
+  /** Header sign-in button (shown when not logged in) — absent on rings.html */
+  private headerSignInBtn: HTMLButtonElement | null = null;
   
   /** Current application settings (persisted to localStorage) */
   private settings: AppSettings;
@@ -140,14 +140,14 @@ export class CalendarApp {
   /** Current year being displayed */
   private currentYear: number;
 
-  /** Previous year button */
-  private prevYearBtn: HTMLButtonElement;
+  /** Previous year button — absent on rings.html */
+  private prevYearBtn: HTMLButtonElement | null = null;
 
-  /** Next year button */
-  private nextYearBtn: HTMLButtonElement;
+  /** Next year button — absent on rings.html */
+  private nextYearBtn: HTMLButtonElement | null = null;
 
-  /** Year display element */
-  private yearDisplay: HTMLElement;
+  /** Year display element — absent on rings.html */
+  private yearDisplay: HTMLElement | null = null;
 
   /**
    * Initializes the YearWheel application.
@@ -194,48 +194,15 @@ export class CalendarApp {
     this.headerModeOldRadio = getElement<HTMLInputElement>('headerModeOld');
     this.headerModeRingsRadio = getElement<HTMLInputElement>('headerModeRings');
     this.headerModeZoomRadio = getElement<HTMLInputElement>('headerModeZoom');
-    // These elements only exist on index.html, not rings.html - make them optional
-    try {
-      this.modeOldRadio = getElement<HTMLInputElement>('modeOld');
-    } catch {
-      this.modeOldRadio = null as any;
-    }
-    try {
-      this.modeRingsRadio = getElement<HTMLInputElement>('modeRings');
-    } catch {
-      this.modeRingsRadio = null as any;
-    }
-    try {
-      this.modeZoomRadio = getElement<HTMLInputElement>('modeZoom');
-    } catch {
-      this.modeZoomRadio = null as any;
-    }
-    // These elements might not exist on rings.html - make them optional
-    try {
-      this.loginStatus = getElement('loginStatus');
-    } catch {
-      this.loginStatus = null as any;
-    }
-    try {
-      this.headerSignInBtn = getElement<HTMLButtonElement>('headerSignInBtn');
-    } catch {
-      this.headerSignInBtn = null as any;
-    }
-    try {
-      this.prevYearBtn = getElement<HTMLButtonElement>('prevYear');
-    } catch {
-      this.prevYearBtn = null as any;
-    }
-    try {
-      this.nextYearBtn = getElement<HTMLButtonElement>('nextYear');
-    } catch {
-      this.nextYearBtn = null as any;
-    }
-    try {
-      this.yearDisplay = getElement('currentYearText');
-    } catch {
-      this.yearDisplay = null as any;
-    }
+    // These elements only exist on index.html, not rings.html - optional
+    this.modeOldRadio = document.getElementById('modeOld') as HTMLInputElement | null;
+    this.modeRingsRadio = document.getElementById('modeRings') as HTMLInputElement | null;
+    this.modeZoomRadio = document.getElementById('modeZoom') as HTMLInputElement | null;
+    this.loginStatus = document.getElementById('loginStatus');
+    this.headerSignInBtn = document.getElementById('headerSignInBtn') as HTMLButtonElement | null;
+    this.prevYearBtn = document.getElementById('prevYear') as HTMLButtonElement | null;
+    this.nextYearBtn = document.getElementById('nextYear') as HTMLButtonElement | null;
+    this.yearDisplay = document.getElementById('currentYearText');
 
     // ========================================
     // 2. Load Persisted Settings and Initialize Year
@@ -429,7 +396,9 @@ export class CalendarApp {
     this.refreshEventsBtn.addEventListener('click', this.handleRefreshEvents);
 
     // Google sign-in (header button only)
-    this.headerSignInBtn.addEventListener('click', this.handleSignIn);
+    if (this.headerSignInBtn) {
+      this.headerSignInBtn.addEventListener('click', this.handleSignIn);
+    }
     
     // Logout
     this.logoutBtn.addEventListener('click', this.handleLogout);
@@ -457,8 +426,12 @@ export class CalendarApp {
     this.languageSelect.addEventListener('change', this.handleLanguageChange);
 
     // Year navigation
-    this.prevYearBtn.addEventListener('click', this.handlePrevYear);
-    this.nextYearBtn.addEventListener('click', this.handleNextYear);
+    if (this.prevYearBtn) {
+      this.prevYearBtn.addEventListener('click', this.handlePrevYear);
+    }
+    if (this.nextYearBtn) {
+      this.nextYearBtn.addEventListener('click', this.handleNextYear);
+    }
     
     // Mode selector (header) - may be select or radio buttons
     if (this.modeSelector) {
@@ -995,8 +968,10 @@ export class CalendarApp {
     }
 
     try {
-      this.headerSignInBtn.disabled = true;
-      this.headerSignInBtn.textContent = 'Signing in...';
+      if (this.headerSignInBtn) {
+        this.headerSignInBtn.disabled = true;
+        this.headerSignInBtn.textContent = 'Signing in...';
+      }
 
       await googleCalendarService.signIn();
 
@@ -1006,15 +981,17 @@ export class CalendarApp {
 
       // Auto-fetch events after sign-in
       await this.handleRefreshEvents();
-      
+
       toast.success('Signed in successfully!');
     } catch (error) {
       console.error('Sign-in error:', error);
       toast.error('Failed to sign in with Google. Please try again.');
-      
+
       // Reset button state on error
-      this.headerSignInBtn.disabled = false;
-      this.headerSignInBtn.textContent = 'Sign in with Google';
+      if (this.headerSignInBtn) {
+        this.headerSignInBtn.disabled = false;
+        this.headerSignInBtn.textContent = 'Sign in with Google';
+      }
     }
   };
 
@@ -1154,7 +1131,9 @@ export class CalendarApp {
    * Update year display
    */
   private updateYearDisplay = (): void => {
-    this.yearDisplay.textContent = this.currentYear.toString();
+    if (this.yearDisplay) {
+      this.yearDisplay.textContent = this.currentYear.toString();
+    }
   };
 
   /**
@@ -1328,31 +1307,31 @@ export class CalendarApp {
    * @returns {void}
    */
   private updateLoginStatus = async (isLoggedIn: boolean): Promise<void> => {
-    const statusDot = this.loginStatus.querySelector('.status-dot') as HTMLElement;
-    const statusText = this.loginStatus.querySelector('.status-text') as HTMLElement;
-    
+    const statusDot = this.loginStatus?.querySelector('.status-dot') as HTMLElement | null;
+    const statusText = this.loginStatus?.querySelector('.status-text') as HTMLElement | null;
+
     if (isLoggedIn) {
       // Get user info from Google (try fetching if not available)
       let userInfo = googleCalendarService.getUserInfo();
-      
+
       // If user info is not available, try to fetch it
       if (!userInfo || !userInfo.name) {
         // Fetch user info asynchronously
         await googleCalendarService.fetchUserInfo();
         userInfo = googleCalendarService.getUserInfo();
       }
-      
+
       // Show personalized "Logged in" status, hide sign-in button
-      this.loginStatus.classList.remove('hidden');
-      this.headerSignInBtn.classList.add('hidden');
-      statusDot.classList.remove('bg-red-500');
-      statusDot.classList.add('bg-green-500');
+      this.loginStatus?.classList.remove('hidden');
+      this.headerSignInBtn?.classList.add('hidden');
+      statusDot?.classList.remove('bg-red-500');
+      statusDot?.classList.add('bg-green-500');
 
       // Always show user's name if available, otherwise just show "Hello"
       if (userInfo?.name) {
-        statusText.textContent = `Hello, ${userInfo.name}`;
+        if (statusText) statusText.textContent = `Hello, ${userInfo.name}`;
       } else {
-        statusText.textContent = 'Hello';
+        if (statusText) statusText.textContent = 'Hello';
         // Try to fetch user info one more time in the background
         googleCalendarService.fetchUserInfo().then(() => {
           const updatedInfo = googleCalendarService.getUserInfo();
@@ -1363,14 +1342,14 @@ export class CalendarApp {
           // Ignore errors, just keep "Hello"
         });
       }
-      
+
       // Show logout button, hide sign-in from settings
       this.logoutBtn.classList.remove('hidden');
     } else {
       // Hide status, show sign-in button in header
-      this.loginStatus.classList.add('hidden');
-      this.headerSignInBtn.classList.remove('hidden');
-      
+      this.loginStatus?.classList.add('hidden');
+      this.headerSignInBtn?.classList.remove('hidden');
+
       // Hide logout button
       this.logoutBtn.classList.add('hidden');
     }
@@ -1387,9 +1366,11 @@ export class CalendarApp {
     this.toggleSettingsBtn.setAttribute('aria-label', translations.settingsButton);
     this.toggleAboutBtn.setAttribute('title', translations.aboutButton);
     this.toggleAboutBtn.setAttribute('aria-label', translations.aboutButton);
-    this.headerSignInBtn.setAttribute('aria-label', translations.signInWithGoogle);
-    const signInText = this.headerSignInBtn.querySelector('span');
-    if (signInText) signInText.textContent = translations.signInWithGoogle;
+    if (this.headerSignInBtn) {
+      this.headerSignInBtn.setAttribute('aria-label', translations.signInWithGoogle);
+      const signInText = this.headerSignInBtn.querySelector('span');
+      if (signInText) signInText.textContent = translations.signInWithGoogle;
+    }
     
     // Update settings panel
     const settingsTitle = document.querySelector('#settingsPanel h2');
@@ -1513,7 +1494,7 @@ export class CalendarApp {
     this.toggleDirectionBtn.removeEventListener('click', this.handleDirectionToggle);
     this.shiftSeasonsBtn.removeEventListener('click', this.handleShiftSeasons);
     this.refreshEventsBtn.removeEventListener('click', this.handleRefreshEvents);
-    this.headerSignInBtn.removeEventListener('click', this.handleSignIn);
+    this.headerSignInBtn?.removeEventListener('click', this.handleSignIn);
     this.logoutBtn.removeEventListener('click', this.handleLogout);
     this.toggleAboutBtn.removeEventListener('click', this.handleToggleAbout);
     this.toggleSettingsBtn.removeEventListener('click', this.handleToggleSettings);
@@ -1543,8 +1524,8 @@ export class CalendarApp {
     if (this.modeZoomRadio) {
       this.modeZoomRadio.removeEventListener('change', this.handleModeChange);
     }
-    this.prevYearBtn.removeEventListener('click', this.handlePrevYear);
-    this.nextYearBtn.removeEventListener('click', this.handleNextYear);
+    this.prevYearBtn?.removeEventListener('click', this.handlePrevYear);
+    this.nextYearBtn?.removeEventListener('click', this.handleNextYear);
     window.removeEventListener('resize', this.handleResize);
 
     // Cleanup renderer (stops timers)
