@@ -35,9 +35,9 @@ describe('Ring Implementations', () => {
 
     it('should return month labels with numbers', () => {
       const ring = new MonthsRing();
-      expect(ring.getSectorLabel(0)).toBe('1 Jan');
-      expect(ring.getSectorLabel(1)).toBe('2 Feb');
-      expect(ring.getSectorLabel(11)).toBe('12 Dec');
+      expect(ring.getSectorLabel(0)).toBe('Jan');
+      expect(ring.getSectorLabel(1)).toBe('Feb');
+      expect(ring.getSectorLabel(11)).toBe('Dec');
     });
 
     it('should use white fill color', () => {

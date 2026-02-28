@@ -72,8 +72,7 @@ export class ZoomMode {
   // Rotation offset (for shifting months in year view)
   private rotationOffset: number = 0;
 
-  // Hover state (month hover now handled by CircleRenderer)
-  private hoveredDay: number | null = null; // For month circle
+  // Hover state
   private hoveredWeekDay: number | null = null; // For week circle (0-6)
   private hoveredHour: number | null = null; // For day circle (1-12)
 
@@ -960,80 +959,6 @@ export class ZoomMode {
   };
 
   /**
-   * Helper: Ensure labels layer is visible and on top
-   * Used for month circle where labels are in a separate layer
-   */
-  private ensureLabelsLayerVisible = (wrapperGroup: SVGGElement): void => {
-    const labelsGroup = wrapperGroup.querySelector(
-      ".labels-layer"
-    ) as SVGGElement;
-    if (!labelsGroup) return;
-
-    // Force visibility
-    labelsGroup.style.visibility = "visible";
-    labelsGroup.style.opacity = "1";
-    labelsGroup.style.display = "block";
-    labelsGroup.style.pointerEvents = "none";
-
-    // Move to end to ensure it renders on top
-    wrapperGroup.appendChild(labelsGroup);
-
-    // Ensure all labels are visible
-    const labels = labelsGroup.querySelectorAll(".day-label");
-    labels.forEach((label) => {
-      const textEl = label as SVGTextElement;
-      textEl.style.transform = "none"; // NEVER use transforms on labels
-      textEl.style.visibility = "visible";
-      textEl.style.opacity = "1";
-      textEl.style.display = "block";
-      textEl.style.pointerEvents = "none";
-    });
-
-    // Ensure all background circles are visible
-    const bgCircles = labelsGroup.querySelectorAll("circle[data-day]");
-    bgCircles.forEach((circle) => {
-      const circleEl = circle as SVGCircleElement;
-      circleEl.style.transform = "none";
-      circleEl.style.visibility = "visible";
-      circleEl.style.opacity = "1";
-      circleEl.style.display = "block";
-      circleEl.style.pointerEvents = "none";
-    });
-  };
-
-  /**
-   * Update day sector scales in month circle based on hover state
-   *
-   * Structure: monthGroup > sectorGroups[data-day] > sector
-   *            monthGroup > .labels-layer > labels + bgCircles
-   *
-   * IMPORTANT: Labels are in a SEPARATE layer to prevent occlusion.
-   * They must NEVER use transforms, and must always be visible.
-   */
-  private updateDayScales = (): void => {
-    if (this.currentState.level !== "month") return;
-
-    const monthGroup = this.findWrapperGroup();
-    if (!monthGroup) return;
-
-    // Update sector scales
-    const sectorGroups = monthGroup.querySelectorAll("g[data-day]");
-    sectorGroups.forEach((g) => {
-      const sectorGroup = g as SVGGElement;
-      const dayIndex = parseInt(
-        sectorGroup.getAttribute("data-day") || "0",
-        10
-      );
-      const scaleValue = this.hoveredDay === dayIndex ? 1.5 : 1;
-      sectorGroup.style.transform = `scale(${scaleValue})`;
-    });
-
-    // CRITICAL: Ensure labels layer is always visible and on top
-    // This prevents labels from disappearing when sectors scale
-    this.ensureLabelsLayerVisible(monthGroup);
-  };
-
-  /**
    * Update week day sector scales in week circle based on hover state
    *
    * Structure: weekGroup > sectorGroups[data-week-day] > sector + label
@@ -1341,8 +1266,8 @@ export class ZoomMode {
           }
         }
       },
-      onItemHover: (item) => {
-        this.hoveredDay = item ? item.value : null;
+      onItemHover: (_item) => {
+        // Month-level hover is handled by CircleRenderer
       },
       // Custom label rendering with background circles
       renderCustomLabel: (container, item, ctx) => {
