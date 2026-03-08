@@ -1,0 +1,1 @@
+../../extractor/scripts/generate_bidix.py
