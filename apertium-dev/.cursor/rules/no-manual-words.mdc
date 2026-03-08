@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+
+## No Manual Dictionary Entries
+
+CRITICAL: Never add words manually to dictionary files (`.dix`). All dictionary entries must be generated from source data (YAML lexicons, JSON translation sources, etc.) using the appropriate generation scripts.
+
+**Prohibited Actions:**
+- ❌ Manually editing `.dix` files to add word entries
+- ❌ Adding entries directly to `apertium-ido.ido.dix` or `apertium-ido-epo.ido-epo.dix`
+- ❌ Modifying dictionary XML without regenerating from sources
+
+**Required Workflow:**
+1. **For Monodix (monolingual dictionary):**
+   - Add entries to `apdata/ido_lexicon.yaml` with proper `lemma`, `pos`, and `paradigm` fields
+   - Run `generate_ido_monodix_from_yaml.py` to regenerate `apertium-ido.ido.dix`
+
+2. **For Bidix (bilingual dictionary):**
+   - Add translation pairs to JSON source files (BERT alignment, Vortaro, etc.)
+   - Run `regenerate_bidix.py` with appropriate JSON sources
+   - The script will generate `apertium-ido-epo.ido-epo.dix` from the JSON data
+
+**Why This Matters:**
+- Ensures consistency between source data and generated dictionaries
+- Prevents manual edits from being overwritten during regeneration
+- Maintains traceability of dictionary entries to their sources
+- Allows for automated updates and quality control
+
+**Exception:**
+- Only structural changes (paradigm definitions, symbol definitions, XML structure) may be edited manually if not yet supported by generation scripts

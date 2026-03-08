@@ -1,0 +1,95 @@
+# Command Chain Simplification
+
+CRITICAL: Avoid overly long chains of commands using &&, ;, >>, or | operators in a single line. Split complex command chains into multiple, readable steps.
+
+**Core Principle:**
+- Break complex command chains into logical, readable steps
+- Each command should have a single, clear purpose
+- Improve debugging and error handling by isolating operations
+- Make scripts more maintainable and understandable
+
+**When to Split Commands:**
+- Commands with more than 2-3 operators (&&, ;, >>, |)
+- Complex pipelines with multiple transformations
+- Commands that mix different types of operations
+- Long commands that exceed reasonable line length
+- Operations that could fail independently
+
+**Required Actions:**
+- Split long command chains into separate lines
+- Use intermediate variables for complex operations
+- Add comments explaining each step
+- Handle errors at each step rather than relying on chain failure
+- Use proper indentation and formatting
+
+**Examples:**
+
+❌ **Bad - Long command chain:**
+```bash
+# Hard to read, debug, and maintain
+curl -s "https://api.example.com/data" | jq '.items[]' | grep -v "test" | sort | uniq | head -10 > output.txt && echo "Done" && notify-send "Process complete"
+```
+
+✅ **Good - Split into logical steps:**
+```bash
+# Step 1: Fetch data
+curl -s "https://api.example.com/data" > raw_data.json
+
+# Step 2: Process and filter
+jq '.items[]' raw_data.json | grep -v "test" > filtered_data.txt
+
+# Step 3: Sort and deduplicate
+sort filtered_data.txt | uniq > unique_data.txt
+
+# Step 4: Limit results
+head -10 unique_data.txt > output.txt
+
+# Step 5: Notify completion
+echo "Processing complete"
+notify-send "Process complete"
+```
+
+❌ **Bad - Complex pipeline:**
+```bash
+find . -name "*.py" | xargs grep -l "TODO" | xargs sed -i 's/TODO/FIXME/g' && git add . && git commit -m "Replace TODO with FIXME"
+```
+
+✅ **Good - Step-by-step approach:**
+```bash
+# Find Python files with TODO comments
+find . -name "*.py" > python_files.txt
+
+# Find files containing TODO
+grep -l "TODO" $(cat python_files.txt) > files_with_todo.txt
+
+# Replace TODO with FIXME
+while read -r file; do
+    sed -i 's/TODO/FIXME/g' "$file"
+done < files_with_todo.txt
+
+# Stage changes
+git add .
+
+# Commit changes
+git commit -m "Replace TODO with FIXME"
+```
+
+**Benefits:**
+- **Debuggability:** Easy to identify which step failed
+- **Maintainability:** Each step can be modified independently
+- **Readability:** Clear understanding of what each operation does
+- **Error handling:** Can handle errors at each step
+- **Testing:** Each step can be tested individually
+
+**When Long Chains Are Acceptable:**
+- Simple, well-understood operations
+- Standard Unix pipelines (e.g., `ls | grep | sort`)
+- Commands that are commonly used together
+- Operations that must succeed atomically
+
+**Remember:**
+- Clarity over brevity
+- Each command should have a single responsibility
+- Error handling is easier with separate commands
+- Comments help explain complex operations
+- Intermediate files/variables improve debugging

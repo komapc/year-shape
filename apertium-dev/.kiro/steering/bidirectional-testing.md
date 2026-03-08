@@ -1,0 +1,32 @@
+---
+inclusion: always
+---
+
+## Bidirectional Testing
+
+CRITICAL: When adding or modifying translation rules, always test both directions (Ido→Esperanto and Esperanto→Ido) to ensure consistency and quality.
+
+**Required Actions:**
+- Test Ido → Esperanto translation
+- Test Esperanto → Ido translation
+- Verify round-trip translation quality where applicable
+- Document any intentional asymmetries
+- Check for consistency in word choices
+
+**Testing Commands:**
+```bash
+# Test Ido to Esperanto
+echo "Ido text" | apertium ido-epo
+
+# Test Esperanto to Ido
+echo "Esperanto text" | apertium epo-ido
+```
+
+**What to Verify:**
+- Grammatical correctness in both directions
+- Semantic preservation
+- Natural phrasing in target language
+- Proper handling of morphology
+- Edge cases and exceptions
+
+**Note:** Some asymmetry is expected and acceptable due to linguistic differences, but should be documented.

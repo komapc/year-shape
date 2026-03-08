@@ -1,0 +1,17 @@
+# Subdirectories that are their own git repositories
+apertium/
+projects/
+terraform/
+research/
+
+# Editor and system files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.log

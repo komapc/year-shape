@@ -1,0 +1,14 @@
+---
+inclusion: always
+---
+
+## Test After Bug Fix
+
+CRITICAL: After fixing any bug, add a test case that covers the bug scenario to prevent regression.
+
+**Required Actions:**
+- Write a test that reproduces the original bug
+- Verify the test fails before the fix
+- Verify the test passes after the fix
+- Include the bug description and issue number in test documentation
+- Add test case to appropriate test suite
