@@ -1,0 +1,314 @@
+{
+  "metadata": {
+    "source_name": "manual_fixes",
+    "version": "1.0",
+    "generation_date": "2026-03-08T14:30:00Z",
+    "description": "Manually curated fixes for missing words and generation issues identified during Wikipedia analysis."
+  },
+  "entries": [
+    {
+      "lemma": "vergeto",
+      "source": "manual_fixes",
+      "pos": "n",
+      "translations": [
+        {
+          "term": "stangeto<n><sg><nom>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "o__n"
+      }
+    },
+    {
+      "lemma": "desegnuro",
+      "source": "manual_fixes",
+      "pos": "n",
+      "translations": [
+        {
+          "term": "desegnaĵo<n><sg><nom>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "o__n"
+      }
+    },
+    {
+      "lemma": "interkrucumar",
+      "source": "manual_fixes",
+      "pos": "vblex",
+      "translations": [
+        {
+          "term": "interkruciĝi",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "ar__vblex"
+      }
+    },
+    {
+      "lemma": "ecepte",
+      "source": "manual_fixes",
+      "pos": "pr",
+      "translations": [
+        {
+          "term": "escepte",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__pr"
+      }
+    },
+    {
+      "lemma": "devenar",
+      "source": "manual_fixes",
+      "pos": "vblex",
+      "translations": [
+        {
+          "term": "deveni",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "ar__vblex"
+      }
+    },
+    {
+      "lemma": "Luzitanio",
+      "source": "manual_fixes",
+      "pos": "np",
+      "translations": [
+        {
+          "term": "Luzitanio<np><loc><sg><nom>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "np__np"
+      }
+    },
+    {
+      "lemma": "Netflix",
+      "source": "manual_fixes",
+      "pos": "np",
+      "translations": [
+        {
+          "term": "Netflix<np><sg><nom>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "np__np"
+      }
+    },
+    {
+      "lemma": "elsendfluo",
+      "source": "manual_fixes",
+      "pos": "n",
+      "translations": [
+        {
+          "term": "elsendfluo<n><sg><nom>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "o__n"
+      }
+    },
+    {
+      "lemma": "es",
+      "source": "manual_fixes",
+      "pos": "vblex",
+      "translations": [
+        {
+          "term": "esti<vblex><pri>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__invar_verb"
+      }
+    },
+    {
+      "lemma": "tro",
+      "source": "manual_fixes",
+      "pos": "adv",
+      "translations": [
+        {
+          "term": "tro<adv>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__adv"
+      }
+    },
+    {
+      "lemma": "a.K.",
+      "source": "manual_fixes",
+      "pos": "adv",
+      "translations": [
+        {
+          "term": "a.K.<adv>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__adv"
+      }
+    },
+    {
+      "lemma": "p.K.",
+      "source": "manual_fixes",
+      "pos": "adv",
+      "translations": [
+        {
+          "term": "p.K.<adv>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__adv"
+      }
+    },
+    {
+      "lemma": "ja",
+      "source": "manual_fixes",
+      "pos": "adv",
+      "translations": [
+        {
+          "term": "jam<adv>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__adv"
+      }
+    },
+    {
+      "lemma": "til",
+      "source": "manual_fixes",
+      "pos": "pr",
+      "translations": [
+        {
+          "term": "ĝis<pr>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__pr"
+      }
+    },
+    {
+      "lemma": "sua",
+      "source": "manual_fixes",
+      "pos": "prn",
+      "translations": [
+        {
+          "term": "sia<prn>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__prn"
+      }
+    },
+    {
+      "lemma": "to",
+      "source": "manual_fixes",
+      "pos": "prn",
+      "translations": [
+        {
+          "term": "tio<prn>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "__prn"
+      }
+    },
+    {
+      "lemma": "Rusa",
+      "source": "manual_fixes",
+      "pos": "adj",
+      "translations": [
+        {
+          "term": "Rusa<adj>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "a__adj"
+      }
+    },
+    {
+      "lemma": "Germana",
+      "source": "manual_fixes",
+      "pos": "adj",
+      "translations": [
+        {
+          "term": "Germana<adj>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "a__adj"
+      }
+    },
+    {
+      "lemma": "Kataluniana",
+      "source": "manual_fixes",
+      "pos": "adj",
+      "translations": [
+        {
+          "term": "Kataluna<adj>",
+          "lang": "eo",
+          "confidence": 1.0,
+          "source": "manual_fixes"
+        }
+      ],
+      "morphology": {
+        "paradigm": "a__adj"
+      }
+    }
+  ]
+}

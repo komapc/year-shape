@@ -48,6 +48,15 @@ This is the master TODO list. For detailed tasks, see:
 - [ ] Add POS inference for `en_pivot` entries based on word endings
 - [ ] Extract POS from `ido_lexicon` paradigm information
 - [ ] Re-run extraction pipeline with enhanced POS extraction
+
+## 🛠 Grammar & Transfer (To be Fixed)
+- [ ] **Relative Pronoun Agreement:** Fix `qui` (Ido pl) mapping to `#kiu` (Epo sg). Should be `kiuj`.
+- [ ] **Accusative Case Logic:** Improve handling of elided articles (e.g., `la'ideon`) to ensure proper `-n` attachment.
+- [ ] **Short Form Verb Tense:** Map Ido short forms like `es` (esas) and `esir` (esis) correctly to Indicative mood in Esperanto instead of Infinitive.
+- [ ] **Suffix Productivity:** Add transfer rules for productive Ido suffixes (`-uro`, `-ala`, `-eyo`) to handle derived words without literal dictionary entries.
+- [ ] **Automated Suffix Extraction:** Update Wiktionary extractor to capture "Derived terms" sections for better morphological coverage.
+- [ ] **Elision Expansion:** Add transfer rule in `apertium-ido-epo.ido-epo.t1x` to expand elided `l'` to `la` for correct target generation.
+- [ ] **Productive Bidix Generation:** Enhance `generate_bidix.py` to automatically map Ido derived words to Esperanto equivalents based on root translations.
 - [ ] Regenerate dictionaries with improved POS coverage
 
 **Target:** 80-90% POS tag coverage (up from 40%)

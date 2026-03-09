@@ -31,6 +31,7 @@ PARADIGM_NORMALIZE = {
     'adv': '__adv',
     'num': 'num',
     'ord': 'ma__ord',
+    '__invar_verb': '__invar_verb',
 }
 
 POS_MAP = {
@@ -191,7 +192,7 @@ def generate_monodix(input_file: Path, output_file: Path, min_confidence: float 
     
     # Add alphabet
     alphabet = ET.SubElement(root, 'alphabet')
-    alphabet.text = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    alphabet.text = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-'’"
     
     # Add symbol definitions
     sdefs = ET.SubElement(root, 'sdefs')
@@ -251,7 +252,8 @@ def generate_monodix(input_file: Path, output_file: Path, min_confidence: float 
             
             # Append children to pardefs element
             for child in pardef_elements:
-                if child.get('n') == 'ar__vblex':
+                p_name = child.get('n')
+                if p_name == 'ar__vblex':
                     # Inject participles into ar__vblex
                     participles = [
                         ('ita', 'pp', 'pasv', 'adj'), ('ite', 'pp', 'pasv', 'adv'), ('ito', 'pp', 'pasv', 'n'),
@@ -264,29 +266,73 @@ def generate_monodix(input_file: Path, output_file: Path, min_confidence: float 
                         ('esus', 'cni', 'pasv', None), ('esez', 'imp', 'pasv', None), ('esar', 'inf', 'pasv', None)
                     ]
                     for t in participles:
-                        e = ET.SubElement(child, 'e')
-                        p = ET.SubElement(e, 'p')
-                        ET.SubElement(p, 'l').text = t[0]
-                        r = ET.SubElement(p, 'r')
-                        ET.SubElement(r, 's', {'n': 'vblex'})
-                        ET.SubElement(r, 's', {'n': t[1]})
-                        if t[2]: ET.SubElement(r, 's', {'n': t[2]})
-                        if t[3]: ET.SubElement(r, 's', {'n': t[3]})
-                pardefs.append(child)
-            
-            # Programmatically inject num_ord_regex paradigm
-            ord_pardef = ET.Element('pardef', {'n': 'num_ord_regex'})
-            e_ord = ET.SubElement(ord_pardef, 'e')
-            ET.SubElement(e_ord, 're').text = '[0-9]+'
-            p_ord = ET.SubElement(e_ord, 'p')
-            ET.SubElement(p_ord, 'l').text = 'ma'
-            r_ord = ET.SubElement(p_ord, 'r')
-            r_ord.text = '-a'
-            ET.SubElement(r_ord, 's', {'n': 'num'})
-            ET.SubElement(r_ord, 's', {'n': 'ord'})
-            pardefs.append(ord_pardef)
+                        # Only add if not already present in this pardef
+                        if not any(l.text == t[0] for l in child.findall(".//l")):
+                            e = ET.SubElement(child, 'e')
+                            p = ET.SubElement(e, 'p')
+                            ET.SubElement(p, 'l').text = t[0]
+                            r = ET.SubElement(p, 'r')
+                            ET.SubElement(r, 's', {'n': 'vblex'})
+                            ET.SubElement(r, 's', {'n': t[1]})
+                            if t[2]: ET.SubElement(r, 's', {'n': t[2]})
+                            if t[3]: ET.SubElement(r, 's', {'n': t[3]})
                 
-            print(f"  ✅ Loaded {len(pardef_elements)} paradigms (plus injected)")
+                # Check if this paradigm is already in pardefs to avoid duplicates
+                existing = pardefs.findall(f"./pardef[@n='{p_name}']")
+                if not existing:
+                    pardefs.append(child)
+            
+            # Programmatically inject num_ord_regex paradigm if missing
+            if not pardefs.findall("./pardef[@n='num_ord_regex']"):
+                ord_regex_pardef = ET.SubElement(pardefs, 'pardef', {'n': 'num_ord_regex'})
+                # 16-ma case
+                e_ord1 = ET.SubElement(ord_regex_pardef, 'e')
+                ET.SubElement(e_ord1, 're').text = '[0-9]+'
+                p_ord1 = ET.SubElement(e_ord1, 'p')
+                ET.SubElement(p_ord1, 'l').text = '-ma'
+                r_ord1 = ET.SubElement(p_ord1, 'r')
+                r_ord1.text = '-a'
+                ET.SubElement(r_ord1, 's', {'n': 'num'})
+                ET.SubElement(r_ord1, 's', {'n': 'ord'})
+                
+                # 16ma case
+                e_ord2 = ET.SubElement(ord_regex_pardef, 'e')
+                ET.SubElement(e_ord2, 're').text = '[0-9]+'
+                p_ord2 = ET.SubElement(e_ord2, 'p')
+                ET.SubElement(p_ord2, 'l').text = 'ma'
+                r_ord2 = ET.SubElement(p_ord2, 'r')
+                r_ord2.text = '-a'
+                ET.SubElement(r_ord2, 's', {'n': 'num'})
+                ET.SubElement(r_ord2, 's', {'n': 'ord'})
+            
+            # Programmatically inject ma__ord paradigm if missing
+            if not pardefs.findall("./pardef[@n='ma__ord']"):
+                ma_ord_pardef = ET.SubElement(pardefs, 'pardef', {'n': 'ma__ord'})
+                e_ma = ET.SubElement(ma_ord_pardef, 'e')
+                p_ma = ET.SubElement(e_ma, 'p')
+                ET.SubElement(p_ma, 'l').text = 'ma'
+                r_ma = ET.SubElement(p_ma, 'r')
+                ET.SubElement(r_ma, 's', {'n': 'num'})
+                ET.SubElement(r_ma, 's', {'n': 'ord'})
+                
+                e_esma = ET.SubElement(ma_ord_pardef, 'e')
+                p_esma = ET.SubElement(e_esma, 'p')
+                ET.SubElement(p_esma, 'l').text = 'esma'
+                r_esma = ET.SubElement(p_esma, 'r')
+                ET.SubElement(r_esma, 's', {'n': 'num'})
+                ET.SubElement(r_esma, 's', {'n': 'ord'})
+
+            # Programmatically inject __invar_verb paradigm if missing
+            if not pardefs.findall("./pardef[@n='__invar_verb']"):
+                invar_verb_pardef = ET.SubElement(pardefs, 'pardef', {'n': '__invar_verb'})
+                e_invar = ET.SubElement(invar_verb_pardef, 'e')
+                p_invar = ET.SubElement(e_invar, 'p')
+                ET.SubElement(p_invar, 'l').text = ""
+                r_invar = ET.SubElement(p_invar, 'r')
+                ET.SubElement(r_invar, 's', {'n': 'vblex'})
+                ET.SubElement(r_invar, 's', {'n': 'pri'})
+                
+            print(f"  ✅ Total paradigms in dictionary: {len(pardefs.findall('pardef'))}")
                 
         except Exception as e:
             print(f"WARNING: Failed to load paradigms: {e}")
@@ -312,6 +358,9 @@ def generate_monodix(input_file: Path, output_file: Path, min_confidence: float 
     # Collect verb stems for -ebl generation
     verb_stems = set()
     processed_lemmas = set()
+    
+    # Store candidates for suffix-based generation
+    suffix_candidates = [] # List of (derived_lemma, root_candidate, paradigm)
     
     # First pass: process existing entries and collect verb stems
     for entry in entries:
@@ -340,11 +389,35 @@ def generate_monodix(input_file: Path, output_file: Path, min_confidence: float 
 
         processed_lemmas.add(lemma.lower())
         
+        # Check for suffix candidates (words that might be missing their roots or derived from them)
+        if not paradigm:
+            if lemma_lower.endswith('uro'):
+                suffix_candidates.append((lemma, lemma[:-3], 'o__n'))
+            elif lemma_lower.endswith('ala'):
+                suffix_candidates.append((lemma, lemma[:-3], 'a__adj'))
+            elif lemma_lower.endswith('eyo'):
+                suffix_candidates.append((lemma, lemma[:-3], 'o__n'))
+            elif lemma_lower.endswith('ino'):
+                suffix_candidates.append((lemma, lemma[:-3], 'o__n'))
+            elif lemma_lower.endswith('isto'):
+                suffix_candidates.append((lemma, lemma[:-4], 'o__n'))
+            elif lemma_lower.endswith('ana'):
+                suffix_candidates.append((lemma, lemma[:-3], 'a__adj'))
+
         # If no paradigm, try to assign a default for invariable words
         if not paradigm:
             # For very short words or known function words, use default invariable paradigm
             lemma_lower = lemma.lower().strip()
-            if lemma_lower.endswith(('ma', 'esma')):
+            if lemma_lower == 'es':
+                paradigm = '__invar_verb'
+            elif '-' in lemma_lower and any(dir_root in lemma_lower for dir_root in {'nord', 'sud', 'est', 'west'}):
+                if lemma_lower.endswith('e'):
+                    paradigm = 'e__adv'
+                elif lemma_lower.endswith('a'):
+                    paradigm = 'a__adj'
+                elif lemma_lower.endswith('o'):
+                    paradigm = 'o__n'
+            elif lemma_lower.endswith(('ma', 'esma')):
                 paradigm = 'ma__ord'
             elif lemma_lower in {'un', 'du', 'tri', 'quar', 'kin', 'sis', 'sep', 'oko', 'non', 'dek', 'cent', 'mil', 'miliuno', 'miliardo'}:
                 paradigm = 'num'
@@ -369,6 +442,15 @@ def generate_monodix(input_file: Path, output_file: Path, min_confidence: float 
                     paradigm = 'e__adv'
                 else:
                     paradigm = '__adv'
+            
+            if not paradigm and pos in {'np', 'proper noun'}:
+                paradigm = 'np__np'
+            
+            if not paradigm and pos in {'v', 'vblex', 'verb'} and lemma_lower.endswith('ar'):
+                paradigm = 'ar__vblex'
+            
+            if not paradigm and pos in {'n', 'noun'} and lemma_lower.endswith('o'):
+                paradigm = 'o__n'
             
         if not paradigm:
             entries_skipped_no_paradigm += 1
@@ -402,6 +484,26 @@ def generate_monodix(input_file: Path, output_file: Path, min_confidence: float 
         entries_added += 1
         ebl_entries_generated += 1
         processed_lemmas.add(ebl_lemma.lower())
+
+    # Third pass: Process suffix candidates (morphological productivity)
+    for derived_lemma, root_candidate, paradigm in suffix_candidates:
+        # Check various possible root endings in Ido: -o (noun), -ar (verb), -a (adj)
+        found_root = False
+        final_root_stem = ""
+        
+        for root_ending in ['o', 'ar', 'a', 'e', '']:
+            test_root = (root_candidate + root_ending).lower()
+            if test_root in processed_lemmas:
+                found_root = True
+                final_root_stem = root_candidate
+                break
+        
+        if found_root and derived_lemma.lower() not in processed_lemmas:
+            # Generate the derived entry
+            entry_elem = create_entry_element(derived_lemma, final_root_stem, paradigm)
+            section.append(entry_elem)
+            entries_added += 1
+            processed_lemmas.add(derived_lemma.lower())
     
     # Add generic number entry using num_regex paradigm
     num_ord_entry = ET.SubElement(section, 'e')
