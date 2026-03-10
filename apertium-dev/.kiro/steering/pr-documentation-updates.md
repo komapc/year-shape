@@ -1,0 +1,20 @@
+---
+inclusion: always
+---
+
+## PR Documentation Updates
+
+CRITICAL: Every pull request must include updates to relevant documentation files if the changes affect user-facing functionality or project structure.
+
+**Required Documentation Updates:**
+- README.md - For setup, usage, or feature changes
+- CHANGELOG.md - For all notable changes
+- API documentation - For interface changes
+- Translation guides - For new linguistic rules
+- Technical docs - For architecture changes
+
+**Before Creating PR:**
+- Review all affected documentation
+- Update examples if behavior changed
+- Add migration notes for breaking changes
+- Verify links and references are current

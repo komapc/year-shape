@@ -1,0 +1,80 @@
+---
+alwaysApply: true
+---
+
+## Python Script Execution
+
+CRITICAL: Never use inline Python heredocs or multi-line Python code in terminal commands. For any Python code longer than one line, save it to a file first and then execute it.
+
+**Core Principle:**
+- Multi-line Python scripts should be saved as proper `.py` files
+- Execute saved scripts using `python3 script_name.py`
+- Inline Python is only acceptable for single-line commands
+- Proper script files are easier to debug, test, and maintain
+
+**Prohibited Patterns:**
+
+❌ **Never use heredoc syntax:**
+```bash
+python3 << 'EOF'
+import os
+for file in os.listdir('.'):
+    print(file)
+EOF
+```
+
+❌ **Never use multi-line echo piping:**
+```bash
+echo "import sys
+for line in sys.stdin:
+    print(line.upper())" | python3
+```
+
+**Required Approach:**
+
+✅ **Good - Save to file and execute:**
+```bash
+# Create the script
+cat > process_files.py << 'EOF'
+import os
+for file in os.listdir('.'):
+    print(file)
+EOF
+
+# Execute the script
+python3 process_files.py
+
+# Clean up if temporary
+rm process_files.py
+```
+
+✅ **Even better - Use dedicated scripts directory:**
+```bash
+# Save to proper location
+# Then execute
+python3 scripts/process_files.py
+```
+
+✅ **Acceptable - Single-line Python:**
+```bash
+python3 -c "print('Hello, World!')"
+```
+
+**Why This Matters:**
+- **Debuggability:** Saved files can be inspected and debugged
+- **Maintainability:** Scripts can be version controlled and reused
+- **Readability:** Proper files have syntax highlighting and structure
+- **Error handling:** Easier to track errors with file names and line numbers
+- **Testing:** Saved scripts can be tested independently
+- **Transparency:** User can see what code will be executed
+
+**When to Save Scripts:**
+- Any Python code with more than one statement
+- Code that imports modules
+- Code with control flow (loops, conditionals)
+- Code that will be run multiple times
+- Complex data processing or transformations
+
+**Exceptions:**
+- Single-line Python commands using `-c` flag are acceptable
+- Interactive Python sessions for exploration (not execution)

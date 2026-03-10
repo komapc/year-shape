@@ -1,0 +1,1 @@
+../../../extractor/scripts/merge_sources.py

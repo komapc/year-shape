@@ -1,0 +1,21 @@
+---
+inclusion: always
+---
+
+## Session Start Review
+
+CRITICAL: At the beginning of every new chat session, read all `.md` documentation files in the project to understand current state, recent changes, and project structure.
+
+**Required Actions:**
+- Read README.md for project overview
+- Check CHANGELOG.md for recent updates
+- Review TODO.md or ROADMAP.md for current priorities
+- Read any CONTRIBUTING.md for workflow guidelines
+- Check docs/ folder for technical documentation
+- Review any open PR descriptions or issues mentioned
+
+**Purpose:**
+- Maintain context awareness across sessions
+- Understand recent changes and current state
+- Avoid duplicating work or missing important updates
+- Stay aligned with project goals and conventions

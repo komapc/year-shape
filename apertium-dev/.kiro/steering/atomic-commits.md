@@ -1,0 +1,21 @@
+---
+inclusion: always
+---
+
+## Atomic Commits
+
+Commit every meaningful change separately with descriptive commit messages following conventional commit format.
+
+**Commit Message Format:**
+- `feat:` - New feature or dictionary entry
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `refactor:` - Code restructuring without behavior change
+- `test:` - Adding or modifying tests
+- `chore:` - Maintenance tasks
+
+**Guidelines:**
+- Each commit should represent one logical change
+- Commit messages should be clear and descriptive
+- Keep commits focused and atomic
+- Avoid mixing unrelated changes in a single commit

@@ -1,0 +1,62 @@
+---
+alwaysApply: true
+---
+
+## Git Workflow
+
+CRITICAL: Never push to ANY branch (master/main or feature branches) without explicit user permission. Always create a feature branch, show the user what you plan to push, and wait for approval before pushing.
+
+**Required Workflow:**
+
+### Before Making Changes:
+1. **Always pull from master first** to avoid conflicts:
+   ```bash
+   git checkout master
+   git pull origin master
+   ```
+
+2. **Create a feature branch:**
+   ```bash
+   git checkout -b feature/descriptive-name
+   ```
+
+### Making Changes:
+3. **Before each commit, pull from master** to stay updated:
+   ```bash
+   git fetch origin
+   git rebase origin/master
+   ```
+
+4. Make your changes and commit atomically
+
+### After Changes:
+5. **Push feature branch:**
+   ```bash
+   git push origin feature/descriptive-name
+   ```
+
+6. **Create Pull Request** on GitHub/GitLab and provide the link to the user
+
+7. **NEVER merge without user approval** - wait for explicit permission
+
+**Prohibited Actions:**
+- ❌ `git push` to ANY remote without asking first
+- ❌ `git push origin master`
+- ❌ `git push origin main`
+- ❌ `git push origin feature-branch` without permission
+- ❌ Direct commits to master/main
+- ❌ Merging PRs without user permission
+- ❌ Force pushing to shared branches
+
+**Always Ask First:**
+- Before ANY `git push` command
+- Before creating a PR
+- Before merging a PR
+- Show the user the commit list and ask: "Ready to push these commits?"
+
+**Why This Matters:**
+- Allows code review before integration
+- Maintains clean git history
+- Prevents conflicts and breaking changes
+- Enables discussion and collaboration
+- Provides audit trail of changes

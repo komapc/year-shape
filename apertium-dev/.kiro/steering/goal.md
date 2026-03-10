@@ -1,0 +1,9 @@
+---
+inclusion: always
+---
+
+## Project Goal
+
+This project aims to create a comprehensive Ido language dictionary and develop translation rules to translate between Ido and Esperanto. The project is part of the Apertium machine translation platform and focuses on building bidirectional translation capabilities between these two constructed languages.
+
+The dictionary and translation rules will be integrated into Apertium once they reach a stable and production-ready state.

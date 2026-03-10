@@ -1,0 +1,54 @@
+# Sudo Avoidance
+
+CRITICAL: Avoid running commands with "sudo" whenever possible. If elevated privileges are needed, ask the user explicitly for permission.
+
+**Core Principle:**
+- Prefer user-level operations over system-level operations
+- Use sudo only when absolutely necessary and with explicit user consent
+- Always explain why elevated privileges are needed
+
+**When to Avoid Sudo:**
+- File operations in user directories
+- Package management (prefer user-level package managers)
+- Development tool installation
+- Configuration file modifications in user space
+- Most development and testing operations
+
+**When Sudo May Be Required:**
+- System-wide package installation
+- Modifying system configuration files
+- Network configuration changes
+- Hardware access operations
+- Service management
+
+**Required Actions:**
+- Always ask "Do you want me to run this with sudo?" before using elevated privileges
+- Explain why sudo is necessary for the operation
+- Provide alternative approaches when possible
+- Use least-privilege principle (avoid sudo when user-level operations suffice)
+
+**Examples:**
+
+✅ **Good - Ask first:**
+```bash
+# This requires sudo to install system packages
+# Do you want me to run: sudo apt install package-name?
+```
+
+✅ **Good - User-level alternative:**
+```bash
+# Use pip install --user instead of sudo pip install
+pip install --user package-name
+```
+
+❌ **Bad - Unnecessary sudo:**
+```bash
+sudo chmod +x script.sh  # Usually not needed
+sudo mkdir ~/project     # User can create directories
+```
+
+**Remember:**
+- Most development tasks don't require sudo
+- User-level operations are safer and more appropriate
+- Always explain the need for elevated privileges
+- Provide alternatives when possible
