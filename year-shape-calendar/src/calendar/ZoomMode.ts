@@ -67,7 +67,7 @@ export class ZoomMode {
   private animationDuration: number = 800; // ms - fast and fluent animation
 
   // Direction (1 = CW, -1 = CCW)
-  private direction: Direction = -1;
+  private direction: Direction = 1;
 
   // Rotation offset (for shifting months in year view)
   private rotationOffset: number = 0;
