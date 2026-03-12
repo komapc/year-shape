@@ -22,6 +22,7 @@ import { keyboardManager } from '../utils/keyboard';
 import { router } from '../utils/router';
 import { resolveTheme, applyTheme, watchSystemTheme } from '../utils/theme';
 import { t, setLocale, initializeLocale, type Locale } from '../i18n';
+import { openGoogleCalendarForWeek } from '../utils/date';
 
 import { UIManager } from './UIManager';
 import { NavigationManager } from './NavigationManager';
@@ -129,7 +130,7 @@ export class CalendarApp {
         this.settings.direction,
         this.settings.rotationOffset
       );
-      this.renderer.onWeekClick((idx) => this.handleWeekClick(idx));
+      this.renderer.onWeekClick((idx, e) => this.handleWeekClick(idx, e));
     }
     
     this.renderer.layoutWeeks();
@@ -183,7 +184,7 @@ export class CalendarApp {
     this.ui.shiftSeasonsBtn.addEventListener('click', () => this.handleShiftSeasons());
     this.ui.refreshEventsBtn.addEventListener('click', () => this.calendar.refreshEvents(this.nav.getCurrentYear()));
     this.ui.headerSignInBtn?.addEventListener('click', () => this.calendar.signIn());
-    this.ui.logoutBtn.addEventListener('click', () => this.calendar.logout());
+    this.ui.logoutBtn.addEventListener('click', () => this.handleLogout());
     this.ui.toggleAboutBtn.addEventListener('click', () => this.ui.toggleAbout());
     this.ui.toggleSettingsBtn.addEventListener('click', () => this.ui.toggleSettings());
     this.ui.closeSettingsBtn.addEventListener('click', () => this.ui.closePanels());
@@ -210,7 +211,9 @@ export class CalendarApp {
     this.ui.prevYearBtn?.addEventListener('click', () => this.handleYearNav(-1));
     this.ui.nextYearBtn?.addEventListener('click', () => this.handleYearNav(1));
     
-    window.addEventListener('resize', () => { if (this.renderer) this.renderer.layoutWeeks(); });
+    window.addEventListener('resize', () => { 
+      if (this.renderer) this.renderer.layoutWeeks(); 
+    });
   }
 
   private handleRadiusChange(e: Event): void {
@@ -278,9 +281,40 @@ export class CalendarApp {
     setTimeout(() => window.location.reload(), 500);
   }
 
-  private handleWeekClick(idx: number): void {
+  private handleWeekClick(idx: number, event?: MouseEvent): void {
+    // Ctrl/Cmd + Click = Open in Google Calendar
+    if (event && (event.ctrlKey || event.metaKey)) {
+      openGoogleCalendarForWeek(idx);
+      return;
+    }
     this.modal.open(idx, this.eventsByWeek[idx] || []);
   }
+
+  private handleLogout(): void {
+    this.calendar.logout();
+    this.eventsByWeek = {};
+    if (this.renderer) this.renderer.updateEvents(this.eventsByWeek);
+    if (this.zoomMode) this.zoomMode.updateEvents(this.eventsByWeek);
+  }
+
+  /**
+   * Swipe navigation methods
+   */
+  public navigatePrev = (): void => {
+    this.handleYearNav(-1);
+  };
+
+  public navigateNext = (): void => {
+    this.handleYearNav(1);
+  };
+
+  public getCurrentMode = (): string => {
+    return this.nav.getCurrentMode();
+  };
+
+  public getZoomMode = (): ZoomMode | null => {
+    return this.zoomMode;
+  };
 
   /**
    * Register keyboard shortcuts

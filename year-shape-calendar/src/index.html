@@ -63,6 +63,21 @@
   <!-- Zoom Mode Styles -->
   <link rel="stylesheet" href="/calendar/zoom-mode.css" />
   
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XZWVJM9KH4"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var isStaging = window.location.hostname.includes('staging') || window.location.hostname.includes('localhost');
+    if (isStaging) {
+      gtag('config', 'G-XZWVJM9KH4', { debug_mode: true, send_page_view: true });
+      gtag('set', { environment: 'staging' });
+    } else {
+      gtag('config', 'G-XZWVJM9KH4');
+    }
+  </script>
+
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Google API Client -->
