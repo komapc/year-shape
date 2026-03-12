@@ -35,6 +35,8 @@ export interface CircleItem {
   isSpecial?: boolean;
   /** Associated calendar events */
   events?: CalendarEvent[];
+  /** Optional data attributes to set on the elements */
+  dataAttributes?: Record<string, string>;
   /** Additional data */
   [key: string]: any;
 }
@@ -237,6 +239,7 @@ export class CircleRenderer {
         index: String(item.index),
         value: String(item.value),
         "hover-type": "item",
+        ...(item.dataAttributes || {}),
       },
       classList: ["sector-group"],
     };
@@ -267,6 +270,13 @@ export class CircleRenderer {
     sector.classList.add(sectorClass);
     sector.setAttribute("data-index", String(item.index));
     sector.setAttribute("data-value", String(item.value));
+
+    // Apply custom data attributes to sector too
+    if (item.dataAttributes) {
+      for (const [key, value] of Object.entries(item.dataAttributes)) {
+        sector.setAttribute(`data-${key}`, value);
+      }
+    }
 
     // Make sector interactive
     sector.style.cursor = "pointer";
