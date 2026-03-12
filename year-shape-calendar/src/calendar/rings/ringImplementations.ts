@@ -181,8 +181,8 @@ export class MonthsRing extends DayBasedRing {
   }
 
   getSectorLabel(index: number): string {
-    // Return month name (e.g., "Jan", "Feb", etc.)
-    return this.gregorianMonths[index].name;
+    // Return month name with number (e.g., "1 Jan", "2 Feb", etc.)
+    return `${index + 1} ${this.gregorianMonths[index].name}`;
   }
 
   // Override to use white fill with no background (matching year/week style)

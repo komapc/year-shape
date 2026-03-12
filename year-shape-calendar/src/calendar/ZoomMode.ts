@@ -72,11 +72,6 @@ export class ZoomMode {
   // Rotation offset (for shifting months in year view)
   private rotationOffset: number = 0;
 
-  // Hover state (month hover now handled by CircleRenderer)
-  private hoveredDay: number | null = null; // For month circle
-  private hoveredWeekDay: number | null = null; // For week circle (0-6)
-  private hoveredHour: number | null = null; // For day circle (1-12)
-
   // Back button
   private backButton: HTMLButtonElement | null = null;
 
@@ -949,142 +944,6 @@ export class ZoomMode {
    */
 
   /**
-   * Helper: Find the wrapper group that contains all sectors for the current level
-   * This is the group with transform="translate(...) scale(...)" attribute
-   */
-  private findWrapperGroup = (): SVGGElement | null => {
-    const wrapper = this.svg.querySelector(
-      'g[transform*="scale"]'
-    ) as SVGGElement;
-    return wrapper || null;
-  };
-
-  /**
-   * Helper: Ensure labels layer is visible and on top
-   * Used for month circle where labels are in a separate layer
-   */
-  private ensureLabelsLayerVisible = (wrapperGroup: SVGGElement): void => {
-    const labelsGroup = wrapperGroup.querySelector(
-      ".labels-layer"
-    ) as SVGGElement;
-    if (!labelsGroup) return;
-
-    // Force visibility
-    labelsGroup.style.visibility = "visible";
-    labelsGroup.style.opacity = "1";
-    labelsGroup.style.display = "block";
-    labelsGroup.style.pointerEvents = "none";
-
-    // Move to end to ensure it renders on top
-    wrapperGroup.appendChild(labelsGroup);
-
-    // Ensure all labels are visible
-    const labels = labelsGroup.querySelectorAll(".day-label");
-    labels.forEach((label) => {
-      const textEl = label as SVGTextElement;
-      textEl.style.transform = "none"; // NEVER use transforms on labels
-      textEl.style.visibility = "visible";
-      textEl.style.opacity = "1";
-      textEl.style.display = "block";
-      textEl.style.pointerEvents = "none";
-    });
-
-    // Ensure all background circles are visible
-    const bgCircles = labelsGroup.querySelectorAll("circle[data-day]");
-    bgCircles.forEach((circle) => {
-      const circleEl = circle as SVGCircleElement;
-      circleEl.style.transform = "none";
-      circleEl.style.visibility = "visible";
-      circleEl.style.opacity = "1";
-      circleEl.style.display = "block";
-      circleEl.style.pointerEvents = "none";
-    });
-  };
-
-  /**
-   * Update day sector scales in month circle based on hover state
-   *
-   * Structure: monthGroup > sectorGroups[data-day] > sector
-   *            monthGroup > .labels-layer > labels + bgCircles
-   *
-   * IMPORTANT: Labels are in a SEPARATE layer to prevent occlusion.
-   * They must NEVER use transforms, and must always be visible.
-   */
-  private updateDayScales = (): void => {
-    if (this.currentState.level !== "month") return;
-
-    const monthGroup = this.findWrapperGroup();
-    if (!monthGroup) return;
-
-    // Update sector scales
-    const sectorGroups = monthGroup.querySelectorAll("g[data-day]");
-    sectorGroups.forEach((g) => {
-      const sectorGroup = g as SVGGElement;
-      const dayIndex = parseInt(
-        sectorGroup.getAttribute("data-day") || "0",
-        10
-      );
-      const scaleValue = this.hoveredDay === dayIndex ? 1.5 : 1;
-      sectorGroup.style.transform = `scale(${scaleValue})`;
-    });
-
-    // CRITICAL: Ensure labels layer is always visible and on top
-    // This prevents labels from disappearing when sectors scale
-    this.ensureLabelsLayerVisible(monthGroup);
-  };
-
-  /**
-   * Update week day sector scales in week circle based on hover state
-   *
-   * Structure: weekGroup > sectorGroups[data-week-day] > sector + label
-   *
-   * NOTE: Labels are INSIDE sector groups, so they scale with sectors.
-   * This is different from month circle where labels are separate.
-   */
-  private updateWeekDayScales = (): void => {
-    if (this.currentState.level !== "week") return;
-
-    const weekGroup = this.findWrapperGroup();
-    if (!weekGroup) return;
-
-    const sectorGroups = weekGroup.querySelectorAll("g[data-week-day]");
-    sectorGroups.forEach((g) => {
-      const sectorGroup = g as SVGGElement;
-      const dayIndex = parseInt(
-        sectorGroup.getAttribute("data-week-day") || "0",
-        10
-      );
-      const scaleValue = this.hoveredWeekDay === dayIndex ? 1.5 : 1;
-      sectorGroup.style.transform = `scale(${scaleValue})`;
-    });
-  };
-
-  /**
-   * Update hour sector scales in day circle based on hover state
-   *
-   * Structure: dayGroup > sectorGroups[data-hour] > sector + label
-   *
-   * NOTE: Labels are INSIDE sector groups, so they scale with sectors.
-   */
-  private updateHourScales = (): void => {
-    if (this.currentState.level !== "day") return;
-
-    const dayGroup = this.findWrapperGroup();
-    if (!dayGroup) return;
-
-    const sectorGroups = dayGroup.querySelectorAll("g[data-hour]");
-    sectorGroups.forEach((g) => {
-      const sectorGroup = g as SVGGElement;
-      const hourIndex = parseInt(
-        sectorGroup.getAttribute("data-hour") || "0",
-        10
-      );
-      const scaleValue = this.hoveredHour === hourIndex ? 1.5 : 1;
-      sectorGroup.style.transform = `scale(${scaleValue})`;
-    });
-  };
-
-  /**
    * Create an arrow indicator pointing at a specific angle (for current items)
    */
   private createCurrentIndicatorArrow = (
@@ -1266,6 +1125,7 @@ export class ZoomMode {
         value: day,
         isCurrent,
         isSpecial: isSunday,
+        dataAttributes: { day: String(day - 1) }, // Keep 0-based for compatibility
       });
     }
 
@@ -1341,8 +1201,8 @@ export class ZoomMode {
           }
         }
       },
-      onItemHover: (item) => {
-        this.hoveredDay = item ? item.value : null;
+      onItemHover: (_item) => {
+        // Hover state handled by CircleRenderer
       },
       // Custom label rendering with background circles
       renderCustomLabel: (container, item, ctx) => {
@@ -1475,188 +1335,102 @@ export class ZoomMode {
     const currentMonth = now.getMonth();
     const currentDay = now.getDate();
 
-    // Draw days
+    // Prepare circle items
+    const items: CircleItem[] = [];
     for (let i = 0; i < 7; i++) {
-      const baseAngle = (i / 7) * Math.PI * 2 - Math.PI / 2;
-      const angle = this.applyDirectionMirroring(baseAngle);
-      const startAngle = angle - Math.PI / 7;
-      const endAngle = angle + Math.PI / 7;
-
       const dayDate = new Date(weekStart);
       dayDate.setDate(dayDate.getDate() + i);
       const day = dayDate.getDate();
       const dayMonth = dayDate.getMonth();
       const dayYear = dayDate.getFullYear();
 
-      // Check if current day
       const isCurrent =
         dayYear === currentYear &&
         dayMonth === currentMonth &&
         day === currentDay;
 
-      // Calculate scale based on hover
-      const scaleValue = this.hoveredWeekDay === i ? 1.5 : 1;
-
-      // Create a group for this sector with transform origin at center
-      const sectorGroup = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "g"
-      );
-      const midAngle = (startAngle + endAngle) / 2;
-      const midRadius = (radius * 0.7 + radius) / 2;
-      const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
-      const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
-
-      // Use CSS classes
-      sectorGroup.classList.add("sector-group");
-      // Use pixel values for transform origin (same as month circles) - this ensures correct scaling
-      sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
-      sectorGroup.style.transform = `scale(${scaleValue})`;
-      sectorGroup.setAttribute("data-week-day", String(i));
-      sectorGroup.setAttribute("data-hover-type", "week-day");
-
-      // Draw day sector - use similar color scheme to year's
-      // Color based on day index (i) to match year's pattern
-      const fillColor = isCurrent
-        ? `hsl(${(i * 51) % 360}, 80%, 50%)` // Brighter for current day
-        : `hsl(${(i * 51) % 360}, 70%, 60%)`; // Similar to year's color scheme
-      const sector = this.createSector(
-        centerX,
-        centerY,
-        radius * 0.7,
-        radius, // Always base radius, scale via transform
-        startAngle,
-        endAngle,
-        fillColor
-      );
-
-      sector.classList.add("sector", "day-sector");
-      sector.setAttribute("data-day", String(i));
-      if (isCurrent) {
-        sector.classList.add("current");
-        sector.setAttribute("data-current", "true");
-        sector.setAttribute("stroke", "rgba(100, 200, 255, 0.8)");
-        sector.setAttribute("stroke-width", "2");
-      }
-      sector.style.cursor = "pointer";
-
-      // Click handler - navigate to day circle (clock view)
-      sector.addEventListener("click", () => {
-        // Navigate to the day circle showing hours (clock view)
-        this.navigateToLevel("day", {
-          year: dayYear,
-          month: dayMonth,
-          day: day,
-        });
+      items.push({
+        index: i,
+        label: `${dayNames[i]}\n${day}`,
+        value: { day, month: dayMonth, year: dayYear },
+        isCurrent,
+        dataAttributes: { day: String(i) },
       });
-
-      // Wheel handler for zoom interaction
-      let wheelDelta = 0;
-      let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
-      sector.addEventListener(
-        "wheel",
-        (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          // Reset timeout on each wheel event
-          if (wheelTimeout) {
-            clearTimeout(wheelTimeout);
-          }
-
-          // Accumulate delta
-          wheelDelta += e.deltaY;
-
-          // Set timeout to reset after wheel stops
-          wheelTimeout = setTimeout(() => {
-            wheelDelta = 0;
-          }, 200);
-
-          if (Math.abs(wheelDelta) >= 100) {
-            if (wheelDelta < 0) {
-              // Scroll up = zoom out -> Go back to month view
-              this.navigateToLevel("month", { month: dayMonth });
-            } else {
-              // Scroll down = zoom in -> Go to day view (clock)
-              this.navigateToLevel("day", {
-                year: dayYear,
-                month: dayMonth,
-                day: day,
-              });
-            }
-            wheelDelta = 0;
-            if (wheelTimeout) {
-              clearTimeout(wheelTimeout);
-              wheelTimeout = null;
-            }
-          }
-        },
-        { passive: false }
-      );
-
-      // Add hover handlers
-      sector.addEventListener("mouseenter", () => {
-        this.hoveredWeekDay = i;
-        if (this.currentState.level === "week" && !this.animating) {
-          this.updateWeekDayScales();
-          // Move hovered sector group to end so it renders on top
-          const parent = sectorGroup.parentElement;
-          if (parent) {
-            parent.appendChild(sectorGroup);
-          }
-        }
-      });
-
-      sector.addEventListener("mouseleave", () => {
-        this.hoveredWeekDay = null;
-        if (this.currentState.level === "week" && !this.animating) {
-          this.updateWeekDayScales();
-        }
-      });
-
-      // Add sector to group
-      sectorGroup.appendChild(sector);
-
-      // Draw day label (inside the sector group so it scales with the sector)
-      const labelRadius = radius * 0.85;
-      const labelX = centerX + Math.cos(angle) * labelRadius;
-      const labelY = centerY + Math.sin(angle) * labelRadius;
-
-      // Use standardized label creation
-      const { label } = this.createLabel(
-        labelX,
-        labelY,
-        `${dayNames[i]}\n${day}`,
-        {
-          fontSize: isCurrent ? "24px" : "20px",
-          fill: "#fff",
-          className: "day-label",
-          isCurrent,
-        }
-      );
-      label.style.whiteSpace = "pre";
-
-      // Add label to sector group so it scales with the sector
-      sectorGroup.appendChild(label);
-
-      // Append sector group to main group
-      group.appendChild(sectorGroup);
     }
 
-    // Add arrow indicator for current day in week
-    const currentWeekDay = dayNames.findIndex((_, i) => {
-      const dayDate = new Date(weekStart);
-      dayDate.setDate(dayDate.getDate() + i);
-      return (
-        dayDate.getFullYear() === currentYear &&
-        dayDate.getMonth() === currentMonth &&
-        dayDate.getDate() === currentDay
-      );
+    // Shared wheel state
+    let wheelDelta = 0;
+    let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    // Use CircleRenderer
+    this.circleRenderer.render(group, {
+      centerX,
+      centerY,
+      radius,
+      innerRadius: radius * 0.7,
+      items,
+      colorScheme: (item) => {
+        const i = item.index;
+        return item.isCurrent
+          ? `hsl(${(i * 51) % 360}, 80%, 50%)`
+          : `hsl(${(i * 51) % 360}, 70%, 60%)`;
+      },
+      direction: this.direction,
+      rotationOffset: this.rotationOffset,
+      onItemClick: (item) => {
+        const val = item.value;
+        this.navigateToLevel("day", {
+          year: val.year,
+          month: val.month,
+          day: val.day,
+        });
+      },
+      onItemWheel: (item, e) => {
+        if (wheelTimeout) clearTimeout(wheelTimeout);
+        wheelDelta += e.deltaY;
+        wheelTimeout = setTimeout(() => {
+          wheelDelta = 0;
+        }, 200);
+
+        if (Math.abs(wheelDelta) >= 100) {
+          if (wheelDelta < 0) {
+            this.navigateToLevel("month", { month: item.value.month });
+          } else {
+            this.navigateToLevel("day", {
+              year: item.value.year,
+              month: item.value.month,
+              day: item.value.day,
+            });
+          }
+          wheelDelta = 0;
+          if (wheelTimeout) {
+            clearTimeout(wheelTimeout);
+            wheelTimeout = null;
+          }
+        }
+      },
+      onItemHover: (_item) => {
+        // Hover state handled by CircleRenderer
+      },
+      renderCustomLabel: (container, item, ctx) => {
+        const { label } = this.createLabel(ctx.x, ctx.y, item.label, {
+          fontSize: item.isCurrent ? "24px" : "20px",
+          fill: "#fff",
+          className: "day-label",
+          isCurrent: item.isCurrent,
+        });
+        label.style.whiteSpace = "pre";
+        container.appendChild(label);
+      },
+      hoverScale: 1.5,
+      sectorClass: "day-sector",
     });
-    if (currentWeekDay !== -1) {
-      // Calculate angle - week view doesn't use CircleRenderer but should use same formula
-      // (index / totalItems) * 2π - π/2 where currentWeekDay is already 0-based index
-      const baseAngle = (currentWeekDay / 7) * Math.PI * 2 - Math.PI / 2;
+
+    // Add arrow indicator for current day in week
+    const currentWeekDayIndex = items.findIndex((item) => item.isCurrent);
+
+    if (currentWeekDayIndex !== -1) {
+      const baseAngle = (currentWeekDayIndex / 7) * Math.PI * 2 - Math.PI / 2;
       const angle = this.applyDirectionMirroring(baseAngle);
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
@@ -1756,6 +1530,7 @@ export class ZoomMode {
     return group;
   };
 
+
   /**
    * Render day circle (12-hour clock)
    */
@@ -1785,150 +1560,81 @@ export class ZoomMode {
     const isCurrentDay =
       year === currentYear && month === currentMonth && day === currentDay;
 
-    // Draw hours (12-hour clock, 12 at top)
+    // Prepare circle items
+    const items: CircleItem[] = [];
     for (let hour = 1; hour <= 12; hour++) {
-      const baseAngle = ((hour - 3) / 12) * Math.PI * 2; // 12 at top
-      const angle = this.applyDirectionMirroring(baseAngle);
-      const startAngle = angle - Math.PI / 12;
-      const endAngle = angle + Math.PI / 12;
-
-      // Check if current hour
       const isCurrent = isCurrentDay && hour === currentHour12;
+      items.push({
+        index: hour - 1,
+        label: String(hour),
+        value: hour,
+        isCurrent,
+        dataAttributes: { hour: String(hour) },
+      });
+    }
 
-      // Calculate scale based on hover
-      const scaleValue = this.hoveredHour === hour ? 1.5 : 1;
+    // Shared wheel state
+    let wheelDelta = 0;
+    let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
 
-      // Create a group for this sector with transform origin at center
-      const sectorGroup = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "g"
-      );
-      const midAngle = (startAngle + endAngle) / 2;
-      const midRadius = (radius * 0.7 + radius) / 2;
-      const transformOriginX = centerX + Math.cos(midAngle) * midRadius;
-      const transformOriginY = centerY + Math.sin(midAngle) * midRadius;
+    // Use CircleRenderer
+    this.circleRenderer.render(group, {
+      centerX,
+      centerY,
+      radius,
+      innerRadius: radius * 0.7,
+      items,
+      colorScheme: (item) => {
+        const hour = item.value;
+        return item.isCurrent
+          ? `hsl(${(hour * 30) % 360}, 80%, 50%)`
+          : `hsl(${(hour * 30) % 360}, 70%, 60%)`;
+      },
+      direction: this.direction,
+      // Clock 12 is at top, so shift by -3 items (90 degrees CCW)
+      rotationOffset: this.rotationOffset - 90,
+      onItemClick: () => {
+        // No deeper level for now
+      },
+      onItemWheel: (_item, e) => {
+        if (wheelTimeout) clearTimeout(wheelTimeout);
+        wheelDelta += e.deltaY;
+        wheelTimeout = setTimeout(() => {
+          wheelDelta = 0;
+        }, 200);
 
-      // Use CSS classes
-      sectorGroup.classList.add("sector-group");
-      // Use pixel values for transform origin (same as month circles) - this ensures correct scaling
-      sectorGroup.style.transformOrigin = `${transformOriginX}px ${transformOriginY}px`;
-      sectorGroup.style.transform = `scale(${scaleValue})`;
-      sectorGroup.setAttribute("data-hour", String(hour));
-      sectorGroup.setAttribute("data-hover-type", "hour");
-
-      // Draw hour sector - use similar color scheme to year's
-      const fillColor = isCurrent
-        ? `hsl(${(hour * 30) % 360}, 80%, 50%)` // Brighter for current hour
-        : `hsl(${(hour * 30) % 360}, 70%, 60%)`; // Similar to year's color scheme
-      const sector = this.createSector(
-        centerX,
-        centerY,
-        radius * 0.7,
-        radius, // Always base radius, scale via transform
-        startAngle,
-        endAngle,
-        fillColor
-      );
-
-      sector.classList.add("sector", "hour-sector");
-      sector.setAttribute("data-hour", String(hour));
-      if (isCurrent) {
-        sector.classList.add("current");
-        sector.setAttribute("data-current", "true");
-        sector.setAttribute("stroke", "rgba(100, 200, 255, 0.8)");
-        sector.setAttribute("stroke-width", "2");
-      }
-      // Pointer events handled by CSS class
-      sector.style.cursor = "pointer";
-
-      // Wheel handler for zoom interaction
-      let wheelDelta = 0;
-      let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
-      sector.addEventListener(
-        "wheel",
-        (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          // Reset timeout on each wheel event
+        if (Math.abs(wheelDelta) >= 100) {
+          if (wheelDelta < 0) {
+            this.handleBack();
+          }
+          wheelDelta = 0;
           if (wheelTimeout) {
             clearTimeout(wheelTimeout);
-          }
-
-          // Accumulate delta
-          wheelDelta += e.deltaY;
-
-          // Set timeout to reset after wheel stops
-          wheelTimeout = setTimeout(() => {
-            wheelDelta = 0;
-          }, 200);
-
-          if (Math.abs(wheelDelta) >= 100) {
-            if (wheelDelta < 0) {
-              // Scroll up = zoom out -> Go back to week view
-              this.handleBack();
-            }
-            // Scroll down = zoom in (nothing deeper for now)
-            wheelDelta = 0;
-            if (wheelTimeout) {
-              clearTimeout(wheelTimeout);
-              wheelTimeout = null;
-            }
-          }
-        },
-        { passive: false }
-      );
-
-      // Add hover handlers
-      sector.addEventListener("mouseenter", () => {
-        this.hoveredHour = hour;
-        if (this.currentState.level === "day" && !this.animating) {
-          this.updateHourScales();
-          // Move hovered sector group to end so it renders on top
-          const parent = sectorGroup.parentElement;
-          if (parent) {
-            parent.appendChild(sectorGroup);
+            wheelTimeout = null;
           }
         }
-      });
-
-      sector.addEventListener("mouseleave", () => {
-        this.hoveredHour = null;
-        if (this.currentState.level === "day" && !this.animating) {
-          this.updateHourScales();
-        }
-      });
-
-      // Add sector to group
-      sectorGroup.appendChild(sector);
-
-      // Draw hour label (inside the sector group so it scales with the sector)
-      const labelRadius = radius * 0.85;
-      const labelX = centerX + Math.cos(angle) * labelRadius;
-      const labelY = centerY + Math.sin(angle) * labelRadius;
-
-      // Use standardized label creation
-      const { label } = this.createLabel(labelX, labelY, String(hour), {
-        fontSize: isCurrent ? "28px" : "24px",
-        fill: isCurrent ? "#64c8ff" : "#fff",
-        className: "hour-label",
-        isCurrent,
-      });
-
-      // Add label to sector group so it scales with the sector
-      sectorGroup.appendChild(label);
-
-      // Append sector group to main group
-      group.appendChild(sectorGroup);
-    }
+      },
+      onItemHover: (_item) => {
+        // Hover state handled by CircleRenderer
+      },
+      renderCustomLabel: (container, item, ctx) => {
+        const { label } = this.createLabel(ctx.x, ctx.y, item.label, {
+          fontSize: item.isCurrent ? "28px" : "24px",
+          fill: item.isCurrent ? "#64c8ff" : "#fff",
+          className: "hour-label",
+          isCurrent: item.isCurrent,
+        });
+        container.appendChild(label);
+      },
+      hoverScale: 1.5,
+      sectorClass: "hour-sector",
+    });
 
     // Add arrow indicator for current hour
     if (isCurrentDay) {
-      // Calculate angle for current hour - must use same formula as other views
-      // currentHour12 is 1-12, so convert to 0-based index (12->0, 1->1, 2->2, ..., 11->11)
-      // Then adjust by -3 to put 12 at top (-π/2) instead of 0 at top
+      // Calculate angle for current hour (12-hour clock, 12 at top)
       const hourIndex = currentHour12 === 12 ? 0 : currentHour12;
-      const baseAngle = ((hourIndex - 3) / 12) * Math.PI * 2; // Shift by 3 to put 12 at top
+      const baseAngle = ((hourIndex - 3) / 12) * Math.PI * 2;
       const angle = this.applyDirectionMirroring(baseAngle);
       const arrow = this.createCurrentIndicatorArrow(
         centerX,
@@ -2041,55 +1747,6 @@ export class ZoomMode {
     group.appendChild(periodText);
 
     return group;
-  };
-
-  /**
-   * Create a sector (arc segment) with smooth rendering
-   */
-  private createSector = (
-    centerX: number,
-    centerY: number,
-    innerRadius: number,
-    outerRadius: number,
-    startAngle: number,
-    endAngle: number,
-    fill: string
-  ): SVGElement => {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-
-    // Use more precise arc calculation for smoother rendering
-    const x1 = centerX + Math.cos(startAngle) * outerRadius;
-    const y1 = centerY + Math.sin(startAngle) * outerRadius;
-    const x2 = centerX + Math.cos(endAngle) * outerRadius;
-    const y2 = centerY + Math.sin(endAngle) * outerRadius;
-    const x3 = centerX + Math.cos(endAngle) * innerRadius;
-    const y3 = centerY + Math.sin(endAngle) * innerRadius;
-    const x4 = centerX + Math.cos(startAngle) * innerRadius;
-    const y4 = centerY + Math.sin(startAngle) * innerRadius;
-
-    const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
-
-    // Build path with smooth arcs
-    const d = [
-      `M ${x1.toFixed(2)} ${y1.toFixed(2)}`,
-      `A ${outerRadius.toFixed(2)} ${outerRadius.toFixed(
-        2
-      )} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`,
-      `L ${x3.toFixed(2)} ${y3.toFixed(2)}`,
-      `A ${innerRadius.toFixed(2)} ${innerRadius.toFixed(
-        2
-      )} 0 ${largeArc} 0 ${x4.toFixed(2)} ${y4.toFixed(2)}`,
-      "Z",
-    ].join(" ");
-
-    path.setAttribute("d", d);
-    path.setAttribute("fill", fill);
-    path.setAttribute("stroke", "rgba(255, 255, 255, 0.2)");
-    path.setAttribute("stroke-width", "1");
-    path.setAttribute("shape-rendering", "geometricPrecision"); // Smooth rendering
-    path.setAttribute("vector-effect", "non-scaling-stroke"); // Keep stroke consistent
-
-    return path;
   };
 
   /**

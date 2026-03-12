@@ -344,7 +344,7 @@ export function applyDirectionMirroring(
   angle: number,
   direction: number
 ): number {
-  return direction === 1 ? angle : Math.PI - angle;
+  return direction === 1 ? angle : -angle;
 }
 
 /**
