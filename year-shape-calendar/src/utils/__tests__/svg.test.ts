@@ -235,6 +235,7 @@ describe("SVG Utilities", () => {
       expect(applyDirectionMirroring(angle, 1)).toBe(angle);
       expect(applyDirectionMirroring(angle, -1)).toBe(Math.PI - angle);
     });
+
   });
 
   describe("createGlowFilter", () => {

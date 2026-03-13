@@ -872,7 +872,7 @@ export class ZoomMode {
     }
   };
 
-  private applyDirectionMirroring = (angle: number): number => (this.direction === 1 ? angle : -angle);
+  private applyDirectionMirroring = (angle: number): number => (this.direction === 1 ? angle : Math.PI - angle);
   public getDirection = (): Direction => this.direction;
   public setDirection = (direction: Direction): void => { this.direction = direction; this.render(); };
   public toggleDirection = (): Direction => { this.direction = this.direction === 1 ? -1 : 1; this.render(); return this.direction; };

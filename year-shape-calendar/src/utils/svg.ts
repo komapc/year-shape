@@ -347,6 +347,7 @@ export function applyDirectionMirroring(
   return direction === 1 ? angle : Math.PI - angle;
 }
 
+
 /**
  * Create SVG filter for glow effect
  *
