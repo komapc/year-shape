@@ -222,18 +222,18 @@ describe("SVG Utilities", () => {
     it("should negate angle for counter-clockwise direction", () => {
       const angle = Math.PI / 4;
       const result = applyDirectionMirroring(angle, -1);
-      expect(result).toBe(Math.PI - angle);
+      expect(result).toBe(-angle);
     });
 
     it("should handle zero angle", () => {
       expect(applyDirectionMirroring(0, 1)).toBe(0);
-      expect(applyDirectionMirroring(0, -1)).toBe(Math.PI);
+      expect(applyDirectionMirroring(0, -1)).toBe(-0);
     });
 
     it("should handle full circle", () => {
       const angle = Math.PI * 2;
       expect(applyDirectionMirroring(angle, 1)).toBe(angle);
-      expect(applyDirectionMirroring(angle, -1)).toBe(Math.PI - angle);
+      expect(applyDirectionMirroring(angle, -1)).toBe(-angle);
     });
   });
 
