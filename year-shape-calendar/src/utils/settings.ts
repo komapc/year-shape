@@ -161,3 +161,10 @@ export const updateSetting = <K extends keyof AppSettings>(
   return settings;
 };
 
+/**
+ * Clear all settings and reset to defaults
+ */
+export const clearSettings = (): void => {
+  localStorage.removeItem(SETTINGS_KEY);
+};
+

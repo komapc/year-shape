@@ -16,7 +16,7 @@ import { CalendarRenderer } from './CalendarRenderer';
 import { WeekModal } from './WeekModal';
 import { ZoomMode } from './ZoomMode';
 import { googleCalendarService } from '../services/googleCalendar';
-import { loadSettings, saveSettings, type AppSettings, type CalendarMode } from '../utils/settings';
+import { loadSettings, saveSettings, clearSettings, type AppSettings, type CalendarMode } from '../utils/settings';
 import { toast } from '../utils/toast';
 import { keyboardManager } from '../utils/keyboard';
 import { router } from '../utils/router';
@@ -45,6 +45,16 @@ export class CalendarApp {
   private cleanupSystemThemeWatch: (() => void) | null = null;
 
   constructor() {
+    // 0. Handle URL-based reset
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reset') === 'true') {
+      clearSettings();
+      // Remove the parameter from URL without reload
+      const newUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, '', newUrl);
+      toast.info('Settings have been reset to defaults');
+    }
+
     // 1. Load Settings & Initialize Managers
     this.settings = loadSettings();
     initializeLocale();
@@ -188,6 +198,7 @@ export class CalendarApp {
     this.ui.toggleAboutBtn.addEventListener('click', () => this.ui.toggleAbout());
     this.ui.toggleSettingsBtn.addEventListener('click', () => this.ui.toggleSettings());
     this.ui.closeSettingsBtn.addEventListener('click', () => this.ui.closePanels());
+    this.ui.resetSettingsBtn?.addEventListener('click', () => this.handleReset());
     
     this.ui.showMoonPhaseCheckbox.addEventListener('change', (e) => this.handleToggleSetting(e, 'showMoonPhase'));
     this.ui.showZodiacCheckbox.addEventListener('change', (e) => this.handleToggleSetting(e, 'showZodiac'));
@@ -295,6 +306,13 @@ export class CalendarApp {
     this.eventsByWeek = {};
     if (this.renderer) this.renderer.updateEvents(this.eventsByWeek);
     if (this.zoomMode) this.zoomMode.updateEvents(this.eventsByWeek);
+  }
+
+  private handleReset(): void {
+    if (confirm('Are you sure you want to reset all settings to defaults? This will clear your preferences and direction/rotation settings.')) {
+      clearSettings();
+      window.location.reload();
+    }
   }
 
   /**

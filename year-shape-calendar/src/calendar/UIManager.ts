@@ -44,6 +44,7 @@ export class UIManager {
   public prevYearBtn: HTMLButtonElement | null = null;
   public nextYearBtn: HTMLButtonElement | null = null;
   public yearDisplay: HTMLElement | null = null;
+  public resetSettingsBtn: HTMLButtonElement | null = null;
 
   constructor() {
     this.radiusInput = getElement<HTMLInputElement>('radiusRange');
@@ -78,6 +79,7 @@ export class UIManager {
     this.prevYearBtn = this.getOptionalElement<HTMLButtonElement>('prevYear');
     this.nextYearBtn = this.getOptionalElement<HTMLButtonElement>('nextYear');
     this.yearDisplay = this.getOptionalElement<HTMLElement>('currentYearText');
+    this.resetSettingsBtn = this.getOptionalElement<HTMLButtonElement>('resetSettings');
   }
 
   /**
