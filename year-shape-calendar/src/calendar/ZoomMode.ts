@@ -508,9 +508,10 @@ export class ZoomMode {
     });
 
     if (isCurrentYear) {
-      const totalItems = 12, rotationRadians = (this.rotationOffset * Math.PI) / 180;
-      const baseAngle = (currentMonth / totalItems) * Math.PI * 2 - Math.PI / 2 + rotationRadians;
-      const angle = this.applyDirectionMirroring(baseAngle);
+      const currentDay = now.getDate();
+      const monthDaysCount = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const smoothMonthIndex = currentMonth + (currentDay - 1) / monthDaysCount;
+      const angle = this.calculateArrowAngle(smoothMonthIndex, 12);
       const arrow = this.createCurrentIndicatorArrow(centerX, centerY, angle, radius, { size: 35, color: "#64c8ff", pulseAnimation: true });
       group.appendChild(arrow);
     }
@@ -521,6 +522,15 @@ export class ZoomMode {
     periodText.classList.add("period-text", "year"); periodText.textContent = String(state.year);
     group.appendChild(periodText);
     return group;
+  };
+
+  /**
+   * Helper to calculate angle for arrow indicator consistent with CircleRenderer
+   */
+  private calculateArrowAngle = (index: number, totalItems: number, additionalOffset: number = 0): number => {
+    const rotationRadians = ((this.rotationOffset + additionalOffset) * Math.PI) / 180;
+    const baseAngle = (index / totalItems) * Math.PI * 2 - Math.PI / 2 + rotationRadians;
+    return this.applyDirectionMirroring(baseAngle);
   };
 
   private createCurrentIndicatorArrow = (
@@ -624,8 +634,8 @@ export class ZoomMode {
     });
 
     if (isCurrentMonth) {
-      const baseDayAngle = ((currentDay - 0.5) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
-      const angle = this.applyDirectionMirroring(baseDayAngle);
+      const smoothDayIndex = currentDay - 1 + (now.getHours() + now.getMinutes() / 60) / 24;
+      const angle = this.calculateArrowAngle(smoothDayIndex, monthDaysCount);
       const arrow = this.createCurrentIndicatorArrow(centerX, centerY, angle, radius, { size: 35, color: "#64c8ff", pulseAnimation: true });
       group.appendChild(arrow);
     }
@@ -690,8 +700,8 @@ export class ZoomMode {
 
     const currentWeekDayIndex = items.findIndex((item) => item.isCurrent);
     if (currentWeekDayIndex !== -1) {
-      const baseAngle = (currentWeekDayIndex / 7) * Math.PI * 2 - Math.PI / 2;
-      const angle = this.applyDirectionMirroring(baseAngle);
+      const smoothWeekIndex = currentWeekDayIndex + (now.getHours() + now.getMinutes() / 60) / 24;
+      const angle = this.calculateArrowAngle(smoothWeekIndex, 7);
       const arrow = this.createCurrentIndicatorArrow(centerX, centerY, angle, radius, { size: 35, color: "#64c8ff", pulseAnimation: true });
       group.appendChild(arrow);
     }
@@ -739,7 +749,7 @@ export class ZoomMode {
     this.circleRenderer.render(group, {
       centerX, centerY, radius, innerRadius: radius * 0.7, items,
       colorScheme: (item) => { const hour = item.value; return item.isCurrent ? `hsl(${(hour * 30) % 360}, 80%, 50%)` : `hsl(${(hour * 30) % 360}, 70%, 60%)`; },
-      direction: this.direction, rotationOffset: this.rotationOffset - 90,
+      direction: this.direction, rotationOffset: this.rotationOffset + 30,
       onItemClick: () => {},
       onItemWheel: (_item, e) => {
         if (wheelTimeout) clearTimeout(wheelTimeout);
@@ -760,9 +770,9 @@ export class ZoomMode {
     });
 
     if (isCurrentDay) {
-      const hourIndex = currentHour12 === 12 ? 0 : currentHour12;
-      const baseAngle = ((hourIndex - 3) / 12) * Math.PI * 2;
-      const angle = this.applyDirectionMirroring(baseAngle);
+      const hourFloat = (now.getHours() % 12) + now.getMinutes() / 60;
+      const smoothHourIndex = (hourFloat + 11) % 12;
+      const angle = this.calculateArrowAngle(smoothHourIndex, 12, 30);
       const arrow = this.createCurrentIndicatorArrow(centerX, centerY, angle, radius, { size: 35, color: "#64c8ff", pulseAnimation: true });
       group.appendChild(arrow);
     }
@@ -872,7 +882,7 @@ export class ZoomMode {
     }
   };
 
-  private applyDirectionMirroring = (angle: number): number => (this.direction === 1 ? angle : -angle);
+  private applyDirectionMirroring = (angle: number): number => (this.direction === 1 ? angle : Math.PI - angle);
   public getDirection = (): Direction => this.direction;
   public setDirection = (direction: Direction): void => { this.direction = direction; this.render(); };
   public toggleDirection = (): Direction => { this.direction = this.direction === 1 ? -1 : 1; this.render(); return this.direction; };
