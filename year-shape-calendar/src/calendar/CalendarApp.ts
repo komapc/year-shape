@@ -16,13 +16,13 @@ import { CalendarRenderer } from './CalendarRenderer';
 import { WeekModal } from './WeekModal';
 import { ZoomMode } from './ZoomMode';
 import { googleCalendarService } from '../services/googleCalendar';
-import { loadSettings, saveSettings, clearSettings, type AppSettings, type CalendarMode } from '../utils/settings';
+import { loadSettings, saveSettings, clearSettings, type AppSettings, type BooleanSettingKey, type CalendarMode } from '../utils/settings';
 import { toast } from '../utils/toast';
 import { keyboardManager } from '../utils/keyboard';
 import { router } from '../utils/router';
 import { resolveTheme, applyTheme, watchSystemTheme } from '../utils/theme';
 import { t, setLocale, initializeLocale, type Locale } from '../i18n';
-import { openGoogleCalendarForWeek } from '../utils/date';
+import { openGoogleCalendarForWeek, getWeekStartDate } from '../utils/date';
 
 import { UIManager } from './UIManager';
 import { NavigationManager } from './NavigationManager';
@@ -45,19 +45,20 @@ export class CalendarApp {
   private cleanupSystemThemeWatch: (() => void) | null = null;
 
   constructor() {
-    // 0. Handle URL-based reset
+    // 0. Initialize locale early so any reset toast renders in the user's language
+    initializeLocale();
+
+    // 1. Handle URL-based reset
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('reset') === 'true') {
       clearSettings();
-      // Remove the parameter from URL without reload
       const newUrl = window.location.pathname + window.location.hash;
       window.history.replaceState({}, '', newUrl);
-      toast.info('Settings have been reset to defaults');
+      toast.info(t().settingsResetSuccess);
     }
 
-    // 1. Load Settings & Initialize Managers
+    // 2. Load Settings & Initialize Managers
     this.settings = loadSettings();
-    initializeLocale();
     if (this.settings.locale) {
       setLocale(this.settings.locale as Locale);
     }
@@ -238,7 +239,7 @@ export class CalendarApp {
   }
 
   private handleDirectionToggle(): void {
-    const dir = (this.zoomMode?.toggleDirection() || this.renderer?.toggleDirection() || -1) as Direction;
+    const dir = (this.zoomMode?.toggleDirection() ?? this.renderer?.toggleDirection() ?? -1) as Direction;
     this.settings.direction = dir;
     saveSettings(this.settings);
     
@@ -267,17 +268,18 @@ export class CalendarApp {
   private handleModeChange(e: Event): void {
     const mode = (e.target as HTMLInputElement).value as CalendarMode;
     this.nav.switchMode(mode);
+    if (mode === 'rings') return;
     this.ui.updateUIForMode(mode);
     this.initializeMode();
   }
 
-  private handleToggleSetting(e: Event, key: keyof AppSettings): void {
-    (this.settings as any)[key] = (e.target as HTMLInputElement).checked;
+  private handleToggleSetting(e: Event, key: BooleanSettingKey): void {
+    this.settings[key] = (e.target as HTMLInputElement).checked;
     saveSettings(this.settings);
   }
 
   private handleThemeChange(e: Event): void {
-    const theme = (e.target as HTMLInputElement).value as any;
+    const theme = (e.target as HTMLInputElement).value as NonNullable<AppSettings['theme']>;
     this.settings.theme = theme;
     saveSettings(this.settings);
     applyTheme(resolveTheme(theme));
@@ -309,7 +311,7 @@ export class CalendarApp {
   }
 
   private handleReset(): void {
-    if (confirm('Are you sure you want to reset all settings to defaults? This will clear your preferences and direction/rotation settings.')) {
+    if (confirm(t().confirmResetSettings)) {
       clearSettings();
       window.location.reload();
     }
@@ -389,9 +391,13 @@ export class CalendarApp {
         this.eventsByWeek[weekIndex] = [];
       }
 
+      const eventDate = getWeekStartDate(weekIndex, year);
+      eventDate.setDate(eventDate.getDate() + dayIndex);
+      eventDate.setHours(9 + Math.floor(Math.random() * 9), 0, 0, 0);
+
       this.eventsByWeek[weekIndex].push({
         summary: this.getRandomEventName(),
-        start: `${year}-01-01T${9 + Math.floor(Math.random() * 9)}:00:00`,
+        start: eventDate.toISOString(),
         _day: dayIndex,
         _weekIndex: weekIndex,
       });

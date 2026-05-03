@@ -62,6 +62,8 @@ export interface Translations {
   // Messages
   settingsSaved: string;
   autoSaved: string;
+  confirmResetSettings: string;
+  settingsResetSuccess: string;
   
   // Event Management
   createEvent: string;
@@ -166,6 +168,8 @@ const en: Translations = {
   // Messages
   settingsSaved: 'Settings saved',
   autoSaved: 'Settings are saved automatically',
+  confirmResetSettings: 'Are you sure you want to reset all settings to defaults? This will clear your preferences and direction/rotation settings.',
+  settingsResetSuccess: 'Settings have been reset to defaults',
   
   // Event Management
   createEvent: 'Create Event',
@@ -270,6 +274,8 @@ const he: Translations = {
   // Messages
   settingsSaved: 'נשמר',
   autoSaved: 'שמירה אוטומטית',
+  confirmResetSettings: 'לאפס את כל ההגדרות לברירת המחדל? פעולה זו תמחק את ההעדפות ואת הגדרות הכיוון/סיבוב.',
+  settingsResetSuccess: 'ההגדרות אופסו לברירת המחדל',
   
   // Event Management
   createEvent: 'צור אירוע',
@@ -381,6 +387,8 @@ const eo: Translations = {
   // Messages
   settingsSaved: 'Agordoj konservitaj',
   autoSaved: 'Agordoj estas aŭtomate konservitaj',
+  confirmResetSettings: 'Ĉu vi certas ke vi volas restarigi ĉiujn agordojn al defaŭltoj? Tio forviŝos viajn preferojn kaj la agordojn de direkto kaj rotacio.',
+  settingsResetSuccess: 'Agordoj restarigitaj al defaŭltoj',
   
   // Event Management
   createEvent: 'Krei Eventon',
@@ -486,6 +494,8 @@ const uk: Translations = {
   // Messages
   settingsSaved: 'Налаштування збережено',
   autoSaved: 'Налаштування зберігаються автоматично',
+  confirmResetSettings: 'Ви впевнені, що хочете скинути всі налаштування до типових? Це очистить ваші вподобання та налаштування напрямку/обертання.',
+  settingsResetSuccess: 'Налаштування скинуто до типових',
   
   // Event Management
   createEvent: 'Створити подію',
@@ -591,6 +601,8 @@ const tok: Translations = {
   // Messages
   settingsSaved: 'nasin li awen',
   autoSaved: 'nasin li awen lon tenpo ale',
+  confirmResetSettings: 'sina wile ala wile e ni: nasin ale li kama sin? ni li weka e nasin sina.',
+  settingsResetSuccess: 'nasin li kama sin',
   
   // Event Management
   createEvent: 'o pali e lipu sin',
@@ -696,6 +708,8 @@ const pl: Translations = {
   // Messages
   settingsSaved: 'Ustawienia zapisane',
   autoSaved: 'Ustawienia są zapisywane automatycznie',
+  confirmResetSettings: 'Czy na pewno chcesz przywrócić domyślne ustawienia? Spowoduje to usunięcie Twoich preferencji oraz ustawień kierunku/obrotu.',
+  settingsResetSuccess: 'Ustawienia zostały przywrócone do domyślnych',
   
   // Event Management
   createEvent: 'Utwórz wydarzenie',
@@ -801,6 +815,8 @@ const be: Translations = {
   // Messages
   settingsSaved: 'Налады захаваны',
   autoSaved: 'Налады захоўваюцца аўтаматычна',
+  confirmResetSettings: 'Ці сапраўды вы хочаце скінуць усе налады да прадвызначаных? Гэта выдаліць вашы перавагі і налады кірунку/павароту.',
+  settingsResetSuccess: 'Налады скінутыя да прадвызначаных',
   
   // Event Management
   createEvent: 'Стварыць падзею',
@@ -906,6 +922,8 @@ const io: Translations = {
   // Messages
   settingsSaved: 'Ajusti konservita',
   autoSaved: 'Ajusti esas automatale konservita',
+  confirmResetSettings: 'Ka vu esas certa ke vu volas rifacar omna ajusti a defalta valori? Co efacos via preferi e la ajusti di direciono e rotaciono.',
+  settingsResetSuccess: 'Ajusti rifacita a defalta valori',
   
   // Event Management
   createEvent: 'Krear Evento',
