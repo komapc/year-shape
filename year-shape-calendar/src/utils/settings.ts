@@ -54,6 +54,11 @@ export interface AppSettings {
   locale?: 'en' | 'he' | 'ru' | 'es' | 'fr' | 'de' | 'eo' | 'uk' | 'tok' | 'pl' | 'be' | 'io';
 }
 
+/**
+ * Keys of AppSettings whose value type is boolean.
+ */
+export type BooleanSettingKey = 'showMoonPhase' | 'showZodiac' | 'showHebrewMonth';
+
 const SETTINGS_KEY = 'yearwheel_settings';
 
 const DEFAULT_SETTINGS: AppSettings = {
