@@ -32,35 +32,36 @@ function expectedWeekFromDay(year, month, day) {
   return Math.max(0, Math.min(51, Math.floor(diffDays / 7)));
 }
 
-function startPreview() {
+async function startPreview() {
   if (process.env.E2E_URL) return null;
   const child = spawn('npx', ['vite', 'preview', '--port', PORT, '--strictPort'], {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, CF_PAGES: 'true' },
     detached: true,
   });
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      child.kill();
-      reject(new Error('vite preview did not start in time'));
-    }, STARTUP_TIMEOUT_MS);
-    let buf = '';
-    const onData = (data) => {
-      buf += data.toString();
-      if (buf.includes('Local:')) {
-        clearTimeout(timer);
-        resolve(child);
+  let outputBuf = '';
+  child.stdout.on('data', (data) => { outputBuf += data.toString(); });
+  child.stderr.on('data', (data) => { outputBuf += data.toString(); });
+  let earlyExit = null;
+  child.on('exit', (code) => { earlyExit = code; });
+
+  const deadline = Date.now() + STARTUP_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    if (earlyExit !== null) {
+      throw new Error(`vite preview exited with code ${earlyExit}\n${outputBuf}`);
+    }
+    try {
+      const res = await fetch(URL, { method: 'GET' });
+      if (res.ok || res.status === 404) {
+        return child;
       }
-    };
-    child.stdout.on('data', onData);
-    child.stderr.on('data', onData);
-    child.on('exit', (code) => {
-      if (code !== 0) {
-        clearTimeout(timer);
-        reject(new Error(`vite preview exited with code ${code}\n${buf}`));
-      }
-    });
-  });
+    } catch {
+      // not ready yet
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  try { process.kill(-child.pid, 'SIGTERM'); } catch {}
+  throw new Error(`vite preview did not respond on ${URL} within ${STARTUP_TIMEOUT_MS}ms\n${outputBuf}`);
 }
 
 async function clearAndReload(page) {
