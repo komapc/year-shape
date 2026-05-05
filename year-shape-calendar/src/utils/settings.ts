@@ -107,7 +107,13 @@ export const loadSettings = (): AppSettings => {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      const merged = { ...DEFAULT_SETTINGS, ...parsed };
+      // Heal drift between currentYear and zoomState.year that older builds
+      // could leave behind when navigating year via the header buttons.
+      if (merged.zoomState && merged.zoomState.year !== merged.currentYear) {
+        merged.zoomState = { ...merged.zoomState, year: merged.currentYear };
+      }
+      return merged;
     }
   } catch (error) {
     console.warn('Failed to load settings:', error);
