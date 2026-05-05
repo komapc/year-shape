@@ -183,6 +183,9 @@ export class CalendarApp {
         }
         saveSettings(this.settings);
       });
+      if (this.zoomMode.getCurrentState().year !== year) {
+        this.zoomMode.setYear(year);
+      }
     } else if (this.zoomMode.getCurrentState().year !== year) {
       this.zoomMode.setYear(year);
       if (this.settings.zoomState) {
