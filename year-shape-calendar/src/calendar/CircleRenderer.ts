@@ -169,7 +169,7 @@ export class CircleRenderer {
     group.appendChild(labelLayer);
 
     // Setup hover handlers if enabled
-    if (enableHover && config.onItemHover) {
+    if (enableHover) {
       this.setupHoverHandlers(sectorLayer, items, config);
     }
   }
@@ -460,8 +460,30 @@ export class CircleRenderer {
     items: CircleItem[],
     config: CircleConfig
   ): void {
-    const { onItemHover } = config;
-    if (!onItemHover) return;
+    const { onItemHover, hoverScale = 1.5, adjacentScale = 1.1 } = config;
+    const totalItems = items.length;
+
+    const applyScales = (hoverIndex: number | null): void => {
+      const groups = sectorLayer.querySelectorAll<SVGGElement>("[data-hover-type='item']");
+      groups.forEach((g) => {
+        const idxStr = g.getAttribute("data-index");
+        if (idxStr === null) return;
+        const idx = parseInt(idxStr, 10);
+        let s = 1;
+        if (hoverIndex !== null) {
+          if (idx === hoverIndex) s = hoverScale;
+          else {
+            const dist = Math.min(
+              Math.abs(idx - hoverIndex),
+              Math.abs(idx - hoverIndex + totalItems),
+              Math.abs(idx - hoverIndex - totalItems)
+            );
+            if (dist === 1) s = adjacentScale;
+          }
+        }
+        g.style.transform = `scale(${s})`;
+      });
+    };
 
     sectorLayer.addEventListener("mousemove", (e) => {
       const target = e.target as SVGElement;
@@ -473,22 +495,25 @@ export class CircleRenderer {
           const newIndex = parseInt(indexStr, 10);
           if (newIndex !== this.hoveredIndex) {
             this.hoveredIndex = newIndex;
-            const item = items.find((i) => i.index === newIndex);
-            if (item) {
-              onItemHover(item);
+            applyScales(newIndex);
+            if (onItemHover) {
+              const item = items.find((i) => i.index === newIndex);
+              if (item) onItemHover(item);
             }
           }
         }
       } else if (this.hoveredIndex !== null) {
         this.hoveredIndex = null;
-        onItemHover(null);
+        applyScales(null);
+        if (onItemHover) onItemHover(null);
       }
     });
 
     sectorLayer.addEventListener("mouseleave", () => {
       if (this.hoveredIndex !== null) {
         this.hoveredIndex = null;
-        onItemHover(null);
+        applyScales(null);
+        if (onItemHover) onItemHover(null);
       }
     });
   }
