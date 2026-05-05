@@ -624,7 +624,7 @@ export class ZoomMode {
     });
 
     if (isCurrentMonth) {
-      const baseDayAngle = ((currentDay - 0.5) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
+      const baseDayAngle = ((currentDay - 1) / monthDaysCount) * Math.PI * 2 - Math.PI / 2;
       const angle = this.applyDirectionMirroring(baseDayAngle);
       const arrow = this.createCurrentIndicatorArrow(centerX, centerY, angle, radius, { size: 35, color: "#64c8ff", pulseAnimation: true });
       group.appendChild(arrow);
@@ -805,7 +805,9 @@ export class ZoomMode {
     sundayOfWeek.setDate(date.getDate() - dayOfWeek);
     const startOfYear = new Date(year, 0, 1), startDayOfWeek = startOfYear.getDay(), firstSunday = new Date(startOfYear);
     firstSunday.setDate(1 - startDayOfWeek);
-    const diffInMs = sundayOfWeek.getTime() - firstSunday.getTime(), diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const sundayUTC = Date.UTC(sundayOfWeek.getFullYear(), sundayOfWeek.getMonth(), sundayOfWeek.getDate());
+    const firstUTC = Date.UTC(firstSunday.getFullYear(), firstSunday.getMonth(), firstSunday.getDate());
+    const diffInDays = Math.round((sundayUTC - firstUTC) / 86400000);
     return Math.max(0, Math.min(51, Math.floor(diffInDays / 7)));
   };
 
