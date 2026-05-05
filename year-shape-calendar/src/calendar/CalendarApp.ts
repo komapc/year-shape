@@ -177,8 +177,19 @@ export class CalendarApp {
       this.zoomMode.setOnStateChange((state) => {
         this.settings.zoomState = state;
         this.settings.currentYear = state.year;
+        if (this.nav.getCurrentYear() !== state.year) {
+          this.nav.setYear(state.year);
+          this.ui.updateYearDisplay(state.year);
+        }
         saveSettings(this.settings);
       });
+    } else if (this.zoomMode.getCurrentState().year !== year) {
+      this.zoomMode.setYear(year);
+      if (this.settings.zoomState) {
+        this.settings.zoomState = { ...this.settings.zoomState, year };
+      }
+      this.settings.currentYear = year;
+      saveSettings(this.settings);
     }
     
     if (Object.keys(this.eventsByWeek).length > 0) {
