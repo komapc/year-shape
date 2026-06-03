@@ -44,6 +44,17 @@
   opacity: 1 !important;
 }
 
+/* Inter for all SVG text (otherwise it falls back to serif) */
+.label,
+.month-label,
+.day-label,
+.hour-label,
+.week-day-label,
+.period-text,
+.event-text {
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
 /* Labels - common styles */
 .label,
 .month-label,
@@ -131,13 +142,15 @@
 .period-text {
   text-anchor: middle;
   dominant-baseline: middle;
-  font-weight: bold;
+  font-weight: 700;
   fill: #fff;
   pointer-events: none;
+  font-variant-numeric: tabular-nums;
 }
 
 .period-text.year {
   font-size: 48px;
+  letter-spacing: -0.01em;
 }
 
 .period-text.month {

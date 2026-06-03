@@ -184,18 +184,16 @@ export class CalendarRenderer {
       'duration-300',
     ]);
     
-    // Shorter arrow pointing TOWARD the week (outward from center)
-    // Even shorter on mobile
+    // Compact "today" pin: a filled arrowhead with a short stem, pointing
+    // outward toward the current week. Sits just inside the ring.
     const isMobile = window.innerWidth <= 768;
-    const arrowHeight = isMobile ? 80 : 120;
-    const arrowPath = isMobile ? 'M30 70 L30 15 L22 23 M30 15 L38 23' : 'M30 110 L30 20 L22 28 M30 20 L38 28';
+    const arrowHeight = isMobile ? 30 : 40;
     indicator.innerHTML = `
-      <svg width="60" height="${arrowHeight}" viewBox="0 0 60 ${arrowHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="${arrowPath}" 
-              stroke="#60a5fa" 
-              stroke-width="3.5" 
-              stroke-linecap="round" 
-              stroke-linejoin="round"/>
+      <svg width="26" height="${arrowHeight}" viewBox="0 0 26 ${arrowHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="13" y1="14" x2="13" y2="${arrowHeight - 3}"
+              stroke="#60a5fa" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+        <path d="M13 2 L21 15 Q13 11 5 15 Z"
+              fill="#60a5fa" stroke="#bfdbfe" stroke-width="1" stroke-linejoin="round"/>
       </svg>
     `;
     
@@ -284,10 +282,10 @@ export class CalendarRenderer {
     
     // Build HTML
     this.centerInfo.innerHTML = `
-      <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">${dateStr}</div>
-      <div style="font-size: 16px; font-weight: 700; color: #60a5fa; margin-bottom: 4px;">${timeStr}</div>
-      <div style="font-size: 12px; opacity: 0.9;">Week ${weekNumber + 1}</div>
-      <div style="font-size: 12px; margin-top: 4px; color: ${todayEvents > 0 ? '#34d399' : 'rgba(255, 255, 255, 0.6)'};">
+      <div style="font-size: 24px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; margin-bottom: 6px;">${dateStr}</div>
+      <div style="font-size: 15px; font-weight: 600; color: #60a5fa; margin-bottom: 10px; font-variant-numeric: tabular-nums;">${timeStr}</div>
+      <div style="font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.7;">Week ${weekNumber + 1}</div>
+      <div style="font-size: 12px; font-weight: 600; margin-top: 4px; color: ${todayEvents > 0 ? '#34d399' : 'rgba(255, 255, 255, 0.55)'};">
         ${todayEvents} event${todayEvents !== 1 ? 's' : ''} today
       </div>
     `;
@@ -392,40 +390,14 @@ export class CalendarRenderer {
       const labelRadius = radius * 1.18; // Closer to weeks for better readability
       const position = calculatePositionOnPath(centerX, centerY, labelRadius, angle, this.cornerRadius);
       
-      // Calculate angle in degrees for positioning logic
-      // Normalize angle to 0-360 range
-      let angleDeg = ((angle * 180 / Math.PI) % 360);
-      if (angleDeg < 0) angleDeg += 360;
-      
-      // Determine orientation based on actual position
-      // With startAngle = -90°:
-      // Top: ~270° (225-315°), Right: ~0°/360° (315-45°), Bottom: ~90° (45-135°), Left: ~180° (135-225°)
-      const isRight = angleDeg >= 315 || angleDeg <= 45;
-      const isLeft = angleDeg >= 135 && angleDeg <= 225;
-      // Top/Bottom (remaining angles): horizontal
-      
       // Apply color from palette
       label.style.color = colors[monthIndex];
-      
-      if (isLeft) {
-        // Left side: vertical, rotated 180° (reading bottom to top)
-        label.style.writingMode = 'vertical-rl';
-        label.style.left = `${position.x}px`;
-        label.style.top = `${position.y}px`;
-        label.style.transform = 'translate(-100%, -50%) rotate(180deg)';
-      } else if (isRight) {
-        // Right side: vertical, normal (reading top to bottom)
-        label.style.writingMode = 'vertical-rl';
-        label.style.left = `${position.x}px`;
-        label.style.top = `${position.y}px`;
-        label.style.transform = 'translate(0%, -50%)';
-      } else {
-        // Top and bottom: horizontal
-        label.style.writingMode = 'horizontal-tb';
-        label.style.left = `${position.x}px`;
-        label.style.top = `${position.y}px`;
-        label.style.transform = 'translate(-50%, -50%)';
-      }
+
+      // Always horizontal/upright for readability (12 labels fit comfortably)
+      label.style.writingMode = 'horizontal-tb';
+      label.style.left = `${position.x}px`;
+      label.style.top = `${position.y}px`;
+      label.style.transform = 'translate(-50%, -50%)';
     });
   };
 
@@ -462,37 +434,11 @@ export class CalendarRenderer {
       const labelRadius = radius * 1.45;
       const position = calculatePositionOnPath(centerX, centerY, labelRadius, angle, this.cornerRadius);
       
-      // Calculate angle in degrees for positioning logic
-      // Normalize angle to 0-360 range
-      let angleDeg = ((angle * 180 / Math.PI) % 360);
-      if (angleDeg < 0) angleDeg += 360;
-      
-      // Determine orientation based on actual position
-      // With startAngle = -90°:
-      // Top: ~270° (225-315°), Right: ~0°/360° (315-45°), Bottom: ~90° (45-135°), Left: ~180° (135-225°)
-      const isRight = angleDeg >= 315 || angleDeg <= 45;
-      const isLeft = angleDeg >= 135 && angleDeg <= 225;
-      // Top/Bottom (remaining angles): horizontal
-      
-      if (isLeft) {
-        // Left side: vertical, rotated 180° (reading bottom to top)
-        label.style.writingMode = 'vertical-rl';
-        label.style.left = `${position.x}px`;
-        label.style.top = `${position.y}px`;
-        label.style.transform = 'translate(-100%, -50%) rotate(180deg)';
-      } else if (isRight) {
-        // Right side: vertical, normal (reading top to bottom)
-        label.style.writingMode = 'vertical-rl';
-        label.style.left = `${position.x}px`;
-        label.style.top = `${position.y}px`;
-        label.style.transform = 'translate(0%, -50%)';
-      } else {
-        // Top and bottom: horizontal
-        label.style.writingMode = 'horizontal-tb';
-        label.style.left = `${position.x}px`;
-        label.style.top = `${position.y}px`;
-        label.style.transform = 'translate(-50%, -50%)';
-      }
+      // Always horizontal/upright for readability (4 season labels)
+      label.style.writingMode = 'horizontal-tb';
+      label.style.left = `${position.x}px`;
+      label.style.top = `${position.y}px`;
+      label.style.transform = 'translate(-50%, -50%)';
     });
   };
 
@@ -529,7 +475,7 @@ export class CalendarRenderer {
     
     // Position arrow pointing OUTWARD toward the week
     // Arrow starts closer to center and extends far out to almost touch the week
-    const indicatorRadius = radius * 0.65; // Position further out, long arrow reaches the weeks
+    const indicatorRadius = radius * 0.88; // Sit just inside the ring, near the current week
     const position = calculatePositionOnPath(centerX, centerY, indicatorRadius, angle, this.cornerRadius);
     
     // Calculate rotation to point OUTWARD toward the week

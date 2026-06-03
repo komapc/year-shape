@@ -234,24 +234,28 @@ export abstract class Ring {
     text.style.opacity = '1'; // Force visibility
     text.style.zIndex = '10'; // Ensure labels render on top
 
-    // Rotate text to follow curve - always keep readable
-    // Normalize angle to 0-360 range
-    let normalizedAngle = ((angle * 180) / Math.PI) % 360;
-    if (normalizedAngle < 0) normalizedAngle += 360;
+    // Low-count rings (months, seasons) read best upright; dense rings
+    // (52-week, days) follow the curve so labels don't collide.
+    // 13 covers Hebrew leap years (Adar I/II).
+    if (this.sectorCount > 13) {
+      // Rotate text to follow curve - always keep readable
+      // Normalize angle to 0-360 range
+      let normalizedAngle = ((angle * 180) / Math.PI) % 360;
+      if (normalizedAngle < 0) normalizedAngle += 360;
 
-    // Base rotation perpendicular to radius
-    let rotation = normalizedAngle + 90;
+      // Base rotation perpendicular to radius
+      let rotation = normalizedAngle + 90;
 
-    // Flip text if it would be upside down (reading from outside)
-    if (rotation > 90 && rotation < 270) {
-      rotation += 180;
+      // Flip text if it would be upside down (reading from outside)
+      if (rotation > 90 && rotation < 270) {
+        rotation += 180;
+      }
+
+      text.setAttribute(
+        'transform',
+        `rotate(${rotation.toFixed(precision)}, ${point.x.toFixed(precision)}, ${point.y.toFixed(precision)})`
+      );
     }
-
-    // Use the same precision variable declared above
-    text.setAttribute(
-      'transform',
-      `rotate(${rotation.toFixed(precision)}, ${point.x.toFixed(precision)}, ${point.y.toFixed(precision)})`
-    );
     text.textContent = label;
 
     return text;
