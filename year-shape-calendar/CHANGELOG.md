@@ -5,6 +5,17 @@ All notable changes to YearWheel will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **Rings Mode Year**: Rings now derive month, Hebrew-month, and holiday data from the actual year instead of a hardcoded 2025 snapshot. Gregorian months are leap-year-correct, Hebrew months come from the system Hebrew calendar, and movable feasts (Easter, Passover, Rosh Hashanah, …) are computed per year. The center label shows the rendered year.
+- **Lint**: Resolved all 5 ESLint errors (`prefer-const`, `no-case-declarations`, unused disable directive) so `npm run lint` passes.
+
+### Changed
+- **Type safety**: Removed unnecessary `any` casts across rings/circle rendering; `no-explicit-any` is now relaxed only for test mocks.
+- **Production logging**: `console.log`/`info`/`debug` are stripped from production bundles (warnings and errors are kept).
+- **Docs**: Removed one-shot historical markdown artifacts; corrected README language count, test count, and keyboard-shortcut descriptions. Added a project `.gitignore`.
+
 ## [0.13.0] - 2026-01-24
 
 ### Fixed

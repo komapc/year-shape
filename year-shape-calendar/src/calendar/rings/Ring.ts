@@ -101,15 +101,15 @@ export abstract class Ring {
     const sectorGroup = document.createElementNS(
       'http://www.w3.org/2000/svg',
       'g'
-    );
+    ) as SVGGElement;
     sectorGroup.setAttribute('class', 'ring-sector-group');
     sectorGroup.setAttribute('data-sector', index.toString());
     sectorGroup.setAttribute('data-ring-name', this.name);
     // Disable pointer events on group - let the path handle hover detection
     // This prevents bounding-box hover issues that cause segments to jump
-    (sectorGroup as any).style.pointerEvents = 'none';
+    sectorGroup.style.pointerEvents = 'none';
     // CRITICAL: Ensure no transform is applied to the group
-    (sectorGroup as any).style.transform = 'none';
+    sectorGroup.style.transform = 'none';
 
     const path = this.createSectorPath(startAngle, endAngle);
     const pathElement = document.createElementNS(
@@ -232,7 +232,7 @@ export abstract class Ring {
     text.setAttribute('dominant-baseline', 'middle');
     text.style.pointerEvents = 'none'; // Ensure labels don't interfere with hover
     text.style.opacity = '1'; // Force visibility
-    (text as any).style.zIndex = '10'; // Ensure labels render on top
+    text.style.zIndex = '10'; // Ensure labels render on top
 
     // Rotate text to follow curve - always keep readable
     // Normalize angle to 0-360 range

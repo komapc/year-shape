@@ -114,8 +114,9 @@ export function createSVGElement<K extends keyof SVGElementTagNameMap>(
   // Set styles
   if (styles) {
     for (const [key, value] of Object.entries(styles)) {
-      if (value !== undefined) {
-        (element.style as any)[key] = value;
+      // CSS style values are strings at runtime; skip anything else.
+      if (typeof value === 'string') {
+        (element.style as unknown as Record<string, string>)[key] = value;
       }
     }
   }

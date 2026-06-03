@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dev-dist/
+src/dev-dist/
+
+# Environment / secrets (never commit real credentials)
+.env
+.env.local
+.env.*.local
+
+# Test / coverage artifacts
+coverage/
+
+# Editor / OS
+.DS_Store
+*.log
+.vscode/
+.idea/

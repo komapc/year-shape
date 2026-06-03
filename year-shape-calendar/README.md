@@ -15,10 +15,10 @@ An interactive calendar visualization that morphs between circular and square sh
 - 🌍 Seasonal organization (Winter, Spring, Summer, Autumn)
 - 📊 Google Calendar integration (OAuth 2.0)
 - 🌙 Moon phases and zodiac signs on hover
-- 🌐 Multi-language support (5 complete: en, he, eo, uk, tok)
+- 🌐 Multi-language support (8 translated: en, he, eo, uk, tok, pl, be, io; ru/es/fr/de currently fall back to English)
 - 🎨 Theme auto-detection (Auto/Light/Dark, follows system preference)
 - 📱 PWA support (installable, offline caching)
-- ⌨️ Keyboard shortcuts (S, ?, Esc, ← →)
+- ⌨️ Keyboard shortcuts (S = settings, ? = about, Esc = close, ← → = change year)
 - 🔗 Deep linking (shareable week URLs)
 - 📱 Fully responsive design
 - ✡️ Hebrew calendar integration (RTL support)
@@ -98,7 +98,7 @@ See [QUICKSTART.md](./QUICKSTART.md) for detailed setup instructions.
 - **[QUICKSTART.md](./QUICKSTART.md)** - Get running in 60 seconds
 - **[DOCUMENTATION.md](./DOCUMENTATION.md)** - Architecture and code documentation
 - **[TESTING.md](./TESTING.md)** - Testing guide
-- **[DEPLOYMENT.md](../DEPLOYMENT.md)** - Deployment and staging workflow
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment and staging workflow
 
 ## Technology Stack
 
@@ -106,5 +106,5 @@ See [QUICKSTART.md](./QUICKSTART.md) for detailed setup instructions.
 - **Vite** - Fast build tool
 - **TailwindCSS** - Utility-first CSS
 - **Google Calendar API** - Event integration
-- **Vitest** - Unit testing (68 tests)
+- **Vitest** - Unit testing (241 tests)
 - **GitHub Actions** - CI/CD pipeline
