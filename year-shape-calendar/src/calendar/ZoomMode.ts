@@ -733,13 +733,13 @@ export class ZoomMode {
     const now = new Date(), currentYear = now.getFullYear(), currentMonth = now.getMonth(), currentDay = now.getDate(), currentHour12 = now.getHours() % 12 || 12, isCurrentDay = year === currentYear && month === currentMonth && day === currentDay;
     const items: CircleItem[] = [];
     for (let hour = 1; hour <= 12; hour++) {
-      items.push({ index: hour - 1, label: String(hour), value: hour, isCurrent: isCurrentDay && hour === currentHour12, dataAttributes: { hour: String(hour) } });
+      items.push({ index: hour % 12, label: String(hour), value: hour, isCurrent: isCurrentDay && hour === currentHour12, dataAttributes: { hour: String(hour) } });
     }
     let wheelDelta = 0, wheelTimeout: ReturnType<typeof setTimeout> | null = null;
     this.circleRenderer.render(group, {
       centerX, centerY, radius, innerRadius: radius * 0.7, items,
       colorScheme: (item) => { const hour = item.value; return item.isCurrent ? `hsl(${(hour * 30) % 360}, 80%, 50%)` : `hsl(${(hour * 30) % 360}, 70%, 60%)`; },
-      direction: this.direction, rotationOffset: this.rotationOffset - 90,
+      direction: 1, rotationOffset: 0,
       onItemClick: () => {},
       onItemWheel: (_item, e) => {
         if (wheelTimeout) clearTimeout(wheelTimeout);
@@ -760,9 +760,8 @@ export class ZoomMode {
     });
 
     if (isCurrentDay) {
-      const hourIndex = currentHour12 === 12 ? 0 : currentHour12;
-      const baseAngle = ((hourIndex - 3) / 12) * Math.PI * 2;
-      const angle = this.applyDirectionMirroring(baseAngle);
+      const hourFrac = (now.getHours() % 12) + now.getMinutes() / 60; // 12 ≡ 0
+      const angle = (hourFrac / 12) * Math.PI * 2 - Math.PI / 2;
       const arrow = this.createCurrentIndicatorArrow(centerX, centerY, angle, radius, { size: 35, color: "#64c8ff", pulseAnimation: true });
       group.appendChild(arrow);
     }
@@ -771,7 +770,7 @@ export class ZoomMode {
       if (!event.start) return;
       const eventDate = new Date(event.start), hours = eventDate.getHours(), minutes = eventDate.getMinutes();
       let hour12 = hours % 12; if (hour12 === 0) hour12 = 12;
-      const isPM = hours >= 12, hourAngle = ((hour12 - 3) / 12) * Math.PI * 2, minuteOffset = (minutes / 60) * (Math.PI / 6), angle = hourAngle + minuteOffset;
+      const isPM = hours >= 12, hourAngle = ((hour12 % 12) / 12) * Math.PI * 2 - Math.PI / 2, minuteOffset = (minutes / 60) * (Math.PI / 6), angle = hourAngle + minuteOffset;
       const dotRadius = 6, dotX = centerX + Math.cos(angle) * (radius * 0.75), dotY = centerY + Math.sin(angle) * (radius * 0.75);
       const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       dot.setAttribute("cx", String(dotX)); dot.setAttribute("cy", String(dotY)); dot.setAttribute("r", String(dotRadius));
