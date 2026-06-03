@@ -47,9 +47,10 @@ export const buildModeUrl = (mode: CalendarMode, year?: number): string => {
       return `${basePath}/index.html#old`;
     case 'rings':
       return `${basePath}/rings.html#rings`;
-    case 'zoom':
+    case 'zoom': {
       const currentYear = year || new Date().getFullYear();
       return `${basePath}/index.html#zoom/year/${currentYear}`;
+    }
     default:
       return `${basePath}/index.html#old`;
   }

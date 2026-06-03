@@ -5,6 +5,12 @@
 import { Ring } from './Ring';
 import { DayBasedRing, type DayBasedSector } from './DayBasedRing';
 import { CALENDAR_CONSTANTS, SEASON_DATES } from './constants';
+import {
+  getGregorianMonthSectors,
+  getHebrewMonthSectors,
+  getHolidayPoints,
+  type NamedDaySector,
+} from './yearData';
 
 /**
  * Seasons ring - Meteorological seasons (3 months each)
@@ -95,8 +101,8 @@ export class SeasonsRing extends Ring {
 
     for (let i = 0; i < this.seasons.length; i++) {
       const season = this.seasons[i];
-      let startDay = season.startDay;
-      let endDay = season.endDay;
+      const startDay = season.startDay;
+      const endDay = season.endDay;
 
       // Handle winter wrap-around (crosses year boundary)
       if (startDay > endDay && i === 0) {
@@ -155,25 +161,12 @@ export class SeasonsRing extends Ring {
  * Gregorian months ring
  */
 export class MonthsRing extends DayBasedRing {
-  private gregorianMonths: Array<{ name: string; startDay: number; endDay: number }>;
+  private gregorianMonths: NamedDaySector[];
 
-  constructor() {
+  constructor(year: number = new Date().getFullYear()) {
     super('months', 'gradient-months');
-    // Gregorian months with actual day counts for 2025 (non-leap year)
-    this.gregorianMonths = [
-      { name: 'Jan', startDay: 0, endDay: 31 }, // 31 days
-      { name: 'Feb', startDay: 31, endDay: 59 }, // 28 days (2025 is not a leap year)
-      { name: 'Mar', startDay: 59, endDay: 90 }, // 31 days
-      { name: 'Apr', startDay: 90, endDay: 120 }, // 30 days
-      { name: 'May', startDay: 120, endDay: 151 }, // 31 days
-      { name: 'Jun', startDay: 151, endDay: 181 }, // 30 days
-      { name: 'Jul', startDay: 181, endDay: 212 }, // 31 days
-      { name: 'Aug', startDay: 212, endDay: 243 }, // 31 days
-      { name: 'Sep', startDay: 243, endDay: 273 }, // 30 days
-      { name: 'Oct', startDay: 273, endDay: 304 }, // 31 days
-      { name: 'Nov', startDay: 304, endDay: 334 }, // 30 days
-      { name: 'Dec', startDay: 334, endDay: 365 }, // 31 days
-    ];
+    // Leap-year-correct month boundaries derived from the actual year.
+    this.gregorianMonths = getGregorianMonthSectors(year);
   }
 
   get sectorCount(): number {
@@ -200,27 +193,13 @@ export class MonthsRing extends DayBasedRing {
  * Hebrew months ring
  */
 export class HebrewMonthsRing extends DayBasedRing {
-  private hebrewMonths: Array<{ name: string; startDay: number; endDay: number }>;
+  private hebrewMonths: NamedDaySector[];
 
-  constructor() {
+  constructor(year: number = new Date().getFullYear()) {
     super('hebrew', 'gradient-hebrew');
-    // Hebrew months that occur during Gregorian year 2025
-    // Calculated using actual Hebrew calendar dates
-    this.hebrewMonths = [
-      { name: 'Tevet', startDay: 0, endDay: 29 }, // Jan 1 - Jan 29 (5785)
-      { name: 'Shevat', startDay: 29, endDay: 58 }, // Jan 30 - Feb 27 (5785)
-      { name: 'Adar', startDay: 58, endDay: 88 }, // Feb 28 - Mar 29 (5785)
-      { name: 'Nisan', startDay: 88, endDay: 117 }, // Mar 30 - Apr 27 (5785)
-      { name: 'Iyar', startDay: 117, endDay: 147 }, // Apr 28 - May 27 (5785)
-      { name: 'Sivan', startDay: 147, endDay: 176 }, // May 28 - Jun 25 (5785)
-      { name: 'Tammuz', startDay: 176, endDay: 206 }, // Jun 26 - Jul 25 (5785)
-      { name: 'Av', startDay: 206, endDay: 235 }, // Jul 26 - Aug 23 (5785)
-      { name: 'Elul', startDay: 235, endDay: 265 }, // Aug 24 - Sep 22 (5785)
-      { name: 'Tishrei', startDay: 265, endDay: 295 }, // Sep 23 - Oct 22 (5786)
-      { name: 'Cheshvan', startDay: 295, endDay: 324 }, // Oct 23 - Nov 20 (5786)
-      { name: 'Kislev', startDay: 324, endDay: 354 }, // Nov 21 - Dec 20 (5786)
-      { name: 'Tevet', startDay: 354, endDay: 365 }, // Dec 21 - Dec 31 (5786)
-    ];
+    // Hebrew months overlapping the Gregorian year, from the system Hebrew
+    // calendar (Intl). The count varies (12–13) with the Hebrew leap cycle.
+    this.hebrewMonths = getHebrewMonthSectors(year);
   }
 
   get sectorCount(): number {
@@ -262,31 +241,11 @@ export class HolidaysRing extends DayBasedRing {
   private holidays: Array<{ name: string; day: number }>;
   private readonly HOLIDAY_SECTOR_WIDTH_DAYS = 3; // ±1.5 days for visibility
 
-  constructor() {
+  constructor(year: number = new Date().getFullYear()) {
     super('holidays', 'gradient-holidays');
-    // Major holidays for 2025 (Hebrew, Christian, European)
-    this.holidays = [
-      { name: '🎆 New Year', day: 0 }, // Jan 1
-      { name: '🕯️ Tu BiShvat', day: 43 }, // Feb 13
-      { name: '💝 Valentine', day: 44 }, // Feb 14
-      { name: '🎭 Purim', day: 73 }, // Mar 14
-      { name: '✝️ Palm Sun', day: 103 }, // Apr 13
-      { name: '🍷 Passover', day: 111 }, // Apr 22
-      { name: '✝️ Easter', day: 109 }, // Apr 20
-      { name: '🕊️ Yom HaShoah', day: 122 }, // May 2
-      { name: '🇮🇱 Yom HaAtzmaut', day: 129 }, // May 9
-      { name: '👨 Father Day', day: 165 }, // Jun 15
-      { name: '🇺🇸 July 4th', day: 184 }, // Jul 4
-      { name: '🕊️ Tisha B\'Av', day: 216 }, // Aug 5
-      { name: '🍎 Rosh Hashanah', day: 266 }, // Sep 23-24
-      { name: '☪️ Yom Kippur', day: 275 }, // Oct 2
-      { name: '🕋 Sukkot', day: 280 }, // Oct 7
-      { name: '🎃 Halloween', day: 303 }, // Oct 31
-      { name: '🦃 Thanksgiving', day: 330 }, // Nov 27
-      { name: '🕎 Hanukkah', day: 338 }, // Dec 5
-      { name: '🎄 Christmas', day: 358 }, // Dec 25
-      { name: '🎊 New Year Eve', day: 364 }, // Dec 31
-    ];
+    // Major holidays (Hebrew, Christian, European) computed for the actual
+    // year, so movable feasts (Easter, Passover, Rosh Hashanah…) track it.
+    this.holidays = getHolidayPoints(year);
   }
 
   get sectorCount(): number {

@@ -123,7 +123,7 @@ npx tsc --noEmit
 ## 📚 Learn More
 
 - Full documentation: `README.md`
-- Refactor details: `REFACTOR_SUMMARY.md`
+- Architecture: `ARCHITECTURE.md`
 - Code structure: `src/` directory
 
 ---

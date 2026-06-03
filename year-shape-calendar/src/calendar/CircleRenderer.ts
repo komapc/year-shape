@@ -27,7 +27,12 @@ export interface CircleItem {
   index: number;
   /** Display label text */
   label: string;
-  /** The actual data value (month index, day number, etc.) */
+  /**
+   * The actual data value — intentionally polymorphic: a number (month index,
+   * day, hour) for most rings, or a `{ day, month, year }` object for the
+   * weekday ring. Consumers narrow at the use site.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
   /** Is this the current active period? */
   isCurrent?: boolean;
@@ -38,7 +43,7 @@ export interface CircleItem {
   /** Optional data attributes to set on the elements */
   dataAttributes?: Record<string, string>;
   /** Additional data */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -282,9 +287,9 @@ export class CircleRenderer {
     sector.style.cursor = "pointer";
     sector.style.pointerEvents = "all";
     sector.style.touchAction = "manipulation";
-    (sector.style as any).webkitTouchCallout = "none";
+    (sector.style as CSSStyleDeclaration & { webkitTouchCallout?: string }).webkitTouchCallout = "none";
     sector.style.userSelect = "none";
-    (sector as any).setAttribute("pointer-events", "all");
+    sector.setAttribute("pointer-events", "all");
 
     // Setup event handlers
     this.setupItemEventHandlers(sector, item, config);

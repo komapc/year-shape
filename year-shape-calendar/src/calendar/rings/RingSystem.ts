@@ -58,7 +58,6 @@ export class RingSystem {
     // newOrder is array of ring names from outermost to innermost
     const reorderedRings: Ring[] = [];
     for (const name of newOrder) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const ring = this.rings.find((r) => r.name === name);
       if (ring) {
         reorderedRings.push(ring);

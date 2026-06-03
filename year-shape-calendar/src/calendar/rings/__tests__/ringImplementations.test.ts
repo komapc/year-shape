@@ -47,13 +47,19 @@ describe('Ring Implementations', () => {
   });
 
   describe('HebrewMonthsRing', () => {
-    it('should have 13 sectors (Hebrew months in Gregorian year)', () => {
-      const ring = new HebrewMonthsRing();
-      expect(ring.sectorCount).toBe(13);
+    it('should span a Gregorian year with 12-14 Hebrew month sectors', () => {
+      // Count varies with the Hebrew leap cycle (13-month years split Adar,
+      // and a month can repeat at the Gregorian boundary). 2025 spans 13.
+      expect(new HebrewMonthsRing(2025).sectorCount).toBe(13);
+      for (const year of [2024, 2025, 2026, 2027, 2028]) {
+        const count = new HebrewMonthsRing(year).sectorCount;
+        expect(count).toBeGreaterThanOrEqual(12);
+        expect(count).toBeLessThanOrEqual(14);
+      }
     });
 
     it('should return Hebrew month names', () => {
-      const ring = new HebrewMonthsRing();
+      const ring = new HebrewMonthsRing(2025);
       const labels = Array.from({ length: ring.sectorCount }, (_, i) =>
         ring.getSectorLabel(i)
       );

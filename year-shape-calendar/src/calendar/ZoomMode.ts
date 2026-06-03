@@ -386,7 +386,7 @@ export class ZoomMode {
     this.svg.innerHTML = "";
     this.svg.style.pointerEvents = "auto";
     const newCenterStart = this.getCircleCenter(newState);
-    let newCenterTarget: { x: number; y: number } = newState.level === "month" ? this.getCircleTargetCenter(newState) : newCenterStart;
+    const newCenterTarget: { x: number; y: number } = newState.level === "month" ? this.getCircleTargetCenter(newState) : newCenterStart;
     const isZoomingIn = this.getZoomLevelDepth(newState.level) > this.getZoomLevelDepth(oldState.level);
     let positionProgress: number, scaleProgress: number;
     if (isZoomingIn) {
@@ -910,5 +910,5 @@ export class ZoomMode {
     }
   };
 
-  public destroy = (): void => { document.removeEventListener("keydown", this.initializeKeyboardHandlers as any); };
+  public destroy = (): void => { document.removeEventListener("keydown", this.initializeKeyboardHandlers as unknown as EventListener); };
 }

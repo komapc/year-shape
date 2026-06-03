@@ -9,6 +9,11 @@ export default defineConfig({
   base: process.env.CF_PAGES ? '/' : 
         (process.env.VITE_BASE_URL || 
          (process.env.NODE_ENV === 'production' ? '/year-shape/' : '/')),
+  // Drop noisy diagnostic logging from production bundles, while keeping
+  // console.warn / console.error for genuine problems.
+  esbuild: {
+    pure: ['console.log', 'console.info', 'console.debug'],
+  },
   build: {
     outDir: '../dist',
     emptyOutDir: true,

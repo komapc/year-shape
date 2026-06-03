@@ -50,6 +50,7 @@ export interface RingMetadata {
  */
 export class RingsMode {
   private ringSystem: RingSystem;
+  private year: number;
   private ringMetadata: Record<string, RingMetadata> = {
     seasons: { label: 'Seasons', color: '#667eea', icon: '🌸' },
     holidays: { label: 'Holidays', color: '#fdcb6e', icon: '🎊' },
@@ -61,8 +62,11 @@ export class RingsMode {
   constructor(
     svgContainer: HTMLElement,
     centerX: number = 350,
-    centerY: number = 350
+    centerY: number = 350,
+    year: number = new Date().getFullYear()
   ) {
+    this.year = year;
+
     const svgElement = svgContainer.querySelector('svg');
     if (!svgElement) {
       throw new Error('SVG element not found in container');
@@ -74,6 +78,20 @@ export class RingsMode {
     }
 
     this.ringSystem = new RingSystem(ringsContainer, centerX, centerY);
+    this.updateCenterYearLabel();
+  }
+
+  /** The year currently rendered by the rings. */
+  getYear(): number {
+    return this.year;
+  }
+
+  /** Sync the SVG center label with the rendered year. */
+  private updateCenterYearLabel(): void {
+    const centerText = document.getElementById('centerText');
+    if (centerText) {
+      centerText.textContent = this.year.toString();
+    }
   }
 
   /**
@@ -90,12 +108,12 @@ export class RingsMode {
         ? savedSettings.ringOrder
         : defaultOrder;
 
-    // Create ring instances
+    // Create ring instances for the rendered year
     const ringInstances: Record<string, Ring> = {
-      holidays: new HolidaysRing(),
+      holidays: new HolidaysRing(this.year),
       weeks: new WeeksRing(),
-      hebrew: new HebrewMonthsRing(),
-      months: new MonthsRing(),
+      hebrew: new HebrewMonthsRing(this.year),
+      months: new MonthsRing(this.year),
       seasons: new SeasonsRing(),
     };
 
