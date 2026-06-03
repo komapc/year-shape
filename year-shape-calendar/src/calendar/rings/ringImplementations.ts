@@ -54,6 +54,12 @@ export class SeasonsRing extends Ring {
     return this.seasons[index].name;
   }
 
+  // Innermost ring: push labels toward the outer edge so they don't crowd
+  // the center year text.
+  protected getLabelRadiusFactor(): number {
+    return 0.78;
+  }
+
   // Override layout to use actual day-based positioning for seasons
   layout(
     centerX: number,

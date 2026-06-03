@@ -211,12 +211,24 @@ export abstract class Ring {
       : PRECISION_CONFIG.DEFAULT;
   }
 
+  /**
+   * Where to place labels within the ring band: 0 = inner edge, 0.5 = middle,
+   * 1 = outer edge. Override per ring (e.g. the innermost ring pushes labels
+   * outward so they don't crowd the center text).
+   */
+  protected getLabelRadiusFactor(): number {
+    return 0.5;
+  }
+
   createLabelElement(index: number, angle: number): SVGTextElement | null {
     const label = this.getSectorLabel(index);
     if (!label) return null;
 
-    const midRadius = (this.innerRadius + this.outerRadius) / 2;
-    const point = this.getPointOnShape(angle, midRadius);
+    // Position along the ring band: 0 = inner edge, 1 = outer edge.
+    const f = this.getLabelRadiusFactor();
+    const labelRadius =
+      this.innerRadius + (this.outerRadius - this.innerRadius) * f;
+    const point = this.getPointOnShape(angle, labelRadius);
 
     // Use higher precision for sectors with many divisions
     const precision = this.getPrecision();
