@@ -79,7 +79,9 @@
   }
 
   /* Light theme overrides */
-  .light-theme body {
+  /* `light-theme` is applied to <body> itself, so target body.light-theme
+     (not `.light-theme body`, which would require a descendant body). */
+  body.light-theme {
     @apply bg-gradient-to-b from-blue-50 via-white to-indigo-50 text-gray-900;
   }
 
