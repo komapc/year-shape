@@ -5,6 +5,7 @@
  * It initializes the RingsMode renderer and sets up UI controls.
  */
 
+import '@fontsource-variable/inter';
 import { RingsMode } from './calendar/RingsMode';
 import { loadSettings, updateSetting, type CalendarMode } from './utils/settings';
 import { navigateToMode } from './utils/modeNavigation';
