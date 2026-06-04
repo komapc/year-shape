@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/client" />
 /// <reference types="gapi" />
 /// <reference types="gapi.auth2" />
 /// <reference types="gapi.client.calendar" />

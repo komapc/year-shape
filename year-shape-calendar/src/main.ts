@@ -6,6 +6,10 @@ import './style.css';
 import { CalendarApp } from './calendar/CalendarApp';
 import { pwaInstallManager } from './utils/pwaInstall';
 import { initializeSwipeNavigation } from './utils/swipeNavigation';
+import { setupPwaUpdates } from './utils/pwaUpdate';
+
+// Register the service worker and surface an update toast when a new build ships.
+setupPwaUpdates();
 
 // Initialize app when DOM is ready
 const initApp = (): void => {

@@ -20,6 +20,8 @@
 
 import type { CalendarEvent, Direction } from "../types";
 import { createElement } from "../utils/dom";
+import { clockAngle, polarToXY } from "../utils/geometry";
+import { prefersReducedMotion } from "../utils/motion";
 import { CircleRenderer, type CircleItem } from "./CircleRenderer";
 
 /**
@@ -113,6 +115,8 @@ export class ZoomMode {
     this.svg.setAttribute("height", "100%");
     this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
     this.svg.setAttribute("shape-rendering", "geometricPrecision");
+    this.svg.setAttribute("role", "img");
+    this.svg.setAttribute("aria-label", "Zoomable year wheel");
     this.svg.classList.add("zoom-mode-svg");
 
     // Use event delegation on SVG for clicks
@@ -539,7 +543,7 @@ export class ZoomMode {
     arrow.setAttribute("points", `${tipX},${tipY} ${wing1X},${wing1Y} ${wing2X},${wing2Y}`);
     arrow.setAttribute("fill", color); arrow.setAttribute("stroke", "#ffffff"); arrow.setAttribute("stroke-width", "2");
     arrow.setAttribute("opacity", "0.9"); arrow.style.pointerEvents = "none";
-    if (pulseAnimation) {
+    if (pulseAnimation && !prefersReducedMotion()) {
       const animateOpacity = document.createElementNS("http://www.w3.org/2000/svg", "animate");
       animateOpacity.setAttribute("attributeName", "opacity"); animateOpacity.setAttribute("values", "0.9;0.5;0.9");
       animateOpacity.setAttribute("dur", "2s"); animateOpacity.setAttribute("repeatCount", "indefinite");
@@ -761,7 +765,7 @@ export class ZoomMode {
 
     if (isCurrentDay) {
       const hourFrac = (now.getHours() % 12) + now.getMinutes() / 60; // 12 ≡ 0
-      const angle = (hourFrac / 12) * Math.PI * 2 - Math.PI / 2;
+      const angle = clockAngle(hourFrac, 12);
       const arrow = this.createCurrentIndicatorArrow(centerX, centerY, angle, radius, { size: 35, color: "#64c8ff", pulseAnimation: true });
       group.appendChild(arrow);
     }
@@ -770,8 +774,8 @@ export class ZoomMode {
       if (!event.start) return;
       const eventDate = new Date(event.start), hours = eventDate.getHours(), minutes = eventDate.getMinutes();
       let hour12 = hours % 12; if (hour12 === 0) hour12 = 12;
-      const isPM = hours >= 12, hourAngle = ((hour12 % 12) / 12) * Math.PI * 2 - Math.PI / 2, minuteOffset = (minutes / 60) * (Math.PI / 6), angle = hourAngle + minuteOffset;
-      const dotRadius = 6, dotX = centerX + Math.cos(angle) * (radius * 0.75), dotY = centerY + Math.sin(angle) * (radius * 0.75);
+      const isPM = hours >= 12, minuteOffset = (minutes / 60) * (Math.PI / 6), angle = clockAngle(hour12 % 12, 12) + minuteOffset;
+      const dotRadius = 6, { x: dotX, y: dotY } = polarToXY(centerX, centerY, radius * 0.75, angle);
       const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       dot.setAttribute("cx", String(dotX)); dot.setAttribute("cy", String(dotY)); dot.setAttribute("r", String(dotRadius));
       dot.setAttribute("fill", isPM ? "#ff6464" : "#4a9eff"); dot.setAttribute("class", "event-dot"); dot.style.cursor = "pointer";
