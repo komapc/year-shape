@@ -139,8 +139,8 @@ export class CalendarRenderer {
     svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
     svg.innerHTML = '';
 
-    const innerR = radius * 0.9;
-    const outerR = radius * 1.1;
+    const innerR = radius * 0.86;
+    const outerR = radius * 1.14;
 
     for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
       const weekIndex = getMonthStartWeek(monthIndex);
@@ -155,8 +155,8 @@ export class CalendarRenderer {
       line.setAttribute('y1', a.y.toFixed(1));
       line.setAttribute('x2', b.x.toFixed(1));
       line.setAttribute('y2', b.y.toFixed(1));
-      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.28)');
-      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.55)');
+      line.setAttribute('stroke-width', '2.5');
       line.setAttribute('stroke-linecap', 'round');
       svg.appendChild(line);
     }
