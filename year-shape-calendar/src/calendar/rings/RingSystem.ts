@@ -124,20 +124,26 @@ export class RingSystem {
     // Use clamped ring width
     const effectiveRingWidth = Math.min(this.ringWidth, maxRingWidth);
 
-    // Layout each ring from outermost to innermost (only visible rings)
+    // Layout each ring from outermost to innermost (only visible rings).
+    // Small tolerance so the innermost ring, which lands at exactly
+    // minInnerRadius, isn't dropped by floating-point rounding.
+    const FIT_EPSILON = 0.5;
     let currentOuterRadius = adjustedRadius;
+    let outOfSpace = false;
 
     for (const ring of this.rings) {
-
       if (!this.ringVisibility[ring.name]) {
-        continue; // Skip hidden rings
+        continue; // Hidden rings are already display:none via setRingVisibility
       }
 
       const innerRadius = currentOuterRadius - effectiveRingWidth;
 
-      // Safety check: ensure we never go below minimum inner radius
-      if (innerRadius < this.minInnerRadius) {
-        break; // Stop if we've reached the minimum inner space
+      // Once we run out of room, every remaining (inner) ring is cleared so it
+      // can't linger as stale, overlapping geometry from a previous layout.
+      if (outOfSpace || innerRadius < this.minInnerRadius - FIT_EPSILON) {
+        ring.clear();
+        outOfSpace = true;
+        continue;
       }
 
       ring.layout(

@@ -17,6 +17,7 @@ export class CalendarRenderer {
   private seasonLabels: HTMLElement[] = [];
   private currentWeekIndicator: HTMLElement | null = null;
   private centerInfo: HTMLElement | null = null;
+  private monthDividers: SVGSVGElement | null = null;
   private direction: Direction = -1;
   private seasons: Season[] = [...CALENDAR_CONFIG.defaultSeasons]; // Always: winter, spring, summer, autumn
   private cornerRadius: number = 0.5; // 0 = square, 1 = circle
@@ -36,6 +37,7 @@ export class CalendarRenderer {
     this.rotationOffset = initialRotationOffset;
     
     this.initializeWeeks();
+    this.initializeMonthDividers();
     this.initializeMonthLabels();
     this.initializeSeasonLabels();
     this.initializeCurrentWeekIndicator();
@@ -102,6 +104,64 @@ export class CalendarRenderer {
     });
   };
   
+  /**
+   * Initialize the SVG overlay that holds the month-boundary divider lines.
+   * Sits above the week cells but below the labels.
+   */
+  private initializeMonthDividers = (): void => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('month-dividers');
+    svg.style.position = 'absolute';
+    svg.style.left = '0';
+    svg.style.top = '0';
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    svg.style.pointerEvents = 'none';
+    svg.style.overflow = 'visible';
+    this.monthDividers = svg;
+    this.container.appendChild(svg);
+  };
+
+  /**
+   * Draw a short radial tick at the start of each month so the 12 months are
+   * visually separated on the week-cell ring.
+   */
+  private layoutMonthDividers = (
+    centerX: number,
+    centerY: number,
+    radius: number,
+    startAngleRad: number
+  ): void => {
+    const svg = this.monthDividers;
+    if (!svg) return;
+
+    const rect = this.container.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+    svg.innerHTML = '';
+
+    const innerR = radius * 0.9;
+    const outerR = radius * 1.1;
+
+    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+      const weekIndex = getMonthStartWeek(monthIndex);
+      const progress = weekIndex / CALENDAR_CONFIG.totalWeeks;
+      const angle = startAngleRad + this.direction * progress * Math.PI * 2;
+
+      const a = calculatePositionOnPath(centerX, centerY, innerR, angle, this.cornerRadius);
+      const b = calculatePositionOnPath(centerX, centerY, outerR, angle, this.cornerRadius);
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', a.x.toFixed(1));
+      line.setAttribute('y1', a.y.toFixed(1));
+      line.setAttribute('x2', b.x.toFixed(1));
+      line.setAttribute('y2', b.y.toFixed(1));
+      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.28)');
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(line);
+    }
+  };
+
   /**
    * Handle month label hover - highlight all weeks in that month
    */
@@ -354,6 +414,9 @@ export class CalendarRenderer {
       week.setSeason(season);
       week.setSeasonColor(seasonColors[seasonIndex % 4]);
     });
+
+    // Draw month-boundary dividers
+    this.layoutMonthDividers(centerX, centerY, radius, startAngleRad);
 
     // Layout month labels
     this.layoutMonthLabels(centerX, centerY, radius, startAngleRad);

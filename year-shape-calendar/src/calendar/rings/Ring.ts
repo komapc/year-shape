@@ -48,6 +48,11 @@ export abstract class Ring {
     container.appendChild(this.svgGroup);
   }
 
+  /** Remove any drawn geometry (used when a ring can't fit the current layout). */
+  clear(): void {
+    if (this.svgGroup) this.svgGroup.innerHTML = '';
+  }
+
   layout(
     centerX: number,
     centerY: number,

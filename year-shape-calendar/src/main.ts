@@ -2,6 +2,7 @@
  * Application entry point
  */
 
+import '@fontsource-variable/inter';
 import './style.css';
 import { CalendarApp } from './calendar/CalendarApp';
 import { pwaInstallManager } from './utils/pwaInstall';
