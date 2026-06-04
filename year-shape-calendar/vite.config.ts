@@ -29,9 +29,18 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  server: {
+    watch: {
+      // Don't put inotify watches on these huge/irrelevant trees. Greatly
+      // reduces watch count (helps avoid ENOSPC on Linux dev machines).
+      ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
+    },
+  },
   plugins: [
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      // We register manually (src/utils/pwaUpdate.ts) to show an update toast.
+      injectRegister: null,
       includeAssets: ['favicon.svg', 'privacy.html', 'terms.html', 'agreement.html'],
       manifest: {
         name: 'YearWheel - Interactive Year Calendar',

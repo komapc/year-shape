@@ -11,6 +11,10 @@ import { navigateToMode } from './utils/modeNavigation';
 import { initializeSwipeNavigation } from './utils/swipeNavigation';
 import { googleCalendarService } from './services/googleCalendar';
 import { resolveTheme, applyTheme, watchSystemTheme } from './utils/theme';
+import { setupPwaUpdates } from './utils/pwaUpdate';
+
+// Register the service worker and surface an update toast when a new build ships.
+setupPwaUpdates();
 
 /**
  * Initialize rings mode when DOM is ready
