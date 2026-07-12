@@ -23,7 +23,7 @@
     "@types/gapi": "^0.0.47",
     "@types/gapi.auth2": "^0.0.61",
     "@types/gapi.client.calendar": "^3.0.12",
-    "@types/node": "^20.10.0",
+    "@types/node": "^26.1.1",
     "@typescript-eslint/eslint-plugin": "^8.62.1",
     "@typescript-eslint/parser": "^8.60.1",
     "@vitest/ui": "^4.1.9",
