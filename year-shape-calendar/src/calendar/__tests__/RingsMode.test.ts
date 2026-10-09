@@ -137,7 +137,7 @@ describe('RingsMode', () => {
   });
 
   describe('setRingWidth', () => {
-    it('should update ring width', () => {
+    it('should update ring-3 width', () => {
       const ringsMode = new RingsMode(container, 350, 350);
       // Don't call initializeFromSettings to avoid DOM dependencies
       ringsMode.setRingWidth(60);
@@ -147,7 +147,7 @@ describe('RingsMode', () => {
   });
 
   describe('getMaxRingWidth', () => {
-    it('should return maximum ring width', () => {
+    it('should return maximum ring-3 width', () => {
       const ringsMode = new RingsMode(container, 350, 350);
       // Need to initialize rings first to calculate max width
       // Create minimal setup without full initialization
@@ -187,7 +187,7 @@ describe('RingsMode', () => {
   });
 
   describe('getRingMetadata', () => {
-    it('should return ring metadata', () => {
+    it('should return ring-3 metadata', () => {
       // Use the container from beforeEach which has proper setup
       const ringsMode = new RingsMode(container, 350, 350);
       const metadata = ringsMode.getRingMetadata();
@@ -200,7 +200,7 @@ describe('RingsMode', () => {
       expect(metadata.holidays).toBeDefined();
     });
 
-    it('should include label, color, and icon for each ring', () => {
+    it('should include label, color, and icon for each ring-3', () => {
       // Use the container from beforeEach which has proper setup
       const ringsMode = new RingsMode(container, 350, 350);
       const metadata = ringsMode.getRingMetadata();

@@ -44,7 +44,7 @@ export abstract class Ring {
       'http://www.w3.org/2000/svg',
       'g'
     ) as SVGGElement;
-    this.svgGroup.setAttribute('class', `ring ring-${this.name}`);
+    this.svgGroup.setAttribute('class', `ring-3 ring-${this.name}`);
     container.appendChild(this.svgGroup);
   }
 

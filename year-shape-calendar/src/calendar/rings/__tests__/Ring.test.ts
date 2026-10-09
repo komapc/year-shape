@@ -50,7 +50,7 @@ describe('Ring', () => {
 
     it('should create group with correct class name', () => {
       ring.render(container);
-      expect(ring.svgGroup?.getAttribute('class')).toBe('ring ring-test-ring');
+      expect(ring.svgGroup?.getAttribute('class')).toBe('ring-3 ring-test-ring');
     });
   });
 

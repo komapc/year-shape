@@ -27,7 +27,7 @@ class ToastManager {
 
     this.container = document.createElement('div');
     this.container.id = 'toast-container';
-    this.container.className = 'fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none';
+    this.container.className = 'fixed top-4 right-4 z-100 flex flex-col gap-2 pointer-events-none';
     this.container.setAttribute('aria-live', 'polite');
     this.container.setAttribute('aria-atomic', 'true');
     document.body.appendChild(this.container);
@@ -58,12 +58,12 @@ class ToastManager {
     // Build content
     toast.innerHTML = `
       <div class="flex items-start gap-3">
-        <span class="text-xl flex-shrink-0">${icon}</span>
+        <span class="text-xl shrink-0">${icon}</span>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium break-words">${this.escapeHtml(message)}</p>
+          <p class="text-sm font-medium wrap-break-word">${this.escapeHtml(message)}</p>
           ${action ? `
             <button 
-              class="mt-2 text-xs underline hover:no-underline focus:outline-none focus:ring-1 focus:ring-white rounded"
+              class="mt-2 text-xs underline hover:no-underline focus:outline-hidden focus:ring-1 focus:ring-white rounded-sm"
               data-toast-action="true"
             >
               ${this.escapeHtml(action.label)}
@@ -71,7 +71,7 @@ class ToastManager {
           ` : ''}
         </div>
         <button 
-          class="text-white/80 hover:text-white text-xl leading-none flex-shrink-0 focus:outline-none focus:ring-1 focus:ring-white rounded"
+          class="text-white/80 hover:text-white text-xl leading-none shrink-0 focus:outline-hidden focus:ring-1 focus:ring-white rounded-sm"
           aria-label="Close notification"
           data-toast-close="true"
         >

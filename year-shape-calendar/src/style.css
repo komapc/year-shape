@@ -1,6 +1,196 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  --color-dark-bg: #0a0e1a;
+  --color-dark-card: #0f1420;
+  --color-dark-border: rgba(255, 255, 255, 0.06);
+  --color-dark-muted: #9aa6b2;
+
+  --font-sans:
+    Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+    sans-serif;
+
+  --animate-fade-in: fadeIn 0.3s ease-in-out;
+  --animate-slide-up: slideUp 0.3s ease-out;
+  --animate-scale-in: scaleIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes slideUp {
+    0% {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  @keyframes scaleIn {
+    0% {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility btn {
+  @apply px-4 py-2 rounded-lg text-gray-200
+           transition-all duration-200 cursor-pointer hover:text-white
+           focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-bg;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(71, 85, 105, 0.4);
+
+  &:hover {
+    background-color: rgba(71, 85, 105, 0.6);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  &:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  &:disabled:hover {
+    background-color: rgba(71, 85, 105, 0.4);
+    color: #d1d5db;
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  &.primary {
+    @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700;
+  }
+}
+
+@utility primary {
+  &.btn {
+    @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700;
+  }
+}
+
+@utility shape-wrap {
+  @apply relative w-full max-w-[600px] aspect-square mx-auto
+           border border-dark-border shadow-2xl
+           transition-all duration-500;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.03)
+  );
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility week {
+  @apply hover:shadow-lg;
+
+  &:hover {
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+  }
+
+  &.current-week {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+@utility current-week {
+  &.week {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+@utility modal {
+  @apply fixed inset-0 items-center justify-center z-50
+           backdrop-blur-xs
+           animate-fade-in;
+  background-color: rgba(0, 0, 0, 0.7);
+
+  &.hidden {
+    display: none;
+  }
+}
+
+@utility hidden {
+  &.modal {
+    display: none;
+  }
+}
+
+@utility modal-content {
+  @apply bg-dark-card rounded-xl border border-dark-border
+           p-6 max-w-4xl w-full mx-4
+           animate-scale-in shadow-2xl;
+}
+
+@utility day-card {
+  @apply transition-all duration-200 hover:scale-105 hover:shadow-lg;
+}
+
+@utility event-item {
+  @apply transition-all duration-150;
+
+  &:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+}
+
+@utility season-label {
+  /* Season labels (old static - hidden, keeping for backwards compatibility) */
+  @apply hidden;
+}
+
+@utility season-label-dynamic {
+  /* Season labels (new dynamic) */
+  @apply absolute text-dark-muted text-sm font-medium pointer-events-none;
+}
+
+/* Utility classes */
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility glass {
+  @apply backdrop-blur-md;
+  background-color: rgba(255, 255, 255, 0.05);
+}
 
 /* Custom base styles */
 @layer base {
@@ -20,7 +210,7 @@
   }
 
     body {
-    @apply m-0 bg-gradient-to-b from-[#07101a] to-[#0b1220] text-gray-100;
+    @apply m-0 bg-linear-to-b from-[#07101a] to-[#0b1220] text-gray-100;
     font-family: 'Inter Variable', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -82,7 +272,7 @@
   /* `light-theme` is applied to <body> itself, so target body.light-theme
      (not `.light-theme body`, which would require a descendant body). */
   body.light-theme {
-    @apply bg-gradient-to-b from-blue-50 via-white to-indigo-50 text-gray-900;
+    @apply bg-linear-to-b from-blue-50 via-white to-indigo-50 text-gray-900;
   }
 
   .light-theme .text-gray-100 {
@@ -164,53 +354,6 @@
 
 /* Custom component styles */
 @layer components {
-  .btn {
-    @apply px-4 py-2 rounded-lg text-gray-200
-           transition-all duration-200 cursor-pointer hover:text-white
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-bg;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background-color: rgba(71, 85, 105, 0.4);
-  }
-
-  .btn:hover {
-    background-color: rgba(71, 85, 105, 0.6);
-    border-color: rgba(255, 255, 255, 0.25);
-  }
-
-  .btn:disabled {
-    @apply opacity-50 cursor-not-allowed;
-  }
-
-  .btn:disabled:hover {
-    background-color: rgba(71, 85, 105, 0.4);
-    color: #d1d5db;
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-
-  .btn.primary {
-    @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700;
-  }
-
-  .shape-wrap {
-    @apply relative w-full max-w-[600px] aspect-square mx-auto
-           border border-dark-border shadow-2xl
-           transition-all duration-500;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03));
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .week {
-    @apply hover:shadow-lg;
-  }
-
-  .week:hover {
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-  }
-
-  .week.current-week {
-    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
   @keyframes pulse-glow {
     0%, 100% {
       box-shadow: 0 0 8px rgba(96, 165, 250, 0.6), 0 0 16px rgba(96, 165, 250, 0.4);
@@ -220,45 +363,6 @@
       box-shadow: 0 0 16px rgba(96, 165, 250, 0.8), 0 0 32px rgba(96, 165, 250, 0.6);
       transform: scale(1.1);
     }
-  }
-
-  .modal {
-    @apply fixed inset-0 items-center justify-center z-50
-           backdrop-blur-sm
-           animate-fade-in;
-    background-color: rgba(0, 0, 0, 0.7);
-  }
-
-  .modal.hidden {
-    display: none;
-  }
-
-  .modal-content {
-    @apply bg-dark-card rounded-xl border border-dark-border
-           p-6 max-w-4xl w-full mx-4
-           animate-scale-in shadow-2xl;
-  }
-
-  .day-card {
-    @apply transition-all duration-200 hover:scale-105 hover:shadow-lg;
-  }
-
-  .event-item {
-    @apply transition-all duration-150;
-  }
-
-  .event-item:hover {
-    background-color: rgba(59, 130, 246, 0.2);
-  }
-
-  /* Season labels (old static - hidden, keeping for backwards compatibility) */
-  .season-label {
-    @apply hidden;
-  }
-
-  /* Season labels (new dynamic) */
-  .season-label-dynamic {
-    @apply absolute text-dark-muted text-sm font-medium pointer-events-none;
   }
 
   /* Scrollbar styling */
@@ -277,18 +381,6 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255, 255, 255, 0.2);
-  }
-}
-
-/* Utility classes */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .glass {
-    @apply backdrop-blur-md;
-    background-color: rgba(255, 255, 255, 0.05);
   }
 }
 

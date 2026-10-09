@@ -117,7 +117,7 @@ export class WeekModal {
   private createDayCard = (dayIndex: number, allEvents: CalendarEvent[]): HTMLElement => {
     const card = createElement('div', [
       'day-card',
-      'bg-gradient-to-b',
+      'bg-linear-to-b',
       'from-white/5',
       'to-white/3',
       'rounded-lg',
