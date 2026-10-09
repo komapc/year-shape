@@ -32,7 +32,7 @@ export class WeekElement {
       'absolute',
       'w-4',
       'h-4',
-      'rounded-sm',
+      'rounded-xs',
       'transition-all',
       'duration-300',
       'cursor-pointer',

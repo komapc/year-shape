@@ -43,7 +43,7 @@ describe('RingSystem', () => {
   });
 
   describe('addRing', () => {
-    it('should add a ring to the system', () => {
+    it('should add a ring-3 to the system', () => {
       const ring = new MockRing('test');
       ringSystem.addRing(ring, true);
       
@@ -51,7 +51,7 @@ describe('RingSystem', () => {
       expect(ringOrder).toContain('test');
     });
 
-    it('should set ring visibility', () => {
+    it('should set ring-3 visibility', () => {
       const ring = new MockRing('test');
       ringSystem.addRing(ring, false);
       
@@ -61,7 +61,7 @@ describe('RingSystem', () => {
   });
 
   describe('setRingVisibility', () => {
-    it('should update ring visibility', () => {
+    it('should update ring-3 visibility', () => {
       const ring = new MockRing('test');
       ringSystem.addRing(ring, true);
       
@@ -70,7 +70,7 @@ describe('RingSystem', () => {
       expect(visibility['test']).toBe(false);
     });
 
-    it('should hide ring SVG group when visibility is false', () => {
+    it('should hide ring-3 SVG group when visibility is false', () => {
       const ring = new MockRing('test');
       ringSystem.addRing(ring, true);
       ring.render(container);
@@ -97,7 +97,7 @@ describe('RingSystem', () => {
   });
 
   describe('setRingWidth', () => {
-    it('should update ring width', () => {
+    it('should update ring-3 width', () => {
       ringSystem.setRingWidth(60);
       // Width is internal, but we can verify it doesn't throw
       expect(ringSystem).toBeDefined();
