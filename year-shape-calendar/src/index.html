@@ -58,6 +58,9 @@
   <meta name="apple-mobile-web-app-title" content="YearWheel" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
   
+  <!-- Preconnect to Google APIs -->
+  <link rel="preconnect" href="https://accounts.google.com" />
+  
   <!-- Zoom Mode Styles -->
   <link rel="stylesheet" href="/calendar/zoom-mode.css" />
   
@@ -76,20 +79,10 @@
     }
   </script>
 
-  <!-- Google Identity Services + API client (~260 KB): loaded after the page is
-       interactive so they do not compete with the first render; rings.ts polls
-       for them (waitForScripts) before initialising sign-in. -->
-  <script>
-    window.addEventListener('load', function () {
-      setTimeout(function () {
-        ['https://accounts.google.com/gsi/client', 'https://apis.google.com/js/api.js'].forEach(function (src) {
-          var s = document.createElement('script');
-          s.src = src; s.async = true; s.defer = true;
-          document.head.appendChild(s);
-        });
-      }, 0);
-    });
-  </script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Google API Client -->
+  <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
   <div class="min-h-screen flex flex-col">
