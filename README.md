@@ -107,7 +107,6 @@ This is a personal portfolio repository, but feedback and suggestions are welcom
 ## 📧 Contact
 
 **GitHub:** [komapc](https://github.com/komapc)  
-**Email:** komapc@gmail.com
 
 ---
 
