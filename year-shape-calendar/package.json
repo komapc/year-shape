@@ -33,7 +33,7 @@
     "playwright": "^1.63.0",
     "postcss": "^8.5.16",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.3.3",
+    "typescript": "^7.0.2",
     "vite": "^8.3.3",
     "vite-plugin-pwa": "^1.1.0",
     "vitest": "^4.1.11",

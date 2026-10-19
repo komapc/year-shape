@@ -13,3 +13,6 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
+
+// Side-effect CSS import (font): TS 7 checks side-effect imports and the package ships no types
+declare module "@fontsource-variable/inter";
