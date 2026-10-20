@@ -13,8 +13,7 @@ Welcome to my collection of web applications and experiments! This repository co
 An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, PWA support, theme auto-detection, 5 languages, and a beautiful modern UI.
 
 **Environments:**
-- **Production (Cloudflare):** https://yearwheel.pages.dev/
-- **Production (GitHub Pages):** https://komapc.github.io/year-shape/ (legacy, still active)
+- **Production:** https://yearwheel.lipu.dev/ (old `yearwheel.pages.dev` and `komapc.github.io/year-shape/` redirect here)
 - **Staging:** https://staging.yearwheel.pages.dev/ (auto-deployed from `staging` branch)
 - **PR Previews:** Every PR gets a unique URL like `https://<branch>.yearwheel.pages.dev/`
 
@@ -35,7 +34,7 @@ npm install
 npm run dev
 ```
 
-**Live Demo:** [https://yearwheel.pages.dev/](https://yearwheel.pages.dev/)
+**Live Demo:** [https://yearwheel.lipu.dev/](https://yearwheel.lipu.dev/)
 
 **Documentation:**
 - [Full README](./year-shape-calendar/README.md)
