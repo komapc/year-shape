@@ -60,6 +60,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Social preview image: only fetched by link-preview crawlers.
+        globIgnores: ['og.png'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/accounts\.google\.com\/.*/i,

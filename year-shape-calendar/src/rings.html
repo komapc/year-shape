@@ -21,15 +21,19 @@
     <meta property="og:url" content="https://yearwheel.lipu.dev/rings" />
     <meta property="og:title" content="Multi-Ring Calendar - YearWheel Visualization" />
     <meta property="og:description" content="Explore the unique Multi-Ring mode of YearWheel. A customizable nested circular calendar view for seeing your year from multiple perspectives." />
-    <meta property="og:image" content="https://yearwheel.lipu.dev/favicon.svg" />
+    <meta property="og:image" content="https://yearwheel.lipu.dev/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="YearWheel: the whole year drawn as a circle of months and seasons" />
     <meta property="og:site_name" content="YearWheel" />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://yearwheel.lipu.dev/rings" />
-    <meta property="twitter:title" content="Multi-Ring Calendar - YearWheel Visualization" />
-    <meta property="twitter:description" content="Explore the unique Multi-Ring mode of YearWheel. A customizable nested circular calendar view." />
-    <meta property="twitter:image" content="https://yearwheel.lipu.dev/favicon.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://yearwheel.lipu.dev/rings" />
+    <meta name="twitter:title" content="Multi-Ring Calendar - YearWheel Visualization" />
+    <meta name="twitter:description" content="Explore the unique Multi-Ring mode of YearWheel. A customizable nested circular calendar view." />
+    <meta name="twitter:image" content="https://yearwheel.lipu.dev/og.png" />
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -41,6 +45,7 @@
         "applicationCategory": "ProductivityApplication",
         "description": "Multi-Ring calendar visualization for seeing your year through nested circular layers.",
         "url": "https://yearwheel.lipu.dev/rings",
+        "image": "https://yearwheel.lipu.dev/og.png",
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -469,11 +474,19 @@
       }
     </style>
 
-  <!-- Google Analytics 4 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=GT-TWZG67NP"></script>
+  <!-- Google Analytics 4 with Consent Mode v2: all storage denied until the
+       visitor opts in via the consent banner (src/utils/consent.ts). -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+    var ywConsent = null;
+    try { ywConsent = localStorage.getItem('yearwheel-consent'); } catch (e) {}
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: ywConsent === 'yes' ? 'granted' : 'denied'
+    });
     gtag('js', new Date());
     var isStaging = window.location.hostname.includes('staging') || window.location.hostname.includes('localhost');
     if (isStaging) {
@@ -483,6 +496,7 @@
       gtag('config', 'G-VWVEZETT42');
     }
   </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=GT-TWZG67NP"></script>
   </head>
   <body>
     <div class="min-h-screen flex flex-col w-full">
@@ -906,6 +920,8 @@
             <span>YearWheel v0.13.0</span>
             <span>•</span>
             <a href="https://lipu.dev/" style="color: rgba(255, 255, 255, 0.7)">lipu.dev</a>
+            <span>•</span>
+            <a href="/circular-year-planner" style="color: rgba(255, 255, 255, 0.7)">Guide</a>
             <span>•</span>
             <a
               href="privacy.html"

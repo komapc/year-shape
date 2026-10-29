@@ -260,6 +260,8 @@ async function main() {
 
   const browser = await chromium.launch({ headless: true });
   const ctx = await browser.newContext();
+  // Pre-answer the analytics consent banner so it never overlays the UI under test.
+  await ctx.addInitScript(() => { try { localStorage.setItem('yearwheel-consent', 'no'); } catch {} });
   const page = await ctx.newPage();
   const consoleErrors = [];
   page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });

@@ -8,9 +8,17 @@ import { CalendarApp } from './calendar/CalendarApp';
 import { pwaInstallManager } from './utils/pwaInstall';
 import { initializeSwipeNavigation } from './utils/swipeNavigation';
 import { setupPwaUpdates } from './utils/pwaUpdate';
+import { initConsentBanner } from './utils/consent';
 
 // Register the service worker and surface an update toast when a new build ships.
 setupPwaUpdates();
+
+// Ask for analytics consent (Consent Mode defaults are set inline in the HTML head).
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => initConsentBanner());
+} else {
+  initConsentBanner();
+}
 
 // Initialize app when DOM is ready
 const initApp = (): void => {
