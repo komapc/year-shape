@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Guide page**: static, crawlable `/circular-year-planner` page (what a circular year planner is for, the three views, getting started, read-only Google Calendar how-to, overlays, shortcuts), linked from the footer, the About panel and the sitemap.
+- **Analytics consent**: Google Consent Mode v2 defaults (all storage denied) before the Google tag loads, plus a minimal Allow/Decline banner stored as `yearwheel-consent`; Privacy Policy now describes Google Analytics.
+- **Social preview**: 1200×630 `og.png` replaces the SVG favicon as `og:image`/`twitter:image`.
+
+### Changed
+- **SEO**: shorter, benefit-first meta/OG/JSON-LD description; sitemap entries carry `lastmod`.
+
 ### Fixed
 - **Rings Mode Year**: Rings now derive month, Hebrew-month, and holiday data from the actual year instead of a hardcoded 2025 snapshot. Gregorian months are leap-year-correct, Hebrew months come from the system Hebrew calendar, and movable feasts (Easter, Passover, Rosh Hashanah, …) are computed per year. The center label shows the rendered year.
 - **Lint**: Resolved all 5 ESLint errors (`prefer-const`, `no-case-declarations`, unused disable directive) so `npm run lint` passes.

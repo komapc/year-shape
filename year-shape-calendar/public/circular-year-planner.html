@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circular year planner guide - YearWheel</title>
+  <meta name="description" content="How to plan with a circular year calendar: YearWheel's Classic, Rings and Zoom views, Google Calendar events, moon phases, Hebrew months and shortcuts.">
+  <link rel="canonical" href="https://yearwheel.lipu.dev/circular-year-planner">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://yearwheel.lipu.dev/circular-year-planner">
+  <meta property="og:title" content="Circular year planner guide - YearWheel">
+  <meta property="og:description" content="How to plan with a circular year calendar: YearWheel's Classic, Rings and Zoom views, Google Calendar events, moon phases, Hebrew months and shortcuts.">
+  <meta property="og:image" content="https://yearwheel.lipu.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="YearWheel">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://yearwheel.lipu.dev/og.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.6; min-height: 100vh; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    .header, .content { padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+    .content { padding: 32px; }
+    .header h1 { margin-bottom: 10px; font-size: 1.9rem; line-height: 1.25; }
+    .cta { display: inline-block; margin-top: 14px; padding: 10px 18px; border-radius: 8px; background: #3b82f6; color: #fff !important; text-decoration: none; font-weight: 600; }
+    .cta:hover { background: #2563eb; }
+    h2 { margin: 32px 0 14px; padding-bottom: 10px; border-bottom: 2px solid; font-size: 1.35rem; }
+    h2:first-child { margin-top: 0; }
+    h3 { margin: 18px 0 8px; font-size: 1.05rem; color: #fff; }
+    p, li { margin-bottom: 12px; }
+    ul, ol { margin-left: 22px; margin-bottom: 16px; }
+    kbd { display: inline-block; padding: 0 6px; border: 1px solid rgba(255,255,255,.25); border-radius: 4px; font-size: .9em; background: rgba(255,255,255,.06); }
+    .back-link { display: inline-block; margin-top: 20px; text-decoration: none; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    @media (max-width: 600px) { .container { padding: 24px 16px; } .header, .content { padding: 20px 16px; } .header h1 { font-size: 1.5rem; } }
+  </style>
+  <link rel="stylesheet" href="legal.css">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to plan your year with a circular calendar in YearWheel",
+      "description": "Open YearWheel, pick a view (Classic, Rings or Zoom), optionally connect Google Calendar read-only, and click any week or day to see details.",
+      "url": "https://yearwheel.lipu.dev/circular-year-planner",
+      "image": "https://yearwheel.lipu.dev/og.png",
+      "tool": { "@type": "HowToTool", "name": "YearWheel (free, runs in the browser)" },
+      "step": [
+        { "@type": "HowToStep", "name": "Open the wheel", "text": "Open yearwheel.lipu.dev. The current year is drawn as a circle, with the present moment marked." },
+        { "@type": "HowToStep", "name": "Pick a view", "text": "Choose Classic, Rings or Zoom in the header." },
+        { "@type": "HowToStep", "name": "Connect Google Calendar (optional)", "text": "Click Sign in with Google and grant read-only calendar access to see your events on the wheel." },
+        { "@type": "HowToStep", "name": "Explore", "text": "Click a week or day to open its details, use the arrow keys to change year, and adjust shape and overlays in Settings." }
+      ]
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Circular year planner: seeing the whole year at once</h1>
+      <p class="updated">A short guide to YearWheel, a free year calendar drawn as a wheel</p>
+      <a class="cta" href="/">Open YearWheel</a>
+    </div>
+
+    <div class="content">
+      <h2>Why plan the year in a circle</h2>
+      <p>A wall calendar or a list of months cuts the year into separate pages. A year really is a cycle, though: December runs straight into January, and the seasons come back in the same order. Drawing the year as a circle makes that visible. You see the full twelve months in one picture, where you are right now, how much of the year is behind you and how much is left.</p>
+      <p>That view helps with things a monthly grid hides:</p>
+      <ul>
+        <li><strong>Long-range planning.</strong> Trips, school terms, projects and deadlines that are months apart sit in one picture, so you can see how they are spaced across the year.</li>
+        <li><strong>Seasonal rhythm.</strong> The wheel is split into winter, spring, summer and autumn, so busy and quiet seasons stand out.</li>
+        <li><strong>Reviewing a year.</strong> With your calendar connected, you can look back over a whole year of events in one view.</li>
+        <li><strong>Several calendars side by side.</strong> Gregorian months, Hebrew months and holidays can sit on the same wheel as separate rings.</li>
+      </ul>
+
+      <h2>Three views of the year</h2>
+      <h3>Classic</h3>
+      <p>The year as 52 weeks arranged in four seasonal quadrants. A slider morphs the shape between a circle and a square, and you can switch the direction time flows (clockwise or counter-clockwise) and rotate the seasons. Click any week to open a week view with the days laid out like a paper diary, including your events.</p>
+      <h3>Rings</h3>
+      <p>Concentric rings, each showing one way of dividing the year: seasons, Gregorian months, Hebrew months, weeks and holidays (Hebrew, Christian and European, computed for the selected year, so movable dates such as Passover and Easter land on the right day). Turn rings on and off, drag them to change their order, and adjust ring width and corner radius.</p>
+      <h3>Zoom</h3>
+      <p>A nested view that goes from the year (twelve months in a circle) to a month, a week and finally a single day shown as a clock with its events. Click to zoom in, use the back button, the mouse wheel or a pinch to zoom out, and swipe to move to the previous or next period.</p>
+
+      <h2>Getting started</h2>
+      <ol>
+        <li>Open <a href="/">yearwheel.lipu.dev</a>. The current year appears straight away; no account is needed.</li>
+        <li>Choose <em>Classic</em>, <em>Rings</em> or <em>Zoom</em> in the header.</li>
+        <li>Use the arrows above the wheel, or the <kbd>←</kbd> <kbd>→</kbd> keys, to move between years.</li>
+        <li>Open Settings (the gear button or <kbd>S</kbd>) to change the shape, time direction, theme, language and overlays.</li>
+      </ol>
+
+      <h2>Showing your Google Calendar events</h2>
+      <p>YearWheel can display events from your Google Calendar. The connection is <strong>read-only</strong>: it uses the <code>calendar.readonly</code> permission, so YearWheel can list events but never creates, edits or deletes them.</p>
+      <ol>
+        <li>Click <strong>Sign in with Google</strong> in the header.</li>
+        <li>Choose your Google account and allow read-only access to your calendar.</li>
+        <li>Your events appear on the wheel and in the week and day views.</li>
+        <li>After changing something in Google Calendar, use <strong>Refresh Events</strong> in Settings to reload.</li>
+        <li>In Classic view, Ctrl+click (⌘+click on a Mac) a week to open that week in Google Calendar, or use <strong>Open in Calendar</strong> in the week view.</li>
+        <li>To disconnect, choose <strong>Sign out</strong> in Settings.</li>
+      </ol>
+
+      <h2>Overlays and settings</h2>
+      <ul>
+        <li><strong>Moon phase, zodiac signs and Hebrew month</strong>: in Classic view, hover over a week to see the moon phase at its start, the zodiac signs it falls in and the Hebrew month (or months) it overlaps. Each one can be turned on or off.</li>
+        <li><strong>Theme</strong>: light, dark, or automatic to follow your system.</li>
+        <li><strong>Language</strong>: the interface is translated into English, Hebrew, Esperanto, toki pona, Polish, Ukrainian, Belarusian and Ido.</li>
+        <li><strong>Reset to Defaults</strong> restores the original layout.</li>
+      </ul>
+      <p>Settings are saved in your browser, so the wheel looks the same the next time you open it.</p>
+
+      <h2>Keyboard shortcuts</h2>
+      <ul>
+        <li><kbd>S</kbd>: open or close Settings</li>
+        <li><kbd>?</kbd>: open or close the help panel</li>
+        <li><kbd>Esc</kbd>: close panels</li>
+        <li><kbd>←</kbd> <kbd>→</kbd>: previous or next year</li>
+      </ul>
+
+      <h2>Install it as an app</h2>
+      <p>YearWheel is a progressive web app. In Chrome, Edge or Safari you can add it to your home screen or install it from the browser menu, and it opens in its own window like a native app.</p>
+
+      <h2>Privacy</h2>
+      <p>YearWheel runs in your browser. Calendar events are fetched directly from Google into the page and are not stored on a YearWheel server. Visit statistics (Google Analytics) are only stored in cookies if you allow them. See the <a href="privacy.html">Privacy Policy</a> for details.</p>
+
+      <a class="back-link" href="/">← Open YearWheel</a>
+    </div>
+  </div>
+</body>
+</html>

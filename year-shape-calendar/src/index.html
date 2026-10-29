@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="msvalidate.01" content="CAFA7BE0D5D83695993D635831499022" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="YearWheel - Visualize your entire year at a glance with an interactive calendar that morphs between circle and square. Integrate with Google Calendar for a unique productivity experience." />
+  <meta name="description" content="See your whole year at a glance: a free circular year planner that morphs from circle to square, with Google Calendar events, moon phases and holidays." />
   <meta name="keywords" content="calendar, visualization, year wheel, circular calendar, interactive calendar, google calendar, productivity, year shape" />
   <meta name="author" content="YearWheel Team" />
   <meta name="theme-color" content="#0a0e1a" />
@@ -18,16 +18,20 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://yearwheel.lipu.dev/" />
   <meta property="og:title" content="YearWheel — circular year planner & interactive calendar" />
-  <meta property="og:description" content="Visualize your entire year at a glance with YearWheel. An interactive calendar that morphs between circle and square shapes. Integrate with Google Calendar." />
-  <meta property="og:image" content="https://yearwheel.lipu.dev/favicon.svg" />
+  <meta property="og:description" content="See your whole year at a glance: a free circular year planner that morphs from circle to square, with Google Calendar events, moon phases and holidays." />
+  <meta property="og:image" content="https://yearwheel.lipu.dev/og.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="YearWheel: the whole year drawn as a circle of months and seasons" />
   <meta property="og:site_name" content="YearWheel" />
 
   <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content="https://yearwheel.lipu.dev/" />
-  <meta property="twitter:title" content="YearWheel — circular year planner & interactive calendar" />
-  <meta property="twitter:description" content="Visualize your entire year at a glance with YearWheel. An interactive calendar that morphs between circle and square shapes. Integrate with Google Calendar." />
-  <meta property="twitter:image" content="https://yearwheel.lipu.dev/favicon.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://yearwheel.lipu.dev/" />
+  <meta name="twitter:title" content="YearWheel — circular year planner & interactive calendar" />
+  <meta name="twitter:description" content="See your whole year at a glance: a free circular year planner that morphs from circle to square, with Google Calendar events, moon phases and holidays." />
+  <meta name="twitter:image" content="https://yearwheel.lipu.dev/og.png" />
 
   <!-- Structured Data (JSON-LD) -->
   <script type="application/ld+json">
@@ -37,7 +41,8 @@
       "name": "YearWheel",
       "operatingSystem": "Web",
       "applicationCategory": "ProductivityApplication",
-      "description": "Interactive calendar visualization that morphs between circle and square to see your year at a glance.",
+      "description": "See your whole year at a glance: a free circular year planner that morphs from circle to square, with Google Calendar events, moon phases and holidays.",
+      "image": "https://yearwheel.lipu.dev/og.png",
       "url": "https://yearwheel.lipu.dev/",
       "offers": {
         "@type": "Offer",
@@ -64,11 +69,19 @@
   <!-- Zoom Mode Styles -->
   <link rel="stylesheet" href="/calendar/zoom-mode.css" />
   
-  <!-- Google Analytics 4 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=GT-TWZG67NP"></script>
+  <!-- Google Analytics 4 with Consent Mode v2: all storage denied until the
+       visitor opts in via the consent banner (src/utils/consent.ts). -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+    var ywConsent = null;
+    try { ywConsent = localStorage.getItem('yearwheel-consent'); } catch (e) {}
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: ywConsent === 'yes' ? 'granted' : 'denied'
+    });
     gtag('js', new Date());
     var isStaging = window.location.hostname.includes('staging') || window.location.hostname.includes('localhost');
     if (isStaging) {
@@ -78,6 +91,7 @@
       gtag('config', 'G-VWVEZETT42');
     }
   </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=GT-TWZG67NP"></script>
 
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -473,6 +487,7 @@
           <div class="space-y-4 text-sm text-dark-muted">
             <p>
               An interactive calendar that visualizes the entire year as a morphing shape.
+              <a href="/circular-year-planner" class="text-primary-400 hover:underline">Read the guide</a>.
             </p>
             
             <div>
@@ -518,6 +533,8 @@
           <span>YearWheel v0.13.0</span>
           <span>•</span>
           <a href="https://lipu.dev/" class="hover:text-gray-300 transition-colors">lipu.dev</a>
+          <span>•</span>
+          <a href="/circular-year-planner" class="hover:text-gray-300 transition-colors">Guide</a>
           <span>•</span>
           <a href="privacy.html" class="hover:text-gray-300 transition-colors">Privacy Policy</a>
           <span>•</span>
