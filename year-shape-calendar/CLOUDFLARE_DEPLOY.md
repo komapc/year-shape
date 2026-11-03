@@ -52,7 +52,7 @@ curl -X POST \
 
 **All branches deploy automatically!**
 
-- `main` → Production (https://yearwheel.pages.dev/)
+- `main` → Production (https://yearwheel.lipu.dev/)
 - `staging` → Staging (https://staging.yearwheel.pages.dev/)
 - `feature/xyz` → Preview (https://feature-xyz.yearwheel.pages.dev/)
 - Any PR → Preview URL
@@ -171,7 +171,7 @@ Sometimes Cloudflare updates their build environment. To rebuild with new platfo
 git push origin main
 # Wait 5-10 minutes
 # GitHub Actions runs
-# Deploys to komapc.github.io/year-shape/
+# Deploys to yearwheel.lipu.dev/
 ```
 
 ### Cloudflare Pages Redeployment
@@ -179,7 +179,7 @@ git push origin main
 git push origin main
 # Wait 2-3 minutes (faster!)
 # Cloudflare auto-builds
-# Deploys to yearwheel.pages.dev/
+# Deploys to yearwheel.lipu.dev/
 ```
 
 **Cloudflare is 2-3x faster!** ⚡

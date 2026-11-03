@@ -14,14 +14,14 @@ Feature Branch → staging → main
 
 ### Branches
 
-- **`main`** - Production (https://komapc.github.io/year-shape/)
+- **`main`** - Production (https://yearwheel.lipu.dev/)
 - **`staging`** - Staging environment (https://komapc.github.io/year-shape-staging/)
 - **`feature/*`** - Development branches (local testing)
 
 ## Environments
 
 ### Production
-- **URL:** https://yearwheel.pages.dev/
+- **URL:** https://yearwheel.lipu.dev/
 - **Branch:** `main`
 - **Platform:** Cloudflare Pages
 - **Protection:** Requires PR review, passing tests
@@ -175,7 +175,7 @@ Create these environments in GitHub: Settings → Environments
 
 **2. production** (github-pages)
 - Deployment branch: `main` only
-- URL: https://komapc.github.io/year-shape/
+- URL: https://yearwheel.lipu.dev/
 - Optional: Add required reviewers
 - Optional: Add deployment protection rules
 

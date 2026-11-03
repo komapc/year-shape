@@ -4,7 +4,7 @@ An interactive calendar visualization that morphs between circular and square sh
 
 ## Environments
 
-- **Production:** https://yearwheel.pages.dev/
+- **Production:** https://yearwheel.lipu.dev/
 - **Staging:** https://staging.yearwheel.pages.dev/
 - **PR Previews:** Every PR gets a unique preview URL automatically
 
@@ -63,7 +63,7 @@ git checkout staging
 gh pr create --base main --title "Release: v0.5.2"
 
 # After merge, live at:
-# https://yearwheel.pages.dev/
+# https://yearwheel.lipu.dev/
 ```
 
 ## Build Commands

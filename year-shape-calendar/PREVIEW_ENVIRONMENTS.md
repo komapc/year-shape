@@ -135,7 +135,7 @@ Create `komapc/year-shape-staging` repo:
 
 1. **Production:** GitHub Pages (free, fast, integrated)
    - Deploy from `main` branch
-   - URL: https://komapc.github.io/year-shape/
+   - URL: https://yearwheel.lipu.dev/
 
 2. **Staging + PR Previews:** Vercel (free, preview URLs)
    - Auto-deploy from `staging` branch
@@ -157,7 +157,7 @@ Create `komapc/year-shape-staging` repo:
 
 Current setup stays as-is:
 - `.github/workflows/deploy.yml` → Deploys `main` to GitHub Pages
-- Production URL: https://komapc.github.io/year-shape/
+- Production URL: https://yearwheel.lipu.dev/
 
 ### Step 2: Add Vercel for Staging
 
@@ -188,7 +188,7 @@ Current setup stays as-is:
 ```markdown
 ## Environments
 
-- **Production:** https://komapc.github.io/year-shape/ (GitHub Pages)
+- **Production:** https://yearwheel.lipu.dev/ (GitHub Pages)
 - **Staging:** https://yearwheel.vercel.app (Vercel)
 - **PR Previews:** Unique URL for each PR (Vercel)
 ```
@@ -214,7 +214,7 @@ Current setup stays as-is:
 
 4. **Merge to `main`:**
    - GitHub Pages deploys to production
-   - Live at https://komapc.github.io/year-shape/
+   - Live at https://yearwheel.lipu.dev/
 
 **You get:**
 - ✅ Production on GitHub Pages (familiar, free)
