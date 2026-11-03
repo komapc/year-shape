@@ -108,7 +108,7 @@ npm run build
 
 ### GitHub Pages
 No changes to deployment URL or functionality:
-- **URL:** https://komapc.github.io/year-shape/ (unchanged)
+- **URL:** https://yearwheel.lipu.dev/ (unchanged)
 - **Source:** `year-shape-calendar/dist/` (updated path in workflow)
 - **Secrets:** VITE_GOOGLE_CLIENT_ID, VITE_GOOGLE_API_KEY (unchanged)
 

@@ -139,7 +139,7 @@ gh pr create --base main --title "Test: Staging setup"
 # After merge:
 # - GitHub Actions run
 # - Tests pass
-# - Deploy to https://komapc.github.io/year-shape/
+# - Deploy to https://yearwheel.lipu.dev/
 ```
 
 ## Summary

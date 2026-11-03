@@ -4,7 +4,7 @@ YearWheel is deployed using Cloudflare Pages for superior performance and previe
 
 ## Live URLs
 
-- **Production:** https://yearwheel.pages.dev/
+- **Production:** https://yearwheel.lipu.dev/
 - **Staging:** https://staging.yearwheel.pages.dev/
 - **PR Previews:** Each PR gets: `https://<branch-name>.yearwheel.pages.dev/`
 
@@ -17,7 +17,7 @@ Cloudflare Pages automatically deploys:
 1. **Production** - Every push to `main` branch
    - Runs tests
    - Builds the app
-   - Deploys to https://yearwheel.pages.dev/
+   - Deploys to https://yearwheel.lipu.dev/
 
 2. **Staging** - Every push to `staging` branch
    - Deploys to https://staging.yearwheel.pages.dev/
@@ -75,7 +75,7 @@ git checkout staging
 gh pr create --base main --title "Release: v0.5.2"
 
 # After merge:
-# - Cloudflare deploys to https://yearwheel.pages.dev/
+# - Cloudflare deploys to https://yearwheel.lipu.dev/
 ```
 
 ## Advantages Over GitHub Pages
@@ -164,7 +164,7 @@ Common issues:
 
 - Verify environment variables are set for **BOTH** Production AND Preview
 - Add preview URLs to Google OAuth authorized origins:
-  - `https://yearwheel.pages.dev`
+  - `https://yearwheel.lipu.dev`
   - `https://*.yearwheel.pages.dev`
 
 ## Comparison to Previous Setup
@@ -195,7 +195,7 @@ Cloudflare handles all deployments automatically through Git integration - no Gi
 
 1. ✅ Click "Save and Deploy" in Cloudflare
 2. ⏳ Wait for first deployment (2-3 minutes)
-3. ✅ Visit https://yearwheel.pages.dev/
+3. ✅ Visit https://yearwheel.lipu.dev/
 4. ✅ Test the application
 5. ✅ Update Google OAuth with new URL
 6. 🎉 Done!
