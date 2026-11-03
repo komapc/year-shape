@@ -52,7 +52,7 @@ Go to GitHub → Settings → Secrets → New secret:
 
 **That's it!** Now:
 - Every PR gets a preview URL automatically
-- `main` branch → Production (https://yearwheel.vercel.app)
+- `main` branch → Production (https://<your-project>.vercel.app)
 - `staging` branch → Staging preview
 - PR branches → Unique preview URLs
 
@@ -140,7 +140,7 @@ Create `komapc/year-shape-staging` repo:
 2. **Staging + PR Previews:** Vercel (free, preview URLs)
    - Auto-deploy from `staging` branch
    - Preview URL for every PR
-   - URL: https://yearwheel.vercel.app (or custom domain)
+   - URL: https://<your-project>.vercel.app (or custom domain)
 
 **Why this works:**
 - ✅ Keep GitHub Pages for production (no migration)
@@ -189,7 +189,7 @@ Current setup stays as-is:
 ## Environments
 
 - **Production:** https://yearwheel.lipu.dev/ (GitHub Pages)
-- **Staging:** https://yearwheel.vercel.app (Vercel)
+- **Staging:** https://<your-project>.vercel.app (Vercel)
 - **PR Previews:** Unique URL for each PR (Vercel)
 ```
 
@@ -206,7 +206,7 @@ Current setup stays as-is:
 
 2. **Merge to `staging`:**
    - Vercel deploys to staging URL
-   - Everyone can test at https://yearwheel.vercel.app
+   - Everyone can test at https://<your-project>.vercel.app
 
 3. **Create PR from `staging` to `main`:**
    - Vercel creates preview
