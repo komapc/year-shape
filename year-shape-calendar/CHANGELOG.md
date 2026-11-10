@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **SEO**: shorter, benefit-first meta/OG/JSON-LD description; sitemap entries carry `lastmod`.
+- **Lint**: ESLint + typescript-eslint replaced by oxlint (`.oxlintrc.json`: the project's custom rules carried over; the base set is now oxlint's `correctness` category instead of ESLint/typescript-eslint `recommended`). ESLint 10 no longer read `.eslintrc.json` and typescript-eslint cannot run on TypeScript 7 (no JS compiler API), so lint had silently been a no-op in CI. Lint is now a blocking CI step; the `legacy-peer-deps` workaround in `.npmrc` is gone.
+
+### Security
+- **Deploy**: the GitHub Pages deploy now only runs for successful CI runs triggered by a `push` to this repository. Previously a fork PR whose head branch was named `main` matched the `workflow_run` branch filter and could have been built and deployed.
 
 ### Fixed
 - **Rings Mode Year**: Rings now derive month, Hebrew-month, and holiday data from the actual year instead of a hardcoded 2025 snapshot. Gregorian months are leap-year-correct, Hebrew months come from the system Hebrew calendar, and movable feasts (Easter, Passover, Rosh Hashanah, …) are computed per year. The center label shows the rendered year.
