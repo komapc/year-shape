@@ -5,7 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   root: 'src',
   publicDir: '../public',
-  // Cloudflare Pages uses root path, GitHub Pages uses /year-shape/
+  // Production (GitHub Pages on yearwheel.lipu.dev) and Cloudflare Pages both
+  // serve from the domain root; CI sets VITE_BASE_URL=/ or CF_PAGES. The
+  // '/year-shape/' fallback only applies to a bare `NODE_ENV=production` build.
   base: process.env.CF_PAGES ? '/' : 
         (process.env.VITE_BASE_URL || 
          (process.env.NODE_ENV === 'production' ? '/year-shape/' : '/')),

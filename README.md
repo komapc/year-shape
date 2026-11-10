@@ -8,13 +8,13 @@ Welcome to my collection of web applications and experiments! This repository co
 
 ### 🎡 [YearWheel](./year-shape-calendar/)
 
-**Status:** ✅ Active | **Version:** 0.9.0 | **Tech:** TypeScript, Vite, TailwindCSS
+**Status:** ✅ Active | **Version:** 0.13.0 | **Tech:** TypeScript, Vite, TailwindCSS
 
-An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, PWA support, theme auto-detection, 5 languages, and a beautiful modern UI.
+An interactive calendar visualization that morphs between circular and square shapes, representing the entire year in a unique way. Features Google Calendar integration, PWA support, theme auto-detection, 8 languages, and a beautiful modern UI.
 
 **Environments:**
 - **Production:** https://yearwheel.lipu.dev/ (old `yearwheel.pages.dev` and `komapc.github.io/year-shape/` redirect here)
-- **Staging:** https://staging.yearwheel.pages.dev/ (auto-deployed from `staging` branch)
+- **Staging:** https://staging.yearwheel.pages.dev/ (Cloudflare Pages build of the `staging` branch)
 - **PR Previews:** Every PR gets a unique URL like `https://<branch>.yearwheel.pages.dev/`
 
 **Features:**
@@ -24,7 +24,7 @@ An interactive calendar visualization that morphs between circular and square sh
 - 📊 Google Calendar API integration
 - 🎨 Theme auto-detection (follows system preference)
 - 📱 PWA support (installable, offline-ready)
-- 🌐 5 languages (en, he, eo, uk, tok)
+- 🌐 8 languages (en, he, eo, uk, tok, pl, be, io)
 - 📱 Fully responsive design
 
 **Quick Start:**
@@ -46,11 +46,11 @@ npm run dev
 
 ## 🛠️ Technologies Used Across Projects
 
-- **Frontend:** TypeScript, React, Next.js, TailwindCSS
-- **Build Tools:** Vite, Webpack
-- **APIs:** Google Calendar API
-- **Deployment:** GitHub Pages, GitHub Actions
-- **Testing:** Manual testing, future: Vitest, Playwright
+- **Frontend:** TypeScript (vanilla, no framework), TailwindCSS
+- **Build Tools:** Vite
+- **APIs:** Google Calendar API (read-only)
+- **Deployment:** GitHub Pages via GitHub Actions (production), Cloudflare Pages (staging and PR previews)
+- **Testing:** Vitest (unit), Playwright (e2e), oxlint
 
 ---
 
@@ -115,6 +115,6 @@ Each project may have its own license. Please refer to individual project direct
 
 ---
 
-**Last Updated:** November 2025  
+**Last Updated:** November 2026  
 **Projects Count:** 1 (more coming soon!)
 

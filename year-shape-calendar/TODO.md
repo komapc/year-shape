@@ -33,8 +33,8 @@ deliberate consolidation pass:
   from the language picker until ready. (README now documents this.)
 - [ ] **`ZoomMode.ts` size** — ~910 lines combining animation, rendering, state,
   hit testing, and gestures. Candidate for extraction next time it's touched.
-- [ ] **`ZoomModeWheel.test.ts` flakiness** — timing-sensitive; can fail under load.
-  Consider increasing timeouts or making the animation wait deterministic.
+- [x] **`ZoomModeWheel.test.ts` flakiness** — fixed 2026-11: the tests no longer
+  drive the 800 ms transition animation (state changes synchronously).
 - [ ] **Rings year navigation** — data is now year-aware, but the rings page has no
   year picker (the "rotate year" button only rotates orientation). A follow-up could
   wire year navigation to re-render the rings.

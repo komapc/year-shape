@@ -43,7 +43,9 @@ describe('ZoomMode Wheel Navigation Bug', () => {
     });
 
     marchSector.dispatchEvent(wheelEvent);
-    vi.advanceTimersByTime(300);
+    // navigateToLevel() updates state synchronously; no need to drive the
+    // transition animation (each frame rebuilds the whole SVG in jsdom, which
+    // made these tests take seconds and time out under load).
 
     const state = zoomMode.getCurrentState();
     expect(state.level).toBe('month');
@@ -69,7 +71,9 @@ describe('ZoomMode Wheel Navigation Bug', () => {
     });
 
     day15Sector.dispatchEvent(wheelEvent);
-    vi.advanceTimersByTime(300);
+    // navigateToLevel() updates state synchronously; no need to drive the
+    // transition animation (each frame rebuilds the whole SVG in jsdom, which
+    // made these tests take seconds and time out under load).
 
     const state = zoomMode.getCurrentState();
     expect(state.level).toBe('day');
@@ -95,7 +99,9 @@ describe('ZoomMode Wheel Navigation Bug', () => {
     });
 
     weekDaySector.dispatchEvent(wheelEvent);
-    vi.advanceTimersByTime(300);
+    // navigateToLevel() updates state synchronously; no need to drive the
+    // transition animation (each frame rebuilds the whole SVG in jsdom, which
+    // made these tests take seconds and time out under load).
 
     const state = zoomMode.getCurrentState();
     expect(state.level).toBe('month');
@@ -120,7 +126,9 @@ describe('ZoomMode Wheel Navigation Bug', () => {
     });
 
     hourSector.dispatchEvent(wheelEvent);
-    vi.advanceTimersByTime(300);
+    // navigateToLevel() updates state synchronously; no need to drive the
+    // transition animation (each frame rebuilds the whole SVG in jsdom, which
+    // made these tests take seconds and time out under load).
 
     const state = zoomMode.getCurrentState();
     expect(state.level).toBe('week');
