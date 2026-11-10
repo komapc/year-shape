@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Repo hygiene**: generated `src/dev-dist/` service-worker files are no longer tracked; root README facts (version, languages, stack, testing) refreshed.
 
 ### Security
+- **Content-Security-Policy**: built pages (`index.html`, `rings.html`) carry a CSP `<meta>` injected at build time (`csp.ts`). Scripts are limited to self, Google tag, Identity Services and the gapi loader; the inline Consent Mode bootstrap is allowed by its SHA-256 hash (computed from the built HTML); `object-src 'none'`, `base-uri 'self'`. Inline `on*=` handlers were replaced (rings footer hover → CSS, error-screen Retry → listener). Sign-out's token revoke (`oauth2.googleapis.com`) is allowed explicitly. e2e asserts zero violations plus a negative control (an injected inline script must be blocked). Limits of meta delivery: no `frame-ancestors`/report-only, and the static `public/*.html` pages are not covered.
 - **Deploy**: the GitHub Pages deploy now only runs for successful CI runs triggered by a `push` to this repository. Previously a fork PR whose head branch was named `main` matched the `workflow_run` branch filter and could have been built and deployed.
 
 ### Fixed

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
+import { cspPlugin } from './csp';
 
 export default defineConfig({
   root: 'src',
@@ -39,6 +40,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    cspPlugin(),
     VitePWA({
       registerType: 'prompt',
       // We register manually (src/utils/pwaUpdate.ts) to show an update toast.
