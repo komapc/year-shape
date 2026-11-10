@@ -244,7 +244,7 @@ export class CircleRenderer {
         index: String(item.index),
         value: String(item.value),
         "hover-type": "item",
-        ...(item.dataAttributes || {}),
+        ...item.dataAttributes,
       },
       classList: ["sector-group"],
     };

@@ -6,6 +6,8 @@ is the genuinely-open backlog.
 ## Resolved (2026-06-03 review)
 
 - ✅ All 5 CI lint errors fixed; `npm run lint` passes (0 warnings).
+  (2026-11: lint moved to oxlint — ESLint 10 / typescript-eslint stopped working
+  with TypeScript 7 — and is now a blocking CI step.)
 - ✅ Rings mode is year-aware (no more hardcoded 2025; leap-year-correct months,
   computed Hebrew months and movable holidays).
 - ✅ `any` warnings cleared (real types where possible; `no-explicit-any` off for
