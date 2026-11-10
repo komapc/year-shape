@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Social preview**: 1200×630 `og.png` replaces the SVG favicon as `og:image`/`twitter:image`.
 
 ### Changed
+- **SEO (home headings)**: the home H1 now reads "YearWheel — circular year planner" (the tagline is a small muted span, so the logo looks the same), and a short visible intro paragraph under the wheel describes the circular calendar and links to the guide. Panel and dialog labels that were H2/H3 ("Settings", "About", "Week Details", "Shape", "Calendar", "Features:", …) are now plain `div`s with the same classes, on both the home and Rings pages, so the heading outline only holds real headings.
 - **SEO**: shorter, benefit-first meta/OG/JSON-LD description; sitemap entries carry `lastmod`.
 - **Lint**: ESLint + typescript-eslint replaced by oxlint (`.oxlintrc.json`: the project's custom rules carried over; the base set is now oxlint's `correctness` category instead of ESLint/typescript-eslint `recommended`). ESLint 10 no longer read `.eslintrc.json` and typescript-eslint cannot run on TypeScript 7 (no JS compiler API), so lint had silently been a no-op in CI. Lint is now a blocking CI step; the `legacy-peer-deps` workaround in `.npmrc` is gone.
 
