@@ -39,6 +39,30 @@ describe('consent banner', () => {
     expect(gtag).toHaveBeenCalledWith('consent', 'update', { analytics_storage: 'denied' });
   });
 
+  it('uses the stored locale and RTL for Hebrew', () => {
+    localStorage.setItem('yearwheel_locale', 'he');
+    initConsentBanner();
+    const banner = document.getElementById('consentBanner') as HTMLElement;
+    expect(banner.dir).toBe('rtl');
+    expect(banner.lang).toBe('he');
+    expect((document.getElementById('consentYes') as HTMLButtonElement).textContent).toBe('אישור');
+  });
+
+  it('falls back to English for an unknown locale', () => {
+    localStorage.setItem('yearwheel_locale', 'xx');
+    initConsentBanner();
+    expect(document.getElementById('consentBanner')?.dir).toBe('ltr');
+    expect(document.getElementById('consentYes')?.textContent).toBe('Allow');
+  });
+
+  it('injects one stylesheet with a light-theme variant', () => {
+    initConsentBanner();
+    initConsentBanner();
+    const styles = document.querySelectorAll('#consentBannerStyle');
+    expect(styles.length).toBe(1);
+    expect(styles[0].textContent).toContain('body.light-theme #consentBanner');
+  });
+
   it('only creates one banner', () => {
     initConsentBanner();
     initConsentBanner();

@@ -109,6 +109,12 @@ export interface Translations {
   spring: string;
   summer: string;
   autumn: string;
+
+  // Analytics consent banner
+  consentText: string;
+  consentAllow: string;
+  consentDecline: string;
+  consentDetails: string;
 }
 
 const en: Translations = {
@@ -215,6 +221,10 @@ const en: Translations = {
   spring: 'Spring',
   summer: 'Summer',
   autumn: 'Autumn',
+  consentText: 'YearWheel uses Google Analytics (cookies) to count visits. Allow?',
+  consentAllow: 'Allow',
+  consentDecline: 'Decline',
+  consentDetails: 'Details',
 };
 
 const he: Translations = {
@@ -321,6 +331,10 @@ const he: Translations = {
   spring: 'אביב',
   summer: 'קיץ',
   autumn: 'סתיו',
+  consentText: 'YearWheel משתמש ב-Google Analytics (עוגיות) כדי לספור ביקורים. לאשר?',
+  consentAllow: 'אישור',
+  consentDecline: 'דחייה',
+  consentDetails: 'פרטים',
 };
 
 // Placeholder translations (to be completed)
@@ -434,6 +448,10 @@ const eo: Translations = {
   spring: 'Printempo',
   summer: 'Somero',
   autumn: 'Aŭtuno',
+  consentText: 'YearWheel uzas Google Analytics (kuketojn) por kalkuli vizitojn. Ĉu permesi?',
+  consentAllow: 'Permesi',
+  consentDecline: 'Rifuzi',
+  consentDetails: 'Detaloj',
 };
 
 // Ukrainian translations
@@ -541,6 +559,10 @@ const uk: Translations = {
   spring: 'Весна',
   summer: 'Літо',
   autumn: 'Осінь',
+  consentText: 'YearWheel використовує Google Analytics (cookies), щоб рахувати відвідування. Дозволити?',
+  consentAllow: 'Дозволити',
+  consentDecline: 'Відхилити',
+  consentDetails: 'Докладніше',
 };
 
 // Toki Pona translations (minimalist constructed language)
@@ -648,6 +670,10 @@ const tok: Translations = {
   spring: 'tenpo kasi',
   summer: 'tenpo seli',
   autumn: 'tenpo pi kule jelo',
+  consentText: 'lipu YearWheel li kepeken ilo Google Analytics (kuki) tawa nanpa pi jan kama. ni li pona tawa sina anu seme?',
+  consentAllow: 'pona',
+  consentDecline: 'pona ala',
+  consentDetails: 'sona',
 };
 
 // Polish translations
@@ -755,6 +781,10 @@ const pl: Translations = {
   spring: 'Wiosna',
   summer: 'Lato',
   autumn: 'Jesień',
+  consentText: 'YearWheel używa Google Analytics (pliki cookie) do liczenia odwiedzin. Zezwolić?',
+  consentAllow: 'Zezwól',
+  consentDecline: 'Odrzuć',
+  consentDetails: 'Szczegóły',
 };
 
 // Belarusian translations
@@ -862,6 +892,10 @@ const be: Translations = {
   spring: 'Вясна',
   summer: 'Лета',
   autumn: 'Восень',
+  consentText: 'YearWheel выкарыстоўвае Google Analytics (cookies), каб лічыць наведванні. Дазволіць?',
+  consentAllow: 'Дазволіць',
+  consentDecline: 'Адхіліць',
+  consentDetails: 'Падрабязней',
 };
 
 // Ido translations
@@ -969,6 +1003,10 @@ const io: Translations = {
   spring: 'Printempo',
   summer: 'Somero',
   autumn: 'Autuno',
+  consentText: 'YearWheel uzas Google Analytics (cookies) por kontar vizitadi. Ka permisar?',
+  consentAllow: 'Permisar',
+  consentDecline: 'Refuzar',
+  consentDetails: 'Detali',
 };
 
 const translations: Record<Locale, Translations> = {
@@ -1023,19 +1061,28 @@ export const setLocale = (locale: Locale): void => {
  * Initialize locale from localStorage or browser language
  */
 export const initializeLocale = (): void => {
-  // Try to load from localStorage
-  const stored = localStorage.getItem('yearwheel_locale') as Locale;
-  if (stored && translations[stored]) {
-    setLocale(stored);
-    return;
-  }
-  
-  // Detect from browser
-  const browserLang = navigator.language.split('-')[0] as Locale;
-  if (translations[browserLang]) {
-    setLocale(browserLang);
-  }
+  const detected = detectLocale();
+  if (detected) setLocale(detected);
 };
+
+/**
+ * The locale the app would pick (stored choice, else browser language), or
+ * null if neither is supported. Side-effect free: does not touch the DOM.
+ */
+export const detectLocale = (): Locale | null => {
+  try {
+    const stored = localStorage.getItem('yearwheel_locale') as Locale;
+    if (stored && translations[stored]) return stored;
+  } catch {
+    // storage unavailable
+  }
+  const browserLang = navigator.language.split('-')[0] as Locale;
+  return translations[browserLang] ? browserLang : null;
+};
+
+/** Translations for a given locale (falls back to English). */
+export const translationsFor = (locale: Locale | null): Translations =>
+  (locale && translations[locale]) || translations.en;
 
 /**
  * Get translation for current locale

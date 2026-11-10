@@ -8,6 +8,8 @@
  * ('yes' | 'no'), mirroring hanzi-burst's `hanzi-consent` flag.
  */
 
+import { detectLocale, translationsFor } from '../i18n';
+
 export const CONSENT_KEY = 'yearwheel-consent';
 const BANNER_ID = 'consentBanner';
 
@@ -38,24 +40,47 @@ const updateGoogleConsent = (granted: boolean): void => {
   gtag('consent', 'update', { analytics_storage: granted ? 'granted' : 'denied' });
 };
 
+const STYLE_ID = 'consentBannerStyle';
+
+// Colours live in a stylesheet (not inline) so the banner follows the app's
+// light theme, which is toggled later via `body.light-theme`.
+const BANNER_CSS = `
+#${BANNER_ID}{position:fixed;left:12px;right:12px;bottom:12px;max-width:640px;margin:0 auto;
+padding:12px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;
+background:#0f1420;color:#e5e9f0;border:1px solid rgba(255,255,255,.12);border-radius:10px;
+font-size:14px;box-shadow:0 4px 18px rgba(0,0,0,.35);z-index:1000}
+#${BANNER_ID} a{color:#60a5fa}
+body.light-theme #${BANNER_ID}{background:#fff;color:#1f2937;border-color:rgba(0,0,0,.12);
+box-shadow:0 4px 18px rgba(0,0,0,.12)}
+body.light-theme #${BANNER_ID} a{color:#2563eb}
+`;
+
+const ensureStyle = (doc: Document): void => {
+  if (doc.getElementById(STYLE_ID)) return;
+  const style = doc.createElement('style');
+  style.id = STYLE_ID;
+  style.textContent = BANNER_CSS;
+  doc.head.appendChild(style);
+};
+
 /** Show the consent banner if the visitor has not chosen yet. */
 export const initConsentBanner = (doc: Document = document): void => {
   if (getConsent() !== null || doc.getElementById(BANNER_ID)) return;
+
+  const locale = detectLocale();
+  const tr = translationsFor(locale);
+  ensureStyle(doc);
 
   const banner = doc.createElement('div');
   banner.id = BANNER_ID;
   banner.setAttribute('role', 'dialog');
   banner.setAttribute('aria-live', 'polite');
   banner.setAttribute('aria-label', 'Analytics consent');
-  banner.style.cssText = [
-    'position:fixed', 'left:12px', 'right:12px', 'bottom:12px', 'max-width:640px', 'margin:0 auto',
-    'padding:12px 14px', 'display:flex', 'flex-wrap:wrap', 'align-items:center', 'gap:8px 10px',
-    'background:#0f1420', 'color:#e5e9f0', 'border:1px solid rgba(255,255,255,.12)', 'border-radius:10px',
-    'font-size:14px', 'box-shadow:0 4px 18px rgba(0,0,0,.35)', 'z-index:1000',
-  ].join(';');
+  if (locale) banner.lang = locale;
+  banner.dir = locale === 'he' ? 'rtl' : 'ltr';
 
   const text = doc.createElement('span');
-  text.textContent = 'YearWheel uses Google Analytics (cookies) to count visits. Allow?';
+  text.textContent = tr.consentText;
   text.style.flex = '1 1 240px';
 
   const makeButton = (label: string, primary: boolean): HTMLButtonElement => {
@@ -65,15 +90,14 @@ export const initConsentBanner = (doc: Document = document): void => {
     b.className = primary ? 'btn primary text-sm' : 'btn text-sm';
     return b;
   };
-  const yes = makeButton('Allow', true);
+  const yes = makeButton(tr.consentAllow, true);
   yes.id = 'consentYes';
-  const no = makeButton('Decline', false);
+  const no = makeButton(tr.consentDecline, false);
   no.id = 'consentNo';
 
   const more = doc.createElement('a');
   more.href = '/privacy.html#analytics';
-  more.textContent = 'Details';
-  more.style.color = '#60a5fa';
+  more.textContent = tr.consentDetails;
 
   const close = (choice: ConsentChoice): void => {
     setConsent(choice);
