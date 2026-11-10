@@ -77,6 +77,52 @@ async function setSettings(page, settings) {
   }, settings);
 }
 
+// The build injects a CSP <meta> (csp.ts). Every page must carry it and load
+// without a single violation, with analytics consent both granted and denied.
+async function runCspTests(browser) {
+  for (const path of ['', 'rings.html']) {
+    for (const consent of ['yes', 'no']) {
+      const ctx = await browser.newContext();
+      await ctx.addInitScript((c) => {
+        try { localStorage.setItem('yearwheel-consent', c); } catch {}
+        window.__cspViolations = [];
+        document.addEventListener('securitypolicyviolation', (e) =>
+          window.__cspViolations.push(`${e.violatedDirective} ${e.blockedURI}`));
+      }, consent);
+      const p = await ctx.newPage();
+      await p.goto(URL + path, { waitUntil: 'load' });
+      // Give the async Google scripts time to load and run.
+      await p.waitForTimeout(3000);
+      const { hasMeta, violations, dataLayer } = await p.evaluate(() => ({
+        hasMeta: !!document.querySelector('meta[http-equiv="Content-Security-Policy"]'),
+        violations: window.__cspViolations.slice(),
+        // The hashed inline bootstrap must have run.
+        dataLayer: Array.isArray(window.dataLayer),
+      }));
+      const name = `CSP /${path} (consent=${consent})`;
+      if (!hasMeta) log('FAIL', `${name}: no CSP meta`);
+      else if (!dataLayer) log('FAIL', `${name}: inline gtag bootstrap did not run`);
+      else if (violations.length) log('FAIL', `${name}: violations`, violations.join(' | '));
+      else log('PASS', `${name}: meta present, bootstrap ran, no violations`);
+      if (path === '' && consent === 'no') {
+        // Negative control: the policy must actually be enforced and the
+        // listener must see it, otherwise "no violations" proves nothing.
+        const neg = await p.evaluate(async () => {
+          window.__injected = false;
+          const s = document.createElement('script');
+          s.textContent = 'window.__injected = true';
+          document.body.appendChild(s);
+          await new Promise((r) => setTimeout(r, 200));
+          return { ran: window.__injected, seen: window.__cspViolations.some((v) => v.startsWith('script-src')) };
+        });
+        if (!neg.ran && neg.seen) log('PASS', 'CSP negative control: injected inline script blocked and reported');
+        else log('FAIL', 'CSP negative control', JSON.stringify(neg));
+      }
+      await ctx.close();
+    }
+  }
+}
+
 async function runTests(page, consoleErrors) {
   await page.goto(URL);
   await page.waitForLoadState('networkidle');
@@ -270,6 +316,7 @@ async function main() {
   let exitCode = 0;
   try {
     await runTests(page, consoleErrors);
+    await runCspTests(browser);
   } catch (e) {
     console.error('Test run threw:', e);
     exitCode = 2;

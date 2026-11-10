@@ -56,7 +56,7 @@ const initApp = (): void => {
           <h1 class="text-2xl font-bold text-red-400 mb-4">Failed to Load YearWheel</h1>
           <p id="errorMessage" class="text-gray-300 mb-6"></p>
           <button
-            onclick="location.reload()"
+            id="errorRetry"
             class="btn primary px-6 py-3"
           >
             ↻ Retry
@@ -64,6 +64,7 @@ const initApp = (): void => {
         </div>
       </div>
     `;
+    document.getElementById('errorRetry')?.addEventListener('click', () => location.reload());
     const errorEl = document.getElementById('errorMessage');
     if (errorEl) {
       errorEl.textContent = error instanceof Error ? error.message : 'Unknown error occurred';
