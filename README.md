@@ -111,7 +111,7 @@ This is a personal portfolio repository, but feedback and suggestions are welcom
 
 ## 📝 License
 
-Each project may have its own license. Please refer to individual project directories for details.
+MIT ([`LICENSE`](LICENSE)).
 
 ---
 
