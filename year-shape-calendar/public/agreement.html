@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Agreement - YearWheel</title>
   <style>
@@ -131,7 +132,7 @@
     <ul>
       <li>You grant YearWheel permission to access your Google Calendar data (read-only)</li>
       <li>Authentication is handled via Google's OAuth 2.0 protocol</li>
-      <li>Access tokens are stored locally in your browser (localStorage)</li>
+      <li>Access tokens are stored only for the current browser tab (sessionStorage) and are discarded when it closes</li>
       <li>You can revoke access at any time through your Google Account settings</li>
       <li>YearWheel does not store your calendar data on any server</li>
     </ul>

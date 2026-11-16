@@ -11,32 +11,42 @@ describe('GoogleCalendarService Integration Support', () => {
     expect(googleCalendarService.getAuthStatus).toBeDefined();
   });
 
-  it('should handle session restoration when token exists', async () => {
-    // Mock localStorage
-    const mockStorage: Record<string, string> = {};
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => mockStorage[key]);
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, val) => {
-      mockStorage[key] = val;
-    });
+  it('restores the token from sessionStorage and purges a legacy localStorage token', async () => {
+    const setToken = vi.fn();
+    (globalThis as any).gapi = {
+      client: { setToken, getToken: vi.fn(), request: vi.fn() },
+    };
+    const svc = googleCalendarService as any;
+    svc.gapiInitialized = true;
 
-    // Mock gapi
-    (window as any).gapi = {
-      client: {
-        setToken: vi.fn(),
-        getToken: vi.fn().mockReturnValue({ access_token: 'test-token' }),
-        request: vi.fn().mockResolvedValue({ result: { name: 'Test User' } })
-      }
-    } as any;
+    const expiry = (Date.now() + 3600000).toString(); // 1 hour ahead
+    sessionStorage.setItem('google_access_token', 'session-token');
+    sessionStorage.setItem('google_token_expiry', expiry);
+    localStorage.setItem('google_access_token', 'legacy-token');
+    localStorage.setItem('google_token_expiry', expiry);
+    localStorage.setItem('google_user_info', JSON.stringify({ name: 'Test User' }));
 
-    // Set a valid token in storage
-    mockStorage['google_access_token'] = 'valid-token';
-    mockStorage['google_token_expiry'] = (Date.now() + 3600000).toString(); // 1 hour future
+    await expect(googleCalendarService.restoreSession()).resolves.toBe(true);
+    expect(setToken).toHaveBeenCalledWith({ access_token: 'session-token' });
+    expect(localStorage.getItem('google_access_token')).toBeNull();
+    expect(localStorage.getItem('google_token_expiry')).toBeNull();
 
-    // Mock service state
-    // We need to bypass the actual API loading logic since we can't load external scripts here
-    // But we can check if restoreSession logic attempts to use the token
-    
-    // This is a partial test - mostly verifying the service structure supports the flow
-    // A full test requires mocking gapi.load/client.init which is complex in JSDOM
+    sessionStorage.clear();
+    localStorage.clear();
+    delete (globalThis as any).gapi;
+    svc.gapiInitialized = false;
+    svc.isAuthenticated = false;
+  });
+
+  it('does not restore a token that only exists in localStorage', async () => {
+    (globalThis as any).gapi = { client: { setToken: vi.fn() } };
+    localStorage.setItem('google_access_token', 'legacy-token');
+    localStorage.setItem('google_token_expiry', (Date.now() + 3600000).toString());
+
+    await expect(googleCalendarService.restoreSession()).resolves.toBe(false);
+    expect(localStorage.getItem('google_access_token')).toBeNull();
+
+    localStorage.clear();
+    delete (globalThis as any).gapi;
   });
 });
