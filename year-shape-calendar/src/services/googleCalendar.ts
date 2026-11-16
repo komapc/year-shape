@@ -7,6 +7,8 @@
  * - Access token management and persistence
  * - Event fetching and mapping
  * - Session restoration from sessionStorage (current tab only)
+ * - The signed-in user's name/email is kept in sessionStorage alongside the
+ *   token, not in localStorage, so it is gone when the tab closes
  * 
  * Authentication Flow:
  * 1. User clicks "Sign in with Google"
@@ -41,6 +43,12 @@ class GoogleCalendarService {
   private readonly TOKEN_STORAGE_KEY = 'google_access_token';
   private readonly TOKEN_EXPIRY_KEY = 'google_token_expiry';
   private readonly USER_INFO_KEY = 'google_user_info';
+
+  constructor() {
+    // Run on load, before any Google script arrives: drop the token and the
+    // user's name/email that older versions left in localStorage.
+    this.purgeLegacyToken();
+  }
 
   /**
    * Initialize Google API client
@@ -126,8 +134,8 @@ class GoogleCalendarService {
             const minutesLeft = Math.floor((expiryTime - now) / (60 * 1000));
             console.log(`✅ Session restored! Token valid for ${minutesLeft} more minutes`);
             
-            // Load user info from localStorage or fetch if not available
-            const storedUserInfo = localStorage.getItem(this.USER_INFO_KEY);
+            // Load user info from sessionStorage or fetch if not available
+            const storedUserInfo = sessionStorage.getItem(this.USER_INFO_KEY);
             if (storedUserInfo) {
               try {
                 this.userInfo = JSON.parse(storedUserInfo);
@@ -184,21 +192,23 @@ class GoogleCalendarService {
   private clearSession = (): void => {
     sessionStorage.removeItem(this.TOKEN_STORAGE_KEY);
     sessionStorage.removeItem(this.TOKEN_EXPIRY_KEY);
+    sessionStorage.removeItem(this.USER_INFO_KEY);
     this.purgeLegacyToken();
   };
 
   /**
-   * Remove a token left in localStorage by versions before sessionStorage
-   * was used, so it doesn't linger on disk.
+   * Remove the token and user info (name/email) left in localStorage by
+   * versions before sessionStorage was used, so they don't linger on disk.
    */
-  private purgeLegacyToken = (): void => {
+  private purgeLegacyToken(): void {
     try {
       localStorage.removeItem(this.TOKEN_STORAGE_KEY);
       localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
+      localStorage.removeItem(this.USER_INFO_KEY);
     } catch {
       // Storage unavailable (private mode / blocked): nothing to purge.
     }
-  };
+  }
 
   /**
    * Check if the service is ready
@@ -273,7 +283,6 @@ class GoogleCalendarService {
       this.isAuthenticated = false;
       this.userInfo = null;
       this.clearSession();
-      localStorage.removeItem(this.USER_INFO_KEY);
     }
   };
 
@@ -291,8 +300,8 @@ class GoogleCalendarService {
         email: response.result.email
       };
       
-      // Store user info
-      localStorage.setItem(this.USER_INFO_KEY, JSON.stringify(this.userInfo));
+      // Store user info for this tab only, like the token
+      sessionStorage.setItem(this.USER_INFO_KEY, JSON.stringify(this.userInfo));
     } catch (error) {
       console.warn('Failed to fetch user info:', error);
     }
@@ -304,9 +313,9 @@ class GoogleCalendarService {
   getUserInfo = (): { name?: string; email?: string } | null => {
     if (this.userInfo) return this.userInfo;
     
-    // Try to load from localStorage
+    // Try to load from sessionStorage
     try {
-      const stored = localStorage.getItem(this.USER_INFO_KEY);
+      const stored = sessionStorage.getItem(this.USER_INFO_KEY);
       if (stored) {
         this.userInfo = JSON.parse(stored);
         return this.userInfo;

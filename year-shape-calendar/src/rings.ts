@@ -5,6 +5,8 @@
  * It initializes the RingsMode renderer and sets up UI controls.
  */
 
+// First: hide and break out if framed (clickjacking; GitHub Pages has no headers).
+import './utils/frameBuster';
 import '@fontsource-variable/inter';
 import { RingsMode } from './calendar/RingsMode';
 import { loadSettings, updateSetting, type CalendarMode } from './utils/settings';
