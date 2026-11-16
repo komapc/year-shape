@@ -6,18 +6,21 @@
  * - OAuth 2.0 authentication (GIS - Google Identity Services)
  * - Access token management and persistence
  * - Event fetching and mapping
- * - Session restoration from localStorage
+ * - Session restoration from sessionStorage (current tab only)
  * 
  * Authentication Flow:
  * 1. User clicks "Sign in with Google"
  * 2. OAuth consent screen opens
  * 3. User grants calendar.readonly permission
  * 4. Access token received (expires in ~1 hour)
- * 5. Token stored in localStorage for persistence
+ * 5. Token stored in sessionStorage (cleared when the tab closes)
  * 6. Events fetched automatically
  * 
  * Session Persistence:
- * - Tokens saved to localStorage with expiry timestamp
+ * - Tokens saved to sessionStorage with expiry timestamp. Not localStorage:
+ *   a bearer token for the user's calendar should not outlive the tab or
+ *   sit on disk (security audit 2026-11-16). Reloads keep the session; a new
+ *   tab or browser restart asks the user to sign in again.
  * - Auto-restore on page load if token still valid
  * - 5-minute safety buffer before expiry
  * 
@@ -85,7 +88,7 @@ class GoogleCalendarService {
       this.gisInitialized = true;
       console.log('Google Identity Services initialized');
       
-      // Try to restore session from localStorage (async)
+      // Try to restore session from sessionStorage (async)
       this.restoreSession().catch(err => 
         console.warn('Session restore failed:', err)
       );
@@ -100,8 +103,9 @@ class GoogleCalendarService {
    */
   restoreSession = async (): Promise<boolean> => {
     try {
-      const storedToken = localStorage.getItem(this.TOKEN_STORAGE_KEY);
-      const storedExpiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
+      this.purgeLegacyToken();
+      const storedToken = sessionStorage.getItem(this.TOKEN_STORAGE_KEY);
+      const storedExpiry = sessionStorage.getItem(this.TOKEN_EXPIRY_KEY);
 
       if (storedToken && storedExpiry) {
         const expiryTime = parseInt(storedExpiry, 10);
@@ -161,14 +165,14 @@ class GoogleCalendarService {
   };
 
   /**
-   * Store access token in localStorage
+   * Store access token in sessionStorage
    */
   private storeSession = (token: string, expiresIn: number): void => {
     try {
       const expiryTime = Date.now() + (expiresIn * 1000);
-      localStorage.setItem(this.TOKEN_STORAGE_KEY, token);
-      localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiryTime.toString());
-      console.log('Session stored in localStorage');
+      sessionStorage.setItem(this.TOKEN_STORAGE_KEY, token);
+      sessionStorage.setItem(this.TOKEN_EXPIRY_KEY, expiryTime.toString());
+      console.log('Session stored in sessionStorage');
     } catch (error) {
       console.warn('Failed to store session:', error);
     }
@@ -178,8 +182,22 @@ class GoogleCalendarService {
    * Clear stored session
    */
   private clearSession = (): void => {
-    localStorage.removeItem(this.TOKEN_STORAGE_KEY);
-    localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
+    sessionStorage.removeItem(this.TOKEN_STORAGE_KEY);
+    sessionStorage.removeItem(this.TOKEN_EXPIRY_KEY);
+    this.purgeLegacyToken();
+  };
+
+  /**
+   * Remove a token left in localStorage by versions before sessionStorage
+   * was used, so it doesn't linger on disk.
+   */
+  private purgeLegacyToken = (): void => {
+    try {
+      localStorage.removeItem(this.TOKEN_STORAGE_KEY);
+      localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
+    } catch {
+      // Storage unavailable (private mode / blocked): nothing to purge.
+    }
   };
 
   /**

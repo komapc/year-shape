@@ -1,0 +1,14 @@
+# Security headers for Cloudflare Pages (the yearwheel.pages.dev project and
+# its previews). Production (yearwheel.lipu.dev) is GitHub Pages, which
+# ignores this file and cannot send custom headers.
+#
+# The CSP here only carries frame-ancestors: the full policy is the
+# build-time <meta> tag (csp.ts), whose script hashes this static file can't
+# know. A header CSP and a meta CSP are both enforced, so repeating
+# script-src here without the hashes would block the gtag bootstrap.
+/*
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()

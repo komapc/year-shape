@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Repo hygiene**: generated `src/dev-dist/` service-worker files are no longer tracked; root README facts (version, languages, stack, testing) refreshed.
 
 ### Security
+- **Google access token in sessionStorage** (security audit 2026-11-16): the Calendar access token and its expiry moved from localStorage to sessionStorage, so the token no longer persists on disk after the tab closes. A token left in localStorage by older versions is removed on load. UX: a reload keeps the session; a new tab or browser restart asks for Google sign-in again.
+- **Static pages CSP**: `privacy`, `terms`, `agreement` and `circular-year-planner` now carry a strict `<meta>` CSP (`script-src 'none'`, `default-src 'self'`).
+- **`public/_headers`**: `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Only Cloudflare Pages honours it; production on GitHub Pages cannot send headers, so it still has no clickjacking protection.
+- **CI**: `ci.yml` runs with `permissions: contents: read`; dev-dependency `npm audit fix`.
 - **Content-Security-Policy**: built pages (`index.html`, `rings.html`) carry a CSP `<meta>` injected at build time (`csp.ts`). Scripts are limited to self, Google tag, Identity Services and the gapi loader; the inline Consent Mode bootstrap is allowed by its SHA-256 hash (computed from the built HTML); `object-src 'none'`, `base-uri 'self'`. Inline `on*=` handlers were replaced (rings footer hover → CSS, error-screen Retry → listener). Sign-out's token revoke (`oauth2.googleapis.com`) is allowed explicitly. e2e asserts zero violations plus a negative control (an injected inline script must be blocked). Limits of meta delivery: no `frame-ancestors`/report-only, and the static `public/*.html` pages are not covered.
 - **Deploy**: the GitHub Pages deploy now only runs for successful CI runs triggered by a `push` to this repository. Previously a fork PR whose head branch was named `main` matched the `workflow_run` branch filter and could have been built and deployed.
 
