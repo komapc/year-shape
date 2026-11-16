@@ -2,6 +2,8 @@
  * Application entry point
  */
 
+// First: hide and break out if framed (clickjacking; GitHub Pages has no headers).
+import './utils/frameBuster';
 import '@fontsource-variable/inter';
 import './style.css';
 import { CalendarApp } from './calendar/CalendarApp';

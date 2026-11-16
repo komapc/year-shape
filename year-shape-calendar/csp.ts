@@ -5,7 +5,11 @@
  * policy has to live in the HTML. Consequences of the meta delivery:
  *   - `frame-ancestors`, `report-uri` and report-only mode are not available;
  *   - it only governs what follows it, so it is inserted right after <meta charset>;
- *   - the static pages in public/ (privacy, terms, guide) are not covered.
+ *   - the static pages in public/ (privacy, terms, guide) are not covered;
+ *     they carry their own hand-written <meta> CSP.
+ * Clickjacking (no frame-ancestors) is handled in JS instead:
+ * src/utils/frameBuster.ts for the app pages, public/framebust.js for the
+ * static ones.
  *
  * Inline <script> blocks (the Consent Mode / gtag bootstrap) are allowed by
  * their SHA-256 hash, computed from the final HTML at build time so the hash
