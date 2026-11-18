@@ -153,7 +153,12 @@ describe("SVG Utilities", () => {
         transition: "transform 0.3s ease",
       });
 
-      expect(group.style.transition).toBe("transform 0.3s ease");
+      // Assert the longhands rather than the shorthand string: how the
+      // shorthand is serialized varies by engine (jsdom 31+ omits the
+      // initial "ease" and returns "transform 0.3s").
+      expect(group.style.transitionProperty).toBe("transform");
+      expect(group.style.transitionDuration).toBe("0.3s");
+      expect(group.style.transitionTimingFunction).toBe("ease");
     });
   });
 
