@@ -13,6 +13,8 @@ src/dev-dist/
 
 # Test / coverage artifacts
 coverage/
+# Vitest 5 report/attachment directory
+.vitest/
 
 # Editor / OS
 .DS_Store

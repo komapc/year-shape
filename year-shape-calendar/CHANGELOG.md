@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Consent banner**: localized (all translated locales, RTL for Hebrew) and follows the light theme.
 - **CI**: Node 22 (Node 20 is past end-of-life); `engines.node` set to `>=22.12.0`.
 - **Repo hygiene**: generated `src/dev-dist/` service-worker files are no longer tracked; root README facts (version, languages, stack, testing) refreshed.
+- **Dev dependencies**: vitest and `@vitest/ui` 4.1 → 5.1 (bumped together: `@vitest/ui` pins the exact vitest version), jsdom 29 → 31, vite-plugin-pwa 1.3 → 2.0. jsdom 31 serializes the `transition` shorthand without the initial `ease`, so the `createSectorGroup` test now checks the transition longhands. `.vitest/` (Vitest 5's report directory) is git-ignored.
 
 ### Security
 - **Google access token in sessionStorage** (security audit 2026-11-16): the Calendar access token and its expiry moved from localStorage to sessionStorage, so the token no longer persists on disk after the tab closes. A token left in localStorage by older versions is removed on load. UX: a reload keeps the session; a new tab or browser restart asks for Google sign-in again.
