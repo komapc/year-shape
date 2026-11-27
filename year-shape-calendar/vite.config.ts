@@ -1,7 +1,19 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { resolve } from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
 import { cspPlugin } from './csp';
+
+// The static HTML shows the year before the app script runs, and crawlers index
+// that text. A literal year goes stale every January, so the pages carry a
+// %BUILD_YEAR% placeholder (year label, copyright line) that is filled in here.
+// Text only, no inline script, so the CSP hashes in csp.ts are unaffected.
+const buildYearPlugin = (): Plugin => ({
+  name: 'build-year',
+  transformIndexHtml: {
+    order: 'pre',
+    handler: (html) => html.replaceAll('%BUILD_YEAR%', String(new Date().getFullYear())),
+  },
+});
 
 export default defineConfig({
   root: 'src',
@@ -40,6 +52,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    buildYearPlugin(),
     cspPlugin(),
     VitePWA({
       registerType: 'prompt',
