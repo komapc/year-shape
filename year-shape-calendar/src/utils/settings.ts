@@ -25,7 +25,7 @@ export interface ZoomState {
   level: ZoomLevel;     // Current zoom level
   year: number;         // Current year being viewed
   month?: number;       // Current month (0-11) if in month/week/day level
-  week?: number;        // Current week (0-51) if in week level
+  week?: number;        // Current Sunday–Saturday week (0-53) if in week level
   day?: number;         // Current day (1-31) if in day level
 }
 

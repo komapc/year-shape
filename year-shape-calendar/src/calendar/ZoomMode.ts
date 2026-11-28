@@ -36,9 +36,29 @@ export interface ZoomState {
   level: ZoomLevel; // Current zoom level
   year: number; // Current year (e.g., 2025)
   month: number; // Current month (0-11, 0 = January)
-  week: number; // Current week (0-51)
+  week: number; // Current Sunday–Saturday week (0-53), see getSundayWeek
   day: number; // Current day (1-31)
 }
+
+/** "YYYY-MM-DD" of a local date: the key of ZoomMode's per-day event lists. */
+const dayKeyOf = (year: number, month: number, day: number): string =>
+  `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+/**
+ * Index of the Sunday–Saturday week that contains a date, counted from the Sunday
+ * on or before Jan 1 (week 0). These are the zoom view's weeks; the main wheel's
+ * weeks are date.ts's 7-day blocks from Jan 1. A year has up to 54 such weeks (0-53).
+ */
+export const getSundayWeek = (year: number, month: number, day: number): number => {
+  const date = new Date(year, month, day), dayOfWeek = date.getDay(), sundayOfWeek = new Date(date);
+  sundayOfWeek.setDate(date.getDate() - dayOfWeek);
+  const startOfYear = new Date(year, 0, 1), startDayOfWeek = startOfYear.getDay(), firstSunday = new Date(startOfYear);
+  firstSunday.setDate(1 - startDayOfWeek);
+  const sundayUTC = Date.UTC(sundayOfWeek.getFullYear(), sundayOfWeek.getMonth(), sundayOfWeek.getDate());
+  const firstUTC = Date.UTC(firstSunday.getFullYear(), firstSunday.getMonth(), firstSunday.getDate());
+  const diffInDays = Math.round((sundayUTC - firstUTC) / 86400000);
+  return Math.max(0, Math.floor(diffInDays / 7));
+};
 
 /**
  * ZoomMode class - manages the interactive hierarchical calendar view
@@ -57,7 +77,6 @@ export class ZoomMode {
   private svg!: SVGElement;
   private currentState: ZoomState;
   private eventsByYear: Record<number, Record<number, CalendarEvent[]>> = {}; // year -> month -> events
-  private eventsByWeek: Record<number, CalendarEvent[]> = {}; // week -> events
   private eventsByDay: Record<string, CalendarEvent[]> = {}; // "YYYY-MM-DD" -> events
 
   // Circle renderer for DRY code
@@ -288,7 +307,6 @@ export class ZoomMode {
    * Update events data
    */
   updateEvents = (eventsByWeek: Record<number, CalendarEvent[]>): void => {
-    this.eventsByWeek = eventsByWeek;
     this.eventsByYear = {};
     this.eventsByDay = {};
     const currentYear = this.currentState.year;
@@ -301,7 +319,7 @@ export class ZoomMode {
         const eventDate = new Date(event.start);
         const year = eventDate.getFullYear();
         const month = eventDate.getMonth();
-        const dayKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(eventDate.getDate()).padStart(2, "0")}`;
+        const dayKey = dayKeyOf(year, month, eventDate.getDate());
 
         if (year === currentYear) {
           if (!this.eventsByYear[year][month]) this.eventsByYear[year][month] = [];
@@ -657,7 +675,14 @@ export class ZoomMode {
 
   private renderWeekCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0, centerY = 0, radius = 320, week = state.week, year = state.year, weekStart = this.getWeekStartDate(year, week);
-    const weekEvents = (this.eventsByWeek[week] || []).slice(0, 4);
+    // The events of the seven drawn days. eventsByWeek's keys are the wheel's weeks
+    // (7-day blocks from Jan 1), not these Sunday–Saturday weeks, so read by day.
+    const weekEvents: CalendarEvent[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart); d.setDate(d.getDate() + i);
+      weekEvents.push(...(this.eventsByDay[dayKeyOf(d.getFullYear(), d.getMonth(), d.getDate())] || []));
+    }
+    weekEvents.splice(4);
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const now = new Date(), currentYear = now.getFullYear(), currentMonth = now.getMonth(), currentDay = now.getDate();
     const items: CircleItem[] = [];
@@ -732,7 +757,7 @@ export class ZoomMode {
 
   private renderDayCircle = (group: SVGElement, state: ZoomState): SVGElement => {
     const centerX = 0, centerY = 0, radius = 320, year = state.year, month = state.month, day = state.day;
-    const dayKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const dayKey = dayKeyOf(year, month, day);
     const dayEvents = (this.eventsByDay[dayKey] || []).slice(0, 4);
     const now = new Date(), currentYear = now.getFullYear(), currentMonth = now.getMonth(), currentDay = now.getDate(), currentHour12 = now.getHours() % 12 || 12, isCurrentDay = year === currentYear && month === currentMonth && day === currentDay;
     const items: CircleItem[] = [];
@@ -803,16 +828,7 @@ export class ZoomMode {
     return group;
   };
 
-  private getWeekForDay = (year: number, month: number, day: number): number => {
-    const date = new Date(year, month, day), dayOfWeek = date.getDay(), sundayOfWeek = new Date(date);
-    sundayOfWeek.setDate(date.getDate() - dayOfWeek);
-    const startOfYear = new Date(year, 0, 1), startDayOfWeek = startOfYear.getDay(), firstSunday = new Date(startOfYear);
-    firstSunday.setDate(1 - startDayOfWeek);
-    const sundayUTC = Date.UTC(sundayOfWeek.getFullYear(), sundayOfWeek.getMonth(), sundayOfWeek.getDate());
-    const firstUTC = Date.UTC(firstSunday.getFullYear(), firstSunday.getMonth(), firstSunday.getDate());
-    const diffInDays = Math.round((sundayUTC - firstUTC) / 86400000);
-    return Math.max(0, Math.min(51, Math.floor(diffInDays / 7)));
-  };
+  private getWeekForDay = (year: number, month: number, day: number): number => getSundayWeek(year, month, day);
 
   private getWeekStartDate = (year: number, week: number): Date => {
     const startOfYear = new Date(year, 0, 1), startDayOfWeek = startOfYear.getDay(), firstSunday = new Date(startOfYear);

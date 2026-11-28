@@ -17,6 +17,7 @@ const TODAY_YEAR = TODAY.getFullYear();
 const TODAY_MONTH = TODAY.getMonth();
 const TODAY_DAY = TODAY.getDate();
 
+// Same formula as getSundayWeek in src/calendar/ZoomMode.ts.
 function expectedWeekFromDay(year, month, day) {
   const date = new Date(year, month, day);
   const dow = date.getDay();
@@ -29,7 +30,7 @@ function expectedWeekFromDay(year, month, day) {
   const sundayUTC = Date.UTC(sunday.getFullYear(), sunday.getMonth(), sunday.getDate());
   const firstUTC = Date.UTC(firstSunday.getFullYear(), firstSunday.getMonth(), firstSunday.getDate());
   const diffDays = Math.round((sundayUTC - firstUTC) / 86400000);
-  return Math.max(0, Math.min(51, Math.floor(diffDays / 7)));
+  return Math.max(0, Math.floor(diffDays / 7));
 }
 
 async function startPreview() {
@@ -286,9 +287,10 @@ async function runTests(page, consoleErrors) {
   if (typeof w2 === 'number' && w2 >= 0 && w2 <= 51) log('PASS', `Week formula leap year: Feb 29 2024 = ${w2}`);
   else log('FAIL', `Week formula leap year: got ${w2}`);
 
+  // Dec 31 2025 (Wed) is in the week of Sun Dec 28, the year's 53rd Sunday–Saturday week (index 52).
   const w3 = expectedWeekFromDay(2025, 11, 31);
-  if (typeof w3 === 'number' && w3 <= 51) log('PASS', `Week formula year end: Dec 31 2025 = ${w3}`);
-  else log('FAIL', `Week formula year end: got ${w3}`);
+  if (w3 === 52) log('PASS', `Week formula year end: Dec 31 2025 = ${w3}`);
+  else log('FAIL', `Week formula year end: got ${w3}, expected 52`);
 }
 
 async function main() {
